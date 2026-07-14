@@ -1,0 +1,172 @@
+{% extends 'storefront/base.html' %}
+{% load static %}
+{% load currency_tags %}
+
+{% block content %}
+    <!-- Hero Section: Editorial Carousel -->
+    <section class="hero-section">
+      <div class="hero-carousel">
+
+        <!-- Slide 1 -->
+        <!-- Recommended Admin Upload Size: 1920x1080px (16:9 Aspect Ratio) or 2000x1200px -->
+        <div class="hero-carousel-item active">
+          <div class="hero-carousel-bg" style="background-image: url('{% static 'storefront/images/hero_1.png' %}')"></div>
+          <div class="hero-overlay"></div>
+          <div class="hero-content">
+            <span class="text-label-caps" style="letter-spacing: 0.2em; font-size: 10px; color: var(--text-secondary); margin-bottom: 1.5rem; display: block;">MAISON ATELIER — NEW COLLECTION</span>
+            <h2 class="text-display-lg" style="line-height: 1.1; margin-bottom: 1.5rem; font-weight: 400;">
+              The Poetry <br>
+              <span style="font-family: 'EB Garamond', serif; font-style: italic; font-weight: 300; font-size: 1.15em; color: var(--accent-color);">of</span> Silence
+            </h2>
+            <p class="font-serif text-secondary" style="font-size: 1.125rem; line-height: 1.6; max-width: 24rem; margin-bottom: 2.5rem; font-weight: 300;">
+              A study in architectural form, drape, and fluid movement. Crafted from fine crepe and silk.
+            </p>
+            <a class="hero-btn text-label-caps" href="{% url 'storefront:collections' %}">Shop Collection</a>
+          </div>
+        </div>
+
+        <!-- Slide 2 -->
+        <!-- Recommended Admin Upload Size: 1920x1080px (16:9 Aspect Ratio) or 2000x1200px -->
+        <div class="hero-carousel-item">
+          <div class="hero-carousel-bg" style="background-image: url('{% static 'storefront/images/hero_2.png' %}')"></div>
+          <div class="hero-overlay"></div>
+          <div class="hero-content">
+            <span class="text-label-caps" style="letter-spacing: 0.2em; font-size: 10px; color: var(--text-secondary); margin-bottom: 1.5rem; display: block;">LIMITED EDITION — ACCESSORIES</span>
+            <h2 class="text-display-lg" style="line-height: 1.1; margin-bottom: 1.5rem; font-weight: 400;">
+              Structured <br>
+              <span style="font-family: 'EB Garamond', serif; font-style: italic; font-weight: 300; font-size: 1.15em; color: var(--accent-color);">Elegance</span>
+            </h2>
+            <p class="font-serif text-secondary" style="font-size: 1.125rem; line-height: 1.6; max-width: 24rem; margin-bottom: 2.5rem; font-weight: 300;">
+              Handcrafted in Florence from fine vegetable-tanned leather, defining structured luxury.
+            </p>
+            <a class="hero-btn text-label-caps" href="{% url 'storefront:collections' %}">Explore Details</a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Carousel Indicators -->
+      <div class="hero-controls">
+        <button class="hero-control-btn" onclick="setSlide(0)">
+          <div class="hero-control-progress" id="progress-0"></div>
+        </button>
+        <button class="hero-control-btn" onclick="setSlide(1)">
+          <div class="hero-control-progress" id="progress-1"></div>
+        </button>
+      </div>
+    </section>
+
+    <!-- Brand Ethos Section -->
+    <section class="ethos-section">
+      <div class="grid-12">
+        <div class="ethos-text">
+          <h3 class="text-display-md">Refined utility for the modern wardrobe.</h3>
+          <p class="text-body-lg text-secondary">
+            At MAISON, we believe in the luxury of space and the power of restraint. Each piece is a testament to
+            architectural precision and tactile excellence.
+          </p>
+          <div class="line-draw-container">
+            <a class="text-label-caps" href="#">About Our Philosophy</a>
+            <div class="line-draw"></div>
+          </div>
+        </div>
+
+        <div class="ethos-image">
+          <div class="aspect-4-5">
+            <!-- Recommended Admin Upload Size: 960x1200px (4:5 Aspect Ratio) -->
+            <img alt="White linen fabric draped on architectural stool" src="{% static 'storefront/images/ethos.png' %}" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Category Grid -->
+    <section class="selections-section">
+      <div class="section-header">
+        <h4 class="text-headline-lg">Curated Selections</h4>
+        <a class="text-label-caps text-secondary" style="text-decoration: underline;" href="{% url 'storefront:catalog' %}">View
+          All</a>
+      </div>
+
+      <div class="category-grid">
+        {% for category in categories|slice:":4" %}
+        <a class="category-item" href="{% url 'storefront:catalog' %}?category={{ category.slug }}">
+          <div class="zoom-container">
+            {% if category.image %}
+            <img alt="{{ category.name }}" src="{{ category.image.url }}" />
+            {% else %}
+            <img alt="{{ category.name }}" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxIy8Dvxe6ja5ICXfCzVYacQC2BIdbRETW-vbRbqvngaFfmecknI1YibRUIYKB7MJRi-61LCzo6RyWA216gTEgiNuu8TsV7B9nUcDvb9gbQQWZezW_LBBiBOjYNNUtgDRfHWH50sok0OGSlzj1ww0RDEdPkRM32SR3c0im0PHExmTg2PfIYyD23jjI3Qsk8taLqq0QhwkYAZMeChcKh0fLUiUtwGDLs0geDjVioAfeVB4M3h4AbmhyvsmsYir2awMfaqoJ69VN5iOQ" />
+            {% endif %}
+          </div>
+          <div class="category-title">
+            <p class="text-label-caps">{{ category.name|upper }}</p>
+            <p class="text-caption text-secondary">{{ category.description|truncatechars:30 }}</p>
+          </div>
+        </a>
+        {% empty %}
+        <p>No categories available.</p>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- New Arrivals Section -->
+    <section class="selections-section" style="padding-top: 0;">
+      <div class="section-header">
+        <h4 class="text-headline-lg">New Arrivals</h4>
+        <a class="text-label-caps text-secondary" style="text-decoration: underline;" href="{% url 'storefront:catalog' %}">Shop All</a>
+      </div>
+
+      <div class="collection-product-grid grid-4">
+        {% for product in featured_products %}
+        <div class="product-card" onclick="location.href='{% url 'storefront:product_detail' product.slug %}'" style="position: relative; cursor: pointer;">
+          <div class="product-card-img-wrapper">
+            <button class="product-wishlist-btn" onclick="event.stopPropagation(); toggleWishlist(this);" title="Add to Wishlist">
+              <span class="material-symbols-outlined">favorite_border</span>
+            </button>
+            {% if product.image %}
+            <img alt="{{ product.name }}" src="{{ product.image.url }}"/>
+            {% else %}
+            <img alt="{{ product.name }}" src="{% static 'storefront/images/product_main.png' %}"/>
+            {% endif %}
+            
+            {% if product.variants.first %}
+            <form action="{% url 'storefront:cart_add' %}" method="post" onclick="event.stopPropagation();">
+                {% csrf_token %}
+                <input type="hidden" name="variant_id" value="{{ product.variants.first.id }}">
+                <input type="hidden" name="quantity" value="1">
+                <button type="submit" class="product-quick-add text-label-caps">Quick Add</button>
+            </form>
+            {% else %}
+            <button class="product-quick-add text-label-caps" onclick="event.stopPropagation(); location.href='{% url 'storefront:product_detail' product.slug %}'">View Details</button>
+            {% endif %}
+          </div>
+          <div class="product-card-details">
+            <h3 class="text-body-md">{{ product.name }}</h3>
+            <p class="text-label-caps text-secondary">
+              {% format_price product.price_range %}  {% if product.max_discount_percentage > 0 %}
+                <span style="color: #d32f2f; font-weight: bold; margin-left: 8px;">{{ product.max_discount_percentage }}% OFF</span>
+              {% endif %}
+            </p>
+          </div>
+        </div>
+        {% empty %}
+        <p>No featured products available.</p>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- Newsletter Section -->
+    <section class="newsletter-section">
+      <div class="newsletter-container">
+        <span class="text-label-caps text-secondary"
+          style="letter-spacing: 0.3em; display: block; margin-bottom: 1.5rem;">STAY INFORMED</span>
+        <h3 class="text-display-md">Join the Maison Inner Circle</h3>
+        <form class="newsletter-form">
+          <div class="newsletter-input-wrapper">
+            <input class="editorial-input" name="email" placeholder="Email Address" type="email" required />
+          </div>
+          <button class="newsletter-btn text-label-caps" type="submit">Subscribe</button>
+        </form>
+      </div>
+    </section>
+{% endblock %}

@@ -1,0 +1,143 @@
+{% extends 'storefront/base.html' %}
+{% block content %}
+<style>
+  .auth-container {
+    max-width: 1000px;
+    margin: 4rem auto;
+    padding: 0 var(--margin-desktop);
+    min-height: 60vh;
+  }
+  .auth-header {
+    text-align: center;
+    margin-bottom: 4rem;
+  }
+  .auth-header h1 {
+    font-size: 2.5rem;
+    font-weight: 400;
+    margin-bottom: 0.5rem;
+  }
+  .auth-breadcrumbs {
+    font-size: 0.875rem;
+    color: #666;
+  }
+  .auth-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+  }
+  .auth-section-title {
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+    font-family: var(--font-sans);
+  }
+  .laha-input {
+    width: 100%;
+    border: 1px solid #eaeaea;
+    padding: 0.875rem 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+    background: transparent;
+  }
+  .laha-input:focus {
+    outline: none;
+    border-color: #000;
+  }
+  .laha-btn {
+    background: #000;
+    color: #fff;
+    padding: 0.875rem 2rem;
+    border: none;
+    font-weight: 500;
+    font-size: 0.875rem;
+    cursor: pointer;
+    margin-top: 1rem;
+  }
+  .forgot-link {
+    display: block;
+    font-size: 0.875rem;
+    color: #666;
+    margin-bottom: 1.5rem;
+    text-decoration: none;
+  }
+  .forgot-link:hover {
+    text-decoration: underline;
+  }
+  .new-customer-text {
+    font-size: 0.875rem;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+  }
+  @media (max-width: 768px) {
+    .auth-grid {
+      grid-template-columns: 1fr;
+      gap: 3rem;
+    }
+    .auth-header {
+      margin-bottom: 2rem;
+    }
+  }
+</style>
+
+<main class="auth-container">
+    <div class="auth-header">
+      <h1 class="font-sans">Log In</h1>
+      <div class="auth-breadcrumbs">Home &nbsp; > &nbsp; Account</div>
+    </div>
+
+    <div class="auth-grid">
+      <!-- Log In Column -->
+      <div id="login-section">
+        <h2 class="auth-section-title">Log In</h2>
+        <form method="post" action="{% url 'storefront:login' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}">
+            {% csrf_token %}
+            <input class="laha-input" name="email" placeholder="Email" type="email" required />
+            <input class="laha-input" name="password" placeholder="Password" type="password" required />
+            <a href="#" class="forgot-link" onclick="toggleRecover(event)">Forgot your password?</a>
+            <button type="submit" class="laha-btn">Sign In</button>
+        </form>
+      </div>
+
+      <!-- Recover Password Column -->
+      <div id="recover-section" style="display: none;">
+        <h2 class="auth-section-title">Reset your password</h2>
+        <p class="new-customer-text" style="margin-bottom: 1rem;">We will send you an email to reset your password.</p>
+        <form method="post" action="{% url 'storefront:forgot_password' %}">
+            {% csrf_token %}
+            <input class="laha-input" name="email" placeholder="Email" type="email" required />
+            <div style="display: flex; gap: 1rem; align-items: center; margin-top: 1rem;">
+              <button type="submit" class="laha-btn" style="margin-top: 0;">Submit</button>
+              <a href="#" class="forgot-link" style="margin-bottom: 0;" onclick="toggleRecover(event)">Cancel</a>
+            </div>
+        </form>
+      </div>
+
+      <!-- New Customer Column -->
+      <div>
+        <h2 class="auth-section-title">New Customer</h2>
+        <p class="new-customer-text">Sign up for early Sale access plus tailored new arrivals, trends and promotions. To opt out, click unsubscribe in our emails.</p>
+        <a href="{% url 'storefront:register' %}" style="text-decoration: none;">
+          <button type="button" class="laha-btn">Register</button>
+        </a>
+      </div>
+    </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function toggleRecover(e) {
+    e.preventDefault();
+    const loginSection = document.getElementById('login-section');
+    const recoverSection = document.getElementById('recover-section');
+    if (loginSection.style.display === 'none') {
+      loginSection.style.display = 'block';
+      recoverSection.style.display = 'none';
+    } else {
+      loginSection.style.display = 'none';
+      recoverSection.style.display = 'block';
+    }
+  }
+</script>
+{% endblock %}

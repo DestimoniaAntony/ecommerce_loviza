@@ -1,0 +1,43 @@
+{% extends 'storefront/base.html' %}
+{% load static %}
+
+{% block content %}
+<main style="padding-top: 4rem; padding-bottom: 4rem; min-height: 80vh;">
+    <div style="padding: 0 1rem;">
+        <div style="margin-bottom: 2rem; text-align: center;">
+            <h1 class="text-display-lg" style="margin-bottom: 0.5rem;">All Collections</h1>
+        </div>
+        
+        <style>
+            .collections-grid-custom {
+                gap: 15px !important;
+            }
+            @media (min-width: 1025px) {
+                .collections-grid-custom {
+                    grid-template-columns: repeat(3, 1fr) !important;
+                }
+            }
+        </style>
+        <div class="category-grid collections-grid-custom">
+            {% for category in categories %}
+            <a class="category-item" href="{% url 'storefront:catalog' %}?category={{ category.slug }}">
+              <div class="zoom-container">
+                {% if category.image %}
+                <img alt="{{ category.name }}" src="{{ category.image.url }}" />
+                {% else %}
+                <img alt="{{ category.name }}" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxIy8Dvxe6ja5ICXfCzVYacQC2BIdbRETW-vbRbqvngaFfmecknI1YibRUIYKB7MJRi-61LCzo6RyWA216gTEgiNuu8TsV7B9nUcDvb9gbQQWZezW_LBBiBOjYNNUtgDRfHWH50sok0OGSlzj1ww0RDEdPkRM32SR3c0im0PHExmTg2PfIYyD23jjI3Qsk8taLqq0QhwkYAZMeChcKh0fLUiUtwGDLs0geDjVioAfeVB4M3h4AbmhyvsmsYir2awMfaqoJ69VN5iOQ" />
+                {% endif %}
+              </div>
+              <div class="category-title" style="text-align: center;">
+                <p class="text-label-caps" style="font-size: 0.9rem; margin: 0; letter-spacing: 0.05em;">{{ category.name|upper }}</p>
+              </div>
+            </a>
+            {% empty %}
+            <div style="grid-column: 1 / -1; text-align: center; padding: 4rem;">
+                <p>No collections available at the moment.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</main>
+{% endblock %}

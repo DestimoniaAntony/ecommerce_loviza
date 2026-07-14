@@ -1,0 +1,74 @@
+{% extends 'base/vendor_base.html' %}
+{% load mptt_tags %}
+{% load static %}
+
+{% block title %}Categories — {{ request.user.vendor.business_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header-row">
+    <div class="page-header-info">
+        <p class="page-subtitle">Organize your products into hierarchical category trees.</p>
+    </div>
+    <div class="page-header-actions">
+        <a href="{% url 'catalog:category_create' %}" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/>
+                <line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+            Create Category
+        </a>
+    </div>
+</div>
+
+<div class="data-card">
+    <div style="padding: 24px;">
+        {% if categories %}
+            <div class="category-tree-container">
+                <ul style="list-style: none; padding-left: 0; margin: 0;" class="tree-root">
+                    {% recursetree categories %}
+                        <li style="margin-bottom: 8px; border: 1px solid var(--border-color); border-radius: var(--radius); padding: 12px 16px; background: rgba(255, 255, 255, 0.01);">
+                            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    {% if node.image %}
+                                        <img src="{{ node.image.url }}" alt="{{ node.name }}" style="width: 32px; height: 32px; object-fit: cover; border-radius: 4px;">
+                                    {% else %}
+                                        <div style="width: 32px; height: 32px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; border-radius: 4px; font-size: 14px;">📁</div>
+                                    {% endif %}
+                                    <div>
+                                        <span style="font-weight: 600; font-size: 15px; color: var(--text-primary);">{{ node.name }}</span>
+                                        <span class="text-muted" style="font-size: 11px; margin-left: 8px; background: rgba(255,255,255,0.03); padding: 2px 6px; border-radius: 3px;">/{{ node.slug }}</span>
+                                    </div>
+                                    {% if not node.is_active %}
+                                        <span class="status-badge status-suspended" style="font-size: 8px; padding: 1px 6px;">Inactive</span>
+                                    {% endif %}
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <a href="{% url 'catalog:category_edit' node.pk %}" class="btn btn-sm btn-outline" style="font-size: 12px; padding: 4px 10px;">Edit</a>
+                                    <form method="post" action="{% url 'catalog:category_delete' node.pk %}" style="display: inline;" onsubmit="return confirm('Delete category {{ node.name }}? This will also delete all subcategories.')">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-ghost text-danger" style="font-size: 12px; padding: 4px 10px; border: none; background: transparent; cursor: pointer;">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                            
+                            {% if not node.is_leaf_node %}
+                                <ul style="list-style: none; padding-left: 24px; margin-top: 10px; border-left: 2px dashed rgba(255,255,255,0.05); margin-bottom: 0;">
+                                    {{ children }}
+                                </ul>
+                            {% endif %}
+                        </li>
+                    {% endrecursetree %}
+                </ul>
+            </div>
+        {% else %}
+            <div class="table-empty" style="padding: 48px 0; text-align: center;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48" style="color: var(--text-muted); margin-bottom: 12px;">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                </svg>
+                <p style="font-size: 15px; font-weight: 500; color: var(--text-secondary); margin: 0 0 16px 0;">No categories defined yet.</p>
+                <a href="{% url 'catalog:category_create' %}" class="btn btn-primary btn-sm">Add First Category</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

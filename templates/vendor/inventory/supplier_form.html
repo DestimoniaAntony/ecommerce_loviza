@@ -1,0 +1,99 @@
+{% extends 'base/vendor_base.html' %}
+{% load static %}
+
+{% block title %}{% if supplier %}Edit Supplier — {{ supplier.name }}{% else %}Add Supplier{% endif %} — CommerceHub{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{% url 'commercehub_app:dashboard' %}">Dashboard</a>
+    <span class="breadcrumb-sep">›</span>
+    <a href="{% url 'inventory:supplier_list' %}">Suppliers</a>
+    <span class="breadcrumb-sep">›</span>
+    <span>{% if supplier %}Edit Supplier{% else %}Add Supplier{% endif %}</span>
+</div>
+
+<div class="data-card" style="max-width: 800px; padding: 28px;">
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="form-section">
+            <h3 class="form-section-title">Supplier Profile</h3>
+            <div class="form-group">
+                <label class="form-label" for="name">Supplier Business Name <span class="req">*</span></label>
+                <input type="text" id="name" name="name" class="form-input" 
+                       placeholder="e.g. Reliance Retail Wholesale" required 
+                       value="{{ supplier.name|default:'' }}">
+            </div>
+            
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="contact_name">Contact Person Name</label>
+                    <input type="text" id="contact_name" name="contact_name" class="form-input" 
+                           placeholder="e.g. Ramesh Kumar" 
+                           value="{{ supplier.contact_name|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="gstin">GSTIN (Tax Registration)</label>
+                    <input type="text" id="gstin" name="gstin" class="form-input" 
+                           placeholder="e.g. 27AAAAA1111A1Z1" maxlength="15" style="text-transform: uppercase;"
+                           value="{{ supplier.gstin|default:'' }}">
+                    <p class="form-hint">Indian Goods and Services Tax Identification Number (15 digits)</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3 class="form-section-title">Contact &amp; Address Details</h3>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" class="form-input" 
+                           placeholder="e.g. +91 98765 43210" maxlength="15"
+                           value="{{ supplier.phone|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="email">Email Address</label>
+                    <input type="email" id="email" name="email" class="form-input" 
+                           placeholder="e.g. sales@reliancewholesale.com" 
+                           value="{{ supplier.email|default:'' }}">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="address">Postal Address</label>
+                <textarea id="address" name="address" class="form-input" rows="4" 
+                          placeholder="Complete physical office / warehouse address..." style="resize: vertical; padding: 12px;">{{ supplier.address|default:'' }}</textarea>
+            </div>
+        </div>
+
+        {% if supplier %}
+            <div class="form-section">
+                <h3 class="form-section-title">Supplier Options</h3>
+                <div class="form-group">
+                    <label class="form-label">Supplier Status</label>
+                    <div style="display: flex; gap: 16px; margin-top: 10px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-primary);">
+                            <input type="radio" name="is_active" value="true" {% if supplier.is_active %}checked{% endif %}>
+                            <span>Active (Allow placing Purchase Orders)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-primary);">
+                            <input type="radio" name="is_active" value="false" {% if not supplier.is_active %}checked{% endif %}>
+                            <span>Inactive (Deactivate supplier)</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="form-actions" style="margin-top: 32px; border-top: 1px solid var(--border-color); padding-top: 24px;">
+            <button type="submit" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="vertical-align: middle; margin-right: 4px;">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+                </svg>
+                {% if supplier %}Save Changes{% else %}Create Supplier{% endif %}
+            </button>
+            <a href="{% url 'inventory:supplier_list' %}" class="btn btn-ghost">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

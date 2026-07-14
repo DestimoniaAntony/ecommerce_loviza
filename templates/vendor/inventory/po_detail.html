@@ -1,0 +1,186 @@
+{% extends 'base/vendor_base.html' %}
+{% load static %}
+
+{% block title %}Purchase Order Details — {{ po.po_number }}{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{% url 'commercehub_app:dashboard' %}">Dashboard</a>
+    <span class="breadcrumb-sep">›</span>
+    <a href="{% url 'inventory:purchase_order_list' %}">Purchase Orders</a>
+    <span class="breadcrumb-sep">›</span>
+    <span>{{ po.po_number }}</span>
+</div>
+
+<!-- Workflow visual progress -->
+<div class="data-card" style="padding: 20px; margin-bottom: 24px;">
+    <div class="workflow-visual" style="justify-content: center; padding: 10px 0;">
+        <div class="workflow-step {% if po.status == 'draft' or po.status == 'sent' or po.status == 'received' %}active-step{% endif %}">
+            1. Draft Created
+        </div>
+        <div class="workflow-arrow">➔</div>
+        <div class="workflow-step {% if po.status == 'sent' or po.status == 'received' %}active-step{% endif %}">
+            2. Sent to Supplier
+        </div>
+        <div class="workflow-arrow">➔</div>
+        <div class="workflow-step {% if po.status == 'received' %}active-step{% endif %}">
+            3. Stock Received
+        </div>
+        {% if po.status == 'cancelled' %}
+            <div class="workflow-arrow">➔</div>
+            <div class="workflow-step" style="background: rgba(239,68,68,0.15); border-color: var(--color-danger); color: var(--color-danger);">
+                Cancelled
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: start; margin-bottom: 24px;">
+    
+    <!-- Main items list -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+        <div class="data-card" style="padding: 28px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px; flex-wrap: wrap; gap: 16px;">
+                <div>
+                    <h2 style="font-size: 24px; font-weight: 800; color: var(--text-primary); margin: 0;">{{ po.po_number }}</h2>
+                    <p style="font-size: 13px; color: var(--text-muted); margin: 6px 0 0 0;">Status: 
+                        <span style="font-weight: 700; text-transform: uppercase;
+                            {% if po.status == 'draft' %}color: var(--text-muted);
+                            {% elif po.status == 'sent' %}color: var(--color-warning);
+                            {% elif po.status == 'received' %}color: var(--color-success);
+                            {% else %}color: var(--color-danger);{% endif %}">
+                            {{ po.get_status_display }}
+                        </span>
+                    </p>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 13px; color: var(--text-muted);">Ordered Date</div>
+                    <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-top: 4px;">{{ po.order_date }}</div>
+                </div>
+            </div>
+
+            <!-- Items Table -->
+            <h3 class="form-section-title" style="margin-bottom: 16px; font-size: 12px;">Items Ordered List</h3>
+            <table style="width: 100%; border-collapse: collapse; text-align: left; margin-bottom: 24px;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-size: 13px;">
+                        <th style="padding: 10px 12px; width: 45%;">Product Details</th>
+                        <th style="padding: 10px 12px; width: 20%; text-align: center;">Qty Ordered</th>
+                        <th style="padding: 10px 12px; width: 15%; text-align: right;">Unit Cost</th>
+                        <th style="padding: 10px 12px; width: 20%; text-align: right;">Total Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                        <tr style="border-bottom: 1px solid var(--border-color-light);">
+                            <td style="padding: 14px 12px;">
+                                <div style="font-weight: 600; font-size: 15px; color: var(--text-primary);">
+                                    {{ item.product_variant.product.name }}
+                                </div>
+                                <div style="font-family: monospace; font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+                                    SKU: {{ item.product_variant.sku }} {% if item.product_variant.name %}| Option: {{ item.product_variant.name }}{% endif %}
+                                </div>
+                            </td>
+                            <td style="padding: 14px 12px; text-align: center; font-size: 14px; font-weight: 600; color: var(--text-secondary);">
+                                {{ item.quantity|floatformat:2 }}
+                            </td>
+                            <td style="padding: 14px 12px; text-align: right; font-size: 14px; color: var(--text-secondary);">
+                                ₹{{ item.unit_cost|floatformat:2 }}
+                            </td>
+                            <td style="padding: 14px 12px; text-align: right; font-size: 14px; font-weight: 600; color: var(--text-primary);">
+                                ₹{{ item.total_cost|floatformat:2 }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Invoice summary total -->
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px; border-top: 1.5px solid var(--border-color); padding-top: 16px;">
+                <div style="display: flex; justify-content: space-between; width: 260px; font-size: 14px; color: var(--text-muted);">
+                    <span>Subtotal:</span>
+                    <span>₹{{ po.total_amount|floatformat:2 }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; width: 260px; font-size: 18px; font-weight: 800; color: var(--text-primary); border-top: 1px dashed var(--border-color); padding-top: 8px; margin-top: 4px;">
+                    <span>Grand Total:</span>
+                    <span style="color: var(--color-primary-light);">₹{{ po.total_amount|floatformat:2 }}</span>
+                </div>
+            </div>
+
+            {% if po.notes %}
+                <div style="margin-top: 28px; background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); padding: 16px; border-radius: 6px;">
+                    <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;">PO Remarks / Notes</div>
+                    <p style="font-size: 13px; color: var(--text-secondary); margin: 0; white-space: pre-line;">{{ po.notes }}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Sidebar actions & details -->
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        
+        <!-- Status Transitions Card -->
+        {% if po.status == 'draft' or po.status == 'sent' %}
+            <div class="data-card" style="padding: 24px; border-color: var(--color-warning);">
+                <h3 class="form-section-title" style="margin-bottom: 16px; font-size: 12px; color: var(--color-warning);">Order Lifecycle Actions</h3>
+                
+                <form method="post" action="{% url 'inventory:purchase_order_status_update' po.pk %}" style="display: flex; flex-direction: column; gap: 12px;">
+                    {% csrf_token %}
+                    
+                    {% if po.status == 'draft' %}
+                        <button type="submit" name="action" value="send" class="btn btn-primary" style="width: 100%; justify-content: center; height: 42px;">
+                            ✉️ Mark as Sent
+                        </button>
+                    {% endif %}
+                    
+                    <button type="submit" name="action" value="receive" class="btn btn-success" style="width: 100%; justify-content: center; height: 42px; background: var(--color-success); border-color: var(--color-success);"
+                            onclick="return confirm('Confirm receipt of PO items? This will immediately add quantities into branch inventory stock levels.')">
+                        📥 Mark as Received (Restock)
+                    </button>
+                    
+                    <button type="submit" name="action" value="cancel" class="btn btn-ghost text-danger" style="width: 100%; justify-content: center; height: 42px;"
+                            onclick="return confirm('Are you sure you want to cancel this purchase order?')">
+                        Cancel Order
+                    </button>
+                </form>
+            </div>
+        {% endif %}
+
+        <!-- Information Card -->
+        <div class="data-card" style="padding: 24px;">
+            <h3 class="form-section-title" style="margin-bottom: 16px; font-size: 11px;">PO Details</h3>
+            
+            <div class="field-list" style="gap: 16px;">
+                <div class="field-row" style="flex-direction: column; gap: 4px; align-items: flex-start;">
+                    <dt style="font-size: 11px; text-transform: uppercase;">Supplier</dt>
+                    <dd style="text-align: left; font-weight: 700; color: var(--text-primary); font-size: 14px;">{{ po.supplier.name }}</dd>
+                    {% if po.supplier.phone or po.supplier.email %}
+                        <dd style="text-align: left; font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+                            {{ po.supplier.phone }} <br> {{ po.supplier.email }}
+                        </dd>
+                    {% endif %}
+                </div>
+
+                <div class="field-row" style="flex-direction: column; gap: 4px; align-items: flex-start;">
+                    <dt style="font-size: 11px; text-transform: uppercase;">Destination Branch</dt>
+                    <dd style="text-align: left; font-weight: 700; color: var(--text-primary); font-size: 14px;">{{ po.branch.name }}</dd>
+                </div>
+
+                {% if po.expected_delivery_date %}
+                    <div class="field-row" style="flex-direction: column; gap: 4px; align-items: flex-start;">
+                        <dt style="font-size: 11px; text-transform: uppercase;">Expected Delivery</dt>
+                        <dd style="text-align: left; font-weight: 600; color: var(--text-primary);">{{ po.expected_delivery_date }}</dd>
+                    </div>
+                {% endif %}
+
+                {% if po.received_date %}
+                    <div class="field-row" style="flex-direction: column; gap: 4px; align-items: flex-start;">
+                        <dt style="font-size: 11px; text-transform: uppercase;">Date Received</dt>
+                        <dd style="text-align: left; font-weight: 600; color: var(--color-success);">{{ po.received_date|date:"Y-m-d H:i" }}</dd>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

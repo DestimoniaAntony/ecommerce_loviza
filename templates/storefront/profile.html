@@ -1,0 +1,219 @@
+{% extends 'storefront/base.html' %}
+{% load static %}
+{% load currency_tags %}
+
+{% block content %}
+<main style="padding: 3rem var(--margin-desktop); max-width: var(--max-width-desktop); margin: 0 auto; width: 100%; min-height: 60vh;">
+    <!-- Account Title -->
+    <div style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem;">
+      <h1 class="text-display-lg" style="margin-bottom: 0.25rem;">My Account</h1>
+      <p class="text-caption text-secondary">Welcome back, {{ request.user.get_short_name }}</p>
+    </div>
+
+    <!-- Account Structure Container -->
+    <div class="profile-container">
+      
+      <!-- Left Sidebar Navigation -->
+      <aside class="profile-sidebar">
+        <button class="profile-sidebar-item active" onclick="switchTab(this, 'dashboard')">Dashboard</button>
+        <button class="profile-sidebar-item" onclick="switchTab(this, 'orders')">Order History</button>
+        <button class="profile-sidebar-item" onclick="switchTab(this, 'details')">Profile Details</button>
+        <button class="profile-sidebar-item" onclick="switchTab(this, 'addresses')">Address Book</button>
+        <button class="profile-sidebar-item" onclick="switchTab(this, 'password')">Password Reset</button>
+        <button class="profile-sidebar-item" onclick="location.href='{% url 'storefront:logout' %}'" style="margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">Logout</button>
+      </aside>
+
+      <!-- Right Tab Content Pane -->
+      <section class="profile-content">
+        
+        <!-- Dashboard Pane -->
+        <div class="profile-content-pane active" id="pane-dashboard">
+          <h2 class="font-serif text-display-md" style="margin-bottom: 1rem; font-weight: 400;">Dashboard Overview</h2>
+          <p class="text-body-md text-secondary" style="line-height: 1.6;">From your account dashboard, you can view your order summaries, manage billing and shipping details, and edit your profile settings.</p>
+          
+          <div class="dashboard-summary-cards">
+            <div class="summary-card">
+              <h4>Recent Order</h4>
+              {% if orders %}
+              <p class="font-serif" style="font-size: 1.25rem; margin-bottom: 0.5rem;">{{ orders.first.order_number }}</p>
+              <span class="badge-status {% if orders.first.status == 'delivered' %}fulfilled{% else %}pending{% endif %}">{{ orders.first.status|title }}</span>
+              {% else %}
+              <p class="font-serif" style="font-size: 1.25rem; margin-bottom: 0.5rem;">None</p>
+              {% endif %}
+            </div>
+            <div class="summary-card">
+              <h4>Total Orders</h4>
+              <p class="font-serif" style="font-size: 1.25rem; margin-bottom: 0.5rem;">{{ orders.count }} Placed</p>
+              <span class="text-caption text-secondary">Since {{ request.user.date_joined|date:"M Y" }}</span>
+            </div>
+            <div class="summary-card">
+              <h4>Default Address</h4>
+              {% if addresses %}
+              <p class="text-caption text-secondary" style="margin-bottom: 0.5rem; line-height: 1.4;">{{ addresses.first.recipient_name }}<br>{{ addresses.first.address_line1 }}<br>{{ addresses.first.city }}, {{ addresses.first.state }}</p>
+              <a href="#" onclick="switchTab(document.querySelectorAll('.profile-sidebar-item')[3], 'addresses'); return false;" class="text-label-caps" style="font-size: 10px; font-weight: 600; text-decoration: underline;">View All</a>
+              {% else %}
+              <p class="text-caption text-secondary" style="margin-bottom: 0.5rem; line-height: 1.4;">No default address saved.</p>
+              {% endif %}
+            </div>
+          </div>
+
+          <h3 class="text-label-caps" style="margin-bottom: 1rem; font-size: 11px;">Recent Activity</h3>
+          <div style="border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 6px; background-color: var(--surface-container-lowest);">
+            {% if orders %}
+            <p class="text-body-md text-secondary" style="font-size: 13px;">Your last order <strong>{{ orders.first.order_number }}</strong> was placed on {{ orders.first.created_at|date:"M d, Y" }}. Its current status is {{ orders.first.status }}.</p>
+            {% else %}
+            <p class="text-body-md text-secondary" style="font-size: 13px;">You have no recent activity.</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Orders Pane -->
+        <div class="profile-content-pane" id="pane-orders">
+          <h2 class="font-serif text-display-md" style="margin-bottom: 0.5rem; font-weight: 400;">Order History</h2>
+          <p class="text-caption text-secondary">Track and view invoices for all purchases.</p>
+          
+          <table class="orders-table">
+            <thead>
+              <tr>
+                <th class="text-label-caps">Order</th>
+                <th class="text-label-caps">Date</th>
+                <th class="text-label-caps">Payment</th>
+                <th class="text-label-caps">Fulfillment</th>
+                <th class="text-label-caps" style="text-align: right;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for order in orders %}
+              <tr>
+                <td><strong>{{ order.order_number }}</strong></td>
+                <td class="text-secondary">{{ order.created_at|date:"M d, Y" }}</td>
+                <td>
+                    <span class="badge-status {% if order.payment_status == 'paid' %}paid{% else %}pending{% endif %}">
+                        {{ order.payment_status|title }}
+                    </span>
+                </td>
+                <td>
+                    <span class="badge-status {% if order.status == 'delivered' %}fulfilled{% else %}pending{% endif %}">
+                        {{ order.status|title }}
+                    </span>
+                </td>
+                <td style="text-align: right; font-weight: 600;">{% format_price order.total_amount %}</td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="5" style="text-align:center; padding: 2rem;">No orders found.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Details Pane -->
+        <div class="profile-content-pane" id="pane-details">
+          <h2 class="font-serif text-display-md" style="margin-bottom: 0.5rem; font-weight: 400;">Profile Details</h2>
+          <p class="text-caption text-secondary">Update your contact details.</p>
+          
+          <form onsubmit="event.preventDefault(); alert('Profile details updated successfully!');">
+            <div class="profile-form-grid">
+              <div class="form-group">
+                <label class="text-label-caps" style="font-size: 10px; margin-bottom: 0.5rem; display: block;" for="first-name">First Name</label>
+                <input id="first-name" type="text" value="{{ request.user.first_name }}" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 13px;"/>
+              </div>
+              <div class="form-group">
+                <label class="text-label-caps" style="font-size: 10px; margin-bottom: 0.5rem; display: block;" for="last-name">Last Name</label>
+                <input id="last-name" type="text" value="{{ request.user.last_name }}" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 13px;"/>
+              </div>
+              <div class="form-group full-width">
+                <label class="text-label-caps" style="font-size: 10px; margin-bottom: 0.5rem; display: block;" for="email">Email Address</label>
+                <input id="email" type="email" value="{{ request.user.email }}" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 13px;"/>
+              </div>
+              <div class="form-group full-width">
+                <label class="text-label-caps" style="font-size: 10px; margin-bottom: 0.5rem; display: block;" for="phone">Phone Number</label>
+                <input id="phone" type="tel" value="{{ request.user.phone }}" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 13px;"/>
+              </div>
+            </div>
+            <button class="checkout-btn text-label-caps" type="button" onclick="alert('Updates would be saved here!')" style="margin-top: 2rem; width: auto; padding: 1rem 3rem;">Save Profile Settings</button>
+          </form>
+        </div>
+
+        <!-- Password Reset Pane -->
+        <div class="profile-content-pane" id="pane-password">
+          <h2 class="font-serif text-display-md" style="margin-bottom: 0.5rem; font-weight: 400;">Password Reset</h2>
+          <p class="text-caption text-secondary">Set a new password for your account.</p>
+          
+          <form method="post" action="{% url 'storefront:password_reset' %}">
+            {% csrf_token %}
+            <div class="profile-form-grid" style="grid-template-columns: 1fr;">
+              <div class="form-group full-width">
+                <label class="text-label-caps" style="font-size: 10px; margin-bottom: 0.5rem; display: block;" for="reset-new-pass">New Password</label>
+                <input id="reset-new-pass" name="new_password" type="password" placeholder="Enter new password" required style="width: 100%; max-width: 400px; padding: 0.75rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 13px;"/>
+              </div>
+            </div>
+            <button class="checkout-btn text-label-caps" type="submit" style="margin-top: 2rem; width: auto; padding: 1rem 3rem;">Reset Password</button>
+          </form>
+        </div>
+
+        <!-- Addresses Pane -->
+        <div class="profile-content-pane" id="pane-addresses">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <h2 class="font-serif text-display-md" style="margin: 0; font-weight: 400;">Address Book</h2>
+            <button class="hero-btn text-label-caps" onclick="alert('Add address form opening...');" style="border: 1px solid var(--primary-color); padding: 0.5rem 1.5rem; font-size: 10px;">Add New</button>
+          </div>
+          <p class="text-caption text-secondary">Manage your delivery and billing coordinates.</p>
+          
+          <div class="addresses-grid">
+            {% for addr in addresses %}
+            <div class="address-card">
+              {% if addr.is_default %}
+              <span class="badge-status fulfilled" style="align-self: flex-start; margin-bottom: 0.5rem; font-size: 9px;">Default Address</span>
+              {% else %}
+              <span class="badge-status pending" style="align-self: flex-start; margin-bottom: 0.5rem; font-size: 9px;">Saved Address</span>
+              {% endif %}
+              
+              <h3 class="text-body-md" style="font-weight: 600; margin: 0;">{{ addr.recipient_name }}</h3>
+              <p class="text-caption text-secondary" style="line-height: 1.5; margin: 0.25rem 0 1rem 0;">
+                {{ addr.address_line1 }}<br>
+                {% if addr.address_line2 %}{{ addr.address_line2 }}<br>{% endif %}
+                {{ addr.city }}, {{ addr.state }} {{ addr.pincode }}<br>
+                {{ addr.country|default:"United Arab Emirates" }}<br>
+                Phone: {{ addr.phone }}
+              </p>
+              <div class="address-card-actions">
+                <button onclick="alert('Editing address...');">Edit</button>
+                <button onclick="if(confirm('Delete address?')) this.closest('.address-card').remove();" style="color: var(--accent-color);">Delete</button>
+              </div>
+            </div>
+            {% empty %}
+            <p class="text-secondary" style="padding: 2rem 0;">No addresses saved yet.</p>
+            {% endfor %}
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <script>
+    function switchTab(btn, paneId) {
+      // Deactivate all sidebar items
+      document.querySelectorAll('.profile-sidebar-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      
+      // Activate clicked item
+      btn.classList.add('active');
+
+      // Hide all panes
+      document.querySelectorAll('.profile-content-pane').forEach(pane => {
+        pane.classList.remove('active');
+      });
+      
+      // Show selected pane
+      const targetPane = document.getElementById('pane-' + paneId);
+      if (targetPane) {
+        targetPane.classList.add('active');
+      }
+    }
+  </script>
+{% endblock %}

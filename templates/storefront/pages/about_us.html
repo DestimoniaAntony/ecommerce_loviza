@@ -1,0 +1,16 @@
+{% extends 'storefront/base.html' %}
+{% block content %}
+<main style="padding: 4rem var(--margin-desktop); max-width: 8000px; margin: 0 auto; min-height: 60vh;">
+  <h1 class="font-serif" style="font-size: 2.5rem; margin-bottom: 1rem; text-align: center;">About Us</h1>
+  <div style="text-align: center; margin-bottom: 3rem; color: var(--text-secondary); font-size: 0.9rem;">
+    <a href="{% url 'storefront:home' %}" style="color: var(--text-primary); text-decoration: none;">Home</a> 
+    <span style="margin: 0 0.5rem;">&gt;</span> 
+    <span>About Us</span>
+  </div>
+  <div class="prose" style="line-height: 1.8; color: var(--text-secondary); text-align: center; max-width: 800px; margin: 0 auto;">
+    <p>In LAHA, We believe that our impact begins with you, we also believe in the revolutionary movement that can take place when women fully support one another .</p>
+    <br>
+    <p>We're glad you've found your way to the online store that's known not only for beautiful women clothing, but also a safe space that empowers us to support each other.</p>
+  </div>
+</main>
+{% endblock %}

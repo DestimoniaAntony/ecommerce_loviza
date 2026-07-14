@@ -1,0 +1,88 @@
+{% extends 'base/vendor_base.html' %}
+{% load static %}
+
+{% block title %}{% if category %}Edit Category — {{ category.name }}{% else %}Add New Category{% endif %} — CommerceHub{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{% url 'commercehub_app:dashboard' %}">Dashboard</a>
+    <span class="breadcrumb-sep">›</span>
+    <a href="{% url 'catalog:category_list' %}">Categories</a>
+    <span class="breadcrumb-sep">›</span>
+    <span>{% if category %}Edit Category{% else %}New Category{% endif %}</span>
+</div>
+
+<div class="data-card" style="max-width: 650px; padding: 28px;">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="form-section">
+            <h3 class="form-section-title">{% if category %}Edit Category Details{% else %}Category Details{% endif %}</h3>
+            
+            <div class="form-group">
+                <label class="form-label" for="name">Category Name <span class="req">*</span></label>
+                <input type="text" id="name" name="name" class="form-input" placeholder="e.g. Shirts, Electronics" 
+                       value="{{ category.name|default:'' }}" required>
+            </div>
+
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="slug">URL Slug</label>
+                    <input type="text" id="slug" name="slug" class="form-input" placeholder="e.g. formal-shirts" 
+                           value="{{ category.slug|default:'' }}">
+                    <p class="form-hint">Leave blank to automatically generate from name.</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="parent_id">Parent Category</label>
+                    <select id="parent_id" name="parent_id" class="form-select">
+                        <option value="">-- No Parent (Root Level) --</option>
+                        {% for cat in categories %}
+                            <option value="{{ cat.pk }}" {% if category.parent_id == cat.pk %}selected{% endif %}>
+                                {{ cat.name }} ({{ cat.slug }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <p class="form-hint">Nest this category under another category.</p>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="description">Description</label>
+                <textarea id="description" name="description" class="form-input" rows="4" placeholder="Brief details about the category...">{{ category.description|default:'' }}</textarea>
+            </div>
+
+            <div class="form-grid-2" style="align-items: center;">
+                <div class="form-group">
+                    <label class="form-label" for="image">Category Image</label>
+                    <input type="file" id="image" name="image" class="form-input" accept="image/*">
+                    {% if category.image %}
+                        <div style="margin-top: 10px; display: flex; align-items: center; gap: 8px;">
+                            <img src="{{ category.image.url }}" alt="{{ category.name }}" style="width: 48px; height: 48px; object-fit: cover; border-radius: 4px;">
+                            <span style="font-size: 12px; color: var(--text-secondary);">Current Image</span>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="is_active">Status</label>
+                    <select id="is_active" name="is_active" class="form-select">
+                        <option value="true" {% if category.is_active != False %}selected{% endif %}>Active</option>
+                        <option value="false" {% if category.is_active == False %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions" style="margin-top: 32px;">
+            <button type="submit" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                    <polyline points="17 21 17 13 7 13 7 21"/>
+                    <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                Save Category
+            </button>
+            <a href="{% url 'catalog:category_list' %}" class="btn btn-ghost">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

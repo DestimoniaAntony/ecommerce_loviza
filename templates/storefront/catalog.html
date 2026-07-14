@@ -1,0 +1,341 @@
+{% extends 'storefront/base.html' %}
+{% load static %}
+{% load currency_tags %}
+
+{% block content %}
+<main class="collection-main">
+  <style>
+    .custom-sort-wrapper {
+      position: relative;
+      font-family: var(--font-body), sans-serif;
+    }
+
+    .custom-sort-trigger {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      font-size: 0.95rem;
+      color: #000;
+      user-select: none;
+    }
+
+    .custom-sort-options {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: #fff;
+      min-width: 220px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      list-style: none;
+      padding: 15px 0;
+      margin: 10px 0 0 0;
+      border-radius: 4px;
+      z-index: 100;
+    }
+
+    .custom-sort-options.show {
+      display: block;
+    }
+
+    .custom-sort-options li {
+      padding: 12px 25px;
+      font-size: 0.9rem;
+      color: #555;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .custom-sort-options li:hover {
+      background: #f9f9f9;
+      color: #000;
+    }
+
+    .custom-sort-trigger .material-symbols-outlined {
+      font-size: 1.1rem;
+      margin-left: 4px;
+    }
+  </style>
+  <!-- Header Section -->
+  <header class="collection-header-section" style="margin-bottom: 2rem;">
+    <h1 class="text-display-lg" style="margin-bottom: 0;">{% if selected_category %}{{ selected_category.name }}
+      {% else %}All Collections{% endif %}</h1>
+  </header>
+
+  <!-- Toolbar Control Bar -->
+  <div class="collection-toolbar">
+    <div class="toolbar-left" style="display: flex; align-items: center; gap: 15px;">
+      <div class="sort-dropdown-container" style="position: relative;">
+        <form id="sort-form" method="get" action="{% url 'storefront:catalog' %}">
+          {% if request.GET.category %}<input type="hidden" name="category" value="{{ request.GET.category }}">{% endif %}
+          {% if request.GET.q %}<input type="hidden" name="q" value="{{ request.GET.q }}">{% endif %}
+          <input type="hidden" name="sort_by" id="sort_by_input" value="{{ sort_by|default:'created-descending' }}">
+
+          <div class="custom-sort-wrapper">
+            <div class="custom-sort-trigger"
+              onclick="document.querySelector('.custom-sort-options').classList.toggle('show')">
+              <span id="sort-selected-text">
+                {% if sort_by == 'created-ascending' %}Date, old to new
+                {% elif sort_by == 'title-ascending' %}Alphabetically, A-Z
+                {% elif sort_by == 'title-descending' %}Alphabetically, Z-A
+                {% elif sort_by == 'price-ascending' %}Price, low to high
+                {% elif sort_by == 'price-descending' %}Price, high to low
+                {% else %}Date, new to old{% endif %}
+              </span>
+              <span class="material-symbols-outlined">expand_more</span>
+            </div>
+            <ul class="custom-sort-options">
+              <li onclick="submitSort('created-descending')">Date, new to old</li>
+              <li onclick="submitSort('created-ascending')">Date, old to new</li>
+              <li onclick="submitSort('title-ascending')">Alphabetically, A-Z</li>
+              <li onclick="submitSort('title-descending')">Alphabetically, Z-A</li>
+              <li onclick="submitSort('price-ascending')">Price, low to high</li>
+              <li onclick="submitSort('price-descending')">Price, high to low</li>
+            </ul>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="toolbar-right">
+      <!-- Grid Layout Switchers: List, 2, 3, 4, 5 columns -->
+      <div class="grid-layout-toggles">
+        <button class="grid-toggle-btn" data-cols="1" onclick="setGridCols(1)" title="List View">
+          <span
+            style="letter-spacing: normal; font-size: 1.25rem; font-weight: 400; line-height: 1; margin-top: -2px;">☰</span>
+        </button>
+        <button class="grid-toggle-btn" data-cols="2" onclick="setGridCols(2)" title="2 Columns">
+          <span>||</span>
+        </button>
+        <button class="grid-toggle-btn" data-cols="3" onclick="setGridCols(3)" title="3 Columns">
+          <span>|||</span>
+        </button>
+        <button class="grid-toggle-btn active" data-cols="4" onclick="setGridCols(4)" title="4 Columns (Default)">
+          <span>||||</span>
+        </button>
+        <button class="grid-toggle-btn" data-cols="5" onclick="setGridCols(5)" title="5 Columns">
+          <span>|||||</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="collection-layout">
+    <!-- Product Grid -->
+    <div class="collection-grid-container">
+      <!-- Recommended Admin Upload Product Image Size: 800x1136px (1:1.42 Aspect Ratio) -->
+      <div class="collection-product-grid grid-4">
+
+
+        {% for product in products %}
+        <div class="product-card" onclick="location.href='{% url 'storefront:product_detail' product.slug %}'"
+          style="position: relative; cursor: pointer;">
+          <div class="product-card-img-wrapper">
+            <button class="product-wishlist-btn" onclick="event.stopPropagation(); toggleWishlist(this);"
+              title="Add to Wishlist">
+              <span class="material-symbols-outlined">favorite_border</span>
+            </button>
+            {% if product.images.first %}
+            <img alt="{{ product.name }}" src="{{ product.images.first.image.url }}" />
+            {% else %}
+            <img alt="{{ product.name }}" src="{% static 'storefront/images/product_main.png' %}" />
+            {% endif %}
+
+            {% if request.tenant.track_inventory and product.total_stock <= 0 %} <div
+              style="text-align: center; padding: 12px 0;">
+              <span
+                style="display: inline-block; background: #e0e0e0; color: #555; padding: 6px 16px; border-radius: 4px; font-weight: 600; font-size: 14px;">Out
+                of Stock</span>
+          </div>
+          {% else %}
+          {% if product.variants.first %}
+          <form action="{% url 'storefront:cart_add' %}" method="post" onclick="event.stopPropagation();">
+            {% csrf_token %}
+            <input type="hidden" name="variant_id" value="{{ product.variants.first.id }}">
+            <input type="hidden" name="quantity" value="1">
+            <button type="submit" class="product-quick-add text-label-caps">Quick Add</button>
+          </form>
+          {% else %}
+          <button class="product-quick-add text-label-caps"
+            onclick="event.stopPropagation(); location.href='{% url 'storefront:product_detail' product.slug %}'">View
+            Details</button>
+          {% endif %}
+          {% endif %}
+        </div>
+        <div class="product-card-details">
+          <h3 class="text-body-md">{{ product.name }}</h3>
+          <p class="text-label-caps text-secondary">
+            {% if product.compare_at_price_range and product.max_discount_percentage > 0 %}
+            <s style="color: #999; margin-right: 4px;">{% format_price product.compare_at_price_range %}</s>
+            {% endif %}
+            {% format_price product.price_range %}
+            {% if product.max_discount_percentage > 0 %}
+            <span style="color: #d32f2f; font-weight: bold; margin-left: 8px;">{{ product.max_discount_percentage }}%
+              OFF</span>
+            {% endif %}
+          </p>
+        </div>
+      </div>
+      {% empty %}
+      <div style="grid-column: 1/-1; padding: 4rem; text-align: center;">
+        <p class="text-body-md text-secondary">No products found in this category.</p>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="pagination-container"
+      style="display: flex; justify-content: center; align-items: center; gap: 20px; margin-top: 4rem; font-family: var(--font-body), sans-serif; font-size: 0.95rem;">
+      {% if page_obj.has_previous %}
+      <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if sort_by %}sort_by={{ sort_by }}&{% endif %}page={{ page_obj.previous_page_number }}"
+        class="page-link" style="text-decoration: none; color: #555;">&laquo;</a>
+      {% endif %}
+
+      {% for i in page_obj.paginator.page_range %}
+      {% if page_obj.number == i %}
+      <span class="page-link active"
+        style="background: #111; color: #fff; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">{{
+        i }}</span>
+      {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %} <a
+        href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if sort_by %}sort_by={{ sort_by }}&{% endif %}page={{ i }}"
+        class="page-link"
+        style="text-decoration: none; color: #555; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+        {{ i }}</a>
+        {% elif i == 1 or i == page_obj.paginator.num_pages %}
+        <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if sort_by %}sort_by={{ sort_by }}&{% endif %}page={{ i }}"
+          class="page-link"
+          style="text-decoration: none; color: #555; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">{{
+          i }}</a>
+        {% elif i == page_obj.number|add:'-3' or i == page_obj.number|add:'3' %}
+        <span class="page-link"
+          style="color: #999; display: flex; align-items: center; justify-content: center;">...</span>
+        {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if sort_by %}sort_by={{ sort_by }}&{% endif %}page={{ page_obj.next_page_number }}"
+          class="page-link" style="text-decoration: none; color: #555;">&raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Recently Viewed Products -->
+    {% if recently_viewed_products %}
+    <div class="recently-viewed-section" style="margin-top: 5rem; position: relative;">
+      <h2 class="text-body-lg" style="margin-bottom: 2rem; font-weight: 500; color: #333;">Recently Viewed Products</h2>
+      
+      <!-- Horizontal Navigation Arrows -->
+      <button class="rv-arrow rv-arrow-left" onclick="scrollRV(-1)" aria-label="Scroll left">
+        <span class="material-symbols-outlined">chevron_left</span>
+      </button>
+      <button class="rv-arrow rv-arrow-right" onclick="scrollRV(1)" aria-label="Scroll right">
+        <span class="material-symbols-outlined">chevron_right</span>
+      </button>
+
+      <div class="recently-viewed-scroll" style="display: flex; overflow-x: auto; gap: 20px; padding-bottom: 15px; scroll-snap-type: x mandatory; scrollbar-width: none; -ms-overflow-style: none; scroll-behavior: smooth;">
+        <style>
+          .recently-viewed-scroll::-webkit-scrollbar { display: none; }
+          .recently-viewed-card {
+            flex: 0 0 calc(20% - 16px);
+            scroll-snap-align: start;
+            min-width: 200px;
+          }
+          .rv-arrow {
+            position: absolute;
+            top: 55%;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.25s ease;
+            color: #333;
+          }
+          .rv-arrow:hover {
+            background: #000;
+            color: #fff;
+            border-color: #000;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+          }
+          .rv-arrow-left {
+            left: -22px;
+          }
+          .rv-arrow-right {
+            right: -22px;
+          }
+          @media (max-width: 768px) {
+            .recently-viewed-card {
+              flex: 0 0 calc(50% - 10px);
+              min-width: 150px;
+            }
+            .rv-arrow {
+              display: none;
+            }
+          }
+        </style>
+        {% for rv_product in recently_viewed_products %}
+        <div class="recently-viewed-card" onclick="location.href='{% url 'storefront:product_detail' rv_product.slug %}'" style="cursor: pointer;">
+          <div class="product-card-img-wrapper" style="margin-bottom: 1rem; position: relative;">
+            {% if rv_product.images.first %}
+            <img alt="{{ rv_product.name }}" src="{{ rv_product.images.first.image.url }}" style="width: 100%; aspect-ratio: 1/1.42; object-fit: cover; border-radius: 4px;"/>
+            {% else %}
+            <img alt="{{ rv_product.name }}" src="{% static 'storefront/images/product_main.png' %}" style="width: 100%; aspect-ratio: 1/1.42; object-fit: cover; border-radius: 4px;"/>
+            {% endif %}
+          </div>
+          <div class="product-card-details">
+            <h3 class="text-body-md" style="font-size: 0.95rem; margin-bottom: 0.5rem; color: #111;">{{ rv_product.name }}</h3>
+            <p class="text-label-caps text-secondary" style="font-size: 0.85rem;">
+              {% if rv_product.compare_at_price_range and rv_product.max_discount_percentage > 0 %}
+                <s style="color: #999; margin-right: 4px;">{% format_price rv_product.compare_at_price_range %}</s>
+              {% endif %}
+              {% format_price rv_product.price_range %}
+            </p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+  </div>
+</main>
+{% endblock %}
+{% block scripts %}
+<script>
+  function submitSort(val) {
+    document.getElementById('sort_by_input').value = val;
+    document.getElementById('sort-form').submit();
+  }
+
+  // Close dropdown if clicked outside
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('.custom-sort-wrapper')) {
+      const options = document.querySelector('.custom-sort-options');
+      if (options && options.classList.contains('show')) {
+        options.classList.remove('show');
+      }
+    }
+  });
+
+  // Recently Viewed Horizontal Scroll Navigation
+  function scrollRV(direction) {
+    const scrollContainer = document.querySelector('.recently-viewed-scroll');
+    if (scrollContainer) {
+      const scrollAmount = scrollContainer.clientWidth * 0.8; // Scroll 80% of visible screen
+      scrollContainer.scrollBy({
+        left: direction * scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,117 @@
+{% extends 'storefront/base.html' %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/css/intlTelInput.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/intlTelInput.min.js"></script>
+<style>
+  .iti { width: 100%; display: block; }
+</style>
+
+<style>
+  .auth-container {
+    max-width: 1000px;
+    margin: 4rem auto;
+    padding: 0 var(--margin-desktop);
+    min-height: 60vh;
+  }
+  .auth-header {
+    text-align: center;
+    margin-bottom: 4rem;
+  }
+  .auth-header h1 {
+    font-size: 2.5rem;
+    font-weight: 400;
+    margin-bottom: 0.5rem;
+  }
+  .auth-breadcrumbs {
+    font-size: 0.875rem;
+    color: #666;
+  }
+  .laha-input {
+    width: 100%;
+    border: 1px solid #eaeaea;
+    padding: 0.875rem 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+    background: transparent;
+  }
+  .laha-input:focus {
+    outline: none;
+    border-color: #000;
+  }
+  .laha-btn {
+    background: #000;
+    color: #fff;
+    padding: 0.875rem 2rem;
+    border: none;
+    font-weight: 500;
+    font-size: 0.875rem;
+    cursor: pointer;
+    margin-top: 1rem;
+  }
+  .auth-form-wrapper {
+    max-width: 480px;
+    margin: 0 auto;
+  }
+</style>
+
+<main class="auth-container">
+    <div class="auth-header">
+      <h1 class="font-sans">Register</h1>
+      <div class="auth-breadcrumbs">Home &nbsp; > &nbsp; Create Account</div>
+    </div>
+    
+    <div class="auth-form-wrapper">
+      <form method="post" action="{% url 'storefront:register' %}" id="register-form">
+          {% csrf_token %}
+          <input class="laha-input" name="first_name" placeholder="First Name" type="text" required />
+          <input class="laha-input" name="last_name" placeholder="Last Name" type="text" />
+          <input class="laha-input" name="phone" id="register-phone" placeholder="Phone Number" type="tel" required />
+          <input class="laha-input" name="email" placeholder="Email Address" type="email" required />
+          <input class="laha-input" name="password" placeholder="Password" type="password" required />
+          
+          <div style="margin-top: 1.5rem;">
+            <button type="submit" class="laha-btn">Register</button>
+          </div>
+          
+          <p class="text-caption" style="margin-top: 2rem; color: #666;">
+            Already have an account? <a href="{% url 'storefront:login' %}" style="text-decoration: underline; color: #000;">Sign in here</a>
+          </p>
+      </form>
+    </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const phoneInput = document.querySelector("#register-phone");
+    if (phoneInput) {
+      const iti = window.intlTelInput(phoneInput, {
+        initialCountry: "auto",
+        geoIpLookup: function(callback) {
+          fetch("https://ipapi.co/json")
+            .then(function(res) { return res.json(); })
+            .then(function(data) { callback(data.country_code); })
+            .catch(function() { callback("us"); });
+        },
+        utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js",
+      });
+
+      const form = document.getElementById("register-form");
+      if (form) {
+        form.addEventListener("submit", function(e) {
+          if (phoneInput.value.trim()) {
+            if (iti.isValidNumber()) {
+              phoneInput.value = iti.getNumber();
+            } else {
+              e.preventDefault();
+              alert("Please enter a valid phone number.");
+            }
+          }
+        });
+      }
+    }
+  });
+</script>
+{% endblock %}

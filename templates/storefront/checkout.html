@@ -1,0 +1,268 @@
+{% extends 'storefront/base.html' %}
+{% load static %}
+{% load currency_tags %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/css/intlTelInput.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/intlTelInput.min.js"></script>
+<style>
+  .iti { width: 100%; display: block; }
+</style>
+
+<main class="checkout-main">
+    <div class="checkout-grid">
+      
+      <!-- Left Column: Checkout Forms -->
+      <div class="checkout-forms">
+        <form method="post" action="{% url 'storefront:place_order' %}" id="checkout-form">
+          {% csrf_token %}
+          
+          <!-- Sign in Prompt for Guests -->
+          {% if not request.user.is_authenticated %}
+          <div style="padding: 1rem; background: #f9f9f9; border: 1px solid #ddd; margin-bottom: 2rem; border-radius: 4px;">
+              <p class="text-body-md" style="margin: 0; color: #333;">Already have an account? <a href="{% url 'storefront:login' %}?next={% url 'storefront:checkout' %}" style="text-decoration: underline; font-weight: bold; color: #000;">Log in</a> for faster checkout.</p>
+          </div>
+          {% endif %}
+          
+          <!-- Contact Information -->
+          <section style="margin-bottom: 2rem;">
+            <h3 class="text-label-caps form-section-title">Contact</h3>
+            <div class="newsletter-input-wrapper">
+              <input class="editorial-input" name="email" id="checkout-email" placeholder="Email" type="email" {% if request.user.is_authenticated and request.user.email %}value="{{ request.user.email }}"{% endif %} required/>
+            </div>
+            <div style="margin-top: 1rem;">
+              <label style="display: flex; align-items: center; cursor: pointer; gap: 0.5rem;">
+                <input type="checkbox" name="subscribe_newsletter" value="1" checked>
+                <span class="text-body-md" style="font-size: 0.85rem;">Email me with news and offers</span>
+              </label>
+            </div>
+          </section>
+          
+          <!-- Address Selection -->
+          <section>
+            <h3 class="text-label-caps form-section-title">1. Shipping Address</h3>
+            {% if addresses %}
+            <div style="margin-bottom: 1.5rem;">
+                <p class="text-caption text-secondary" style="margin-bottom: 0.5rem;">Select saved address:</p>
+                {% for addr in addresses %}
+                <label style="display: block; padding: 1rem; border: 1px solid var(--border-color); margin-bottom: 0.5rem; cursor: pointer;" onclick="document.getElementById('new-address-form').style.display='none';">
+                    <input type="radio" name="address_id" value="{{ addr.id }}" {% if forloop.first %}checked{% endif %} style="margin-right: 0.5rem;">
+                    <strong>{{ addr.recipient_name }}</strong> - {{ addr.phone }}<br>
+                    {{ addr.address_line1 }}, {{ addr.city }}
+                </label>
+                {% endfor %}
+                <label style="display: block; padding: 1rem; border: 1px solid var(--border-color); margin-bottom: 0.5rem; cursor: pointer;" onclick="document.getElementById('new-address-form').style.display='block';">
+                    <input type="radio" name="address_id" value="" style="margin-right: 0.5rem;">
+                    <em>Add New Address</em>
+                </label>
+            </div>
+            {% endif %}
+            
+            <div class="form-grid" id="new-address-form" style="{% if addresses %}display:none;{% endif %}">
+              <div class="form-row-2">
+                <div class="newsletter-input-wrapper">
+                  <input class="editorial-input" name="recipient_name" placeholder="Full Name" type="text" {% if not addresses %}required{% endif %}/>
+                </div>
+                <div class="newsletter-input-wrapper">
+                  <input class="editorial-input" id="recipient-phone" name="recipient_phone" placeholder="Phone Number" type="tel" {% if not addresses %}required{% endif %} style="width: 100%;"/>
+                </div>
+              </div>
+              <div class="newsletter-input-wrapper">
+                <input class="editorial-input" name="address_line1" placeholder="Street Address" type="text" {% if not addresses %}required{% endif %}/>
+              </div>
+              <div class="newsletter-input-wrapper">
+                <input class="editorial-input" name="address_line2" placeholder="Apartment, Suite, Unit (optional)" type="text"/>
+              </div>
+              <div class="form-row-3">
+                <div class="newsletter-input-wrapper">
+                  <input class="editorial-input" name="city" placeholder="City" type="text" {% if not addresses %}required{% endif %}/>
+                </div>
+                <div class="newsletter-input-wrapper">
+                  <input class="editorial-input" name="state" placeholder="State/Province" type="text" {% if not addresses %}required{% endif %}/>
+                </div>
+                <div class="newsletter-input-wrapper">
+                  <input class="editorial-input" name="pincode" placeholder="Postal Code" type="text" {% if not addresses %}required{% endif %}/>
+                </div>
+              </div>
+            </div>
+          </section>
+          
+          <!-- Payment Details -->
+          <section style="margin-top: 3rem;">
+            <h3 class="text-label-caps form-section-title">2. Payment</h3>
+            <div class="payment-methods">
+              {% if request.tenant.checkout_workflow == 'whatsapp_enquiry' %}
+              <div class="payment-method-option active" id="pay-whatsapp" onclick="selectPayment('whatsapp'); document.getElementById('pm-whatsapp').checked=true;">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <label style="cursor: pointer; display: flex; align-items: center; width: 100%;">
+                    <input type="radio" name="payment_method" id="pm-whatsapp" value="whatsapp" style="display:none;" checked>
+                    <strong class="text-label-caps" style="font-size: 0.75rem;">Coordinate via WhatsApp</strong>
+                  </label>
+                  <span class="material-symbols-outlined">forum</span>
+                </div>
+              </div>
+              {% elif request.tenant.checkout_workflow == 'online_payment' %}
+              <div class="payment-method-option active" id="pay-online" onclick="selectPayment('online'); document.getElementById('pm-online').checked=true;" style="margin-bottom: 0.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <label style="cursor: pointer; display: flex; align-items: center; width: 100%;">
+                    <input type="radio" name="payment_method" id="pm-online" value="online" style="display:none;" checked>
+                    <strong class="text-label-caps" style="font-size: 0.75rem;">Online Payment</strong>
+                  </label>
+                  <span class="material-symbols-outlined">credit_card</span>
+                </div>
+              </div>
+              {% elif request.tenant.checkout_workflow == 'approval_payment' %}
+              <div class="payment-method-option active" id="pay-approval" onclick="selectPayment('approval'); document.getElementById('pm-approval').checked=true;">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <label style="cursor: pointer; display: flex; align-items: center; width: 100%;">
+                    <input type="radio" name="payment_method" id="pm-approval" value="approval" style="display:none;" checked>
+                    <strong class="text-label-caps" style="font-size: 0.75rem;">Request Approval</strong>
+                  </label>
+                  <span class="material-symbols-outlined">hourglass_empty</span>
+                </div>
+              </div>
+              {% else %}
+              <div class="payment-method-option active" id="pay-cod" onclick="selectPayment('cod'); document.getElementById('pm-cod').checked=true;">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <label style="cursor: pointer; display: flex; align-items: center; width: 100%;">
+                    <input type="radio" name="payment_method" id="pm-cod" value="cod" style="display:none;" checked>
+                    <strong class="text-label-caps" style="font-size: 0.75rem;">Cash On Delivery (COD)</strong>
+                  </label>
+                  <span class="material-symbols-outlined">payments</span>
+                </div>
+              </div>
+              {% endif %}
+            </div>
+          </section>
+          
+          <!-- Place Order -->
+          <div style="margin-top: 2rem;">
+            {% if request.tenant.checkout_workflow == 'whatsapp_enquiry' %}
+            <button type="submit" class="checkout-btn text-label-caps" style="font-size: 0.9375rem; width: 100%; background: #25D366; border-color: #25D366; color: white;">SEND VIA WHATSAPP</button>
+            {% elif request.tenant.checkout_workflow == 'approval_payment' %}
+            <button type="submit" class="checkout-btn text-label-caps" style="font-size: 0.9375rem; width: 100%;">SUBMIT FOR APPROVAL</button>
+            {% elif request.tenant.checkout_workflow == 'online_payment' %}
+            <button type="submit" class="checkout-btn text-label-caps" style="font-size: 0.9375rem; width: 100%;">PROCEED TO PAYMENT</button>
+            {% else %}
+            <button type="submit" class="checkout-btn text-label-caps" style="font-size: 0.9375rem; width: 100%;">PLACE ORDER</button>
+            {% endif %}
+          </div>
+          
+        </form>
+      </div>
+      <!-- Right Column: Order Summary -->
+      <div class="checkout-summary">
+        <div class="checkout-summary-sticky">
+          <h3 class="text-label-caps" style="font-size: 0.875rem;">Order Summary</h3>
+          
+          <div class="cart-item-list" style="gap: 1.5rem;">
+            {% for item in cart.items.all %}
+            <div class="cart-item" style="gap: 1rem;">
+              <div class="cart-item-img" style="width: 4.5rem; background-image: url('{% if item.product_variant.product.image %}{{ item.product_variant.product.image.url }}{% else %}{% static 'storefront/images/product_main.png' %}{% endif %}')"></div>
+              <div class="cart-item-details" style="padding: 0;">
+                <div>
+                  <div class="cart-item-header" style="margin-bottom: 0.25rem;">
+                    <h4 style="font-size: 0.875rem;">{{ item.product_variant.product.name }}</h4>
+                    <p class="text-label-caps" style="font-size: 0.75rem;">{% format_price item.product_variant.price %}</p>
+                  </div>
+                  {% if item.product_variant.name %}
+                  <p class="cart-item-options" style="font-size: 0.6875rem;">Variant: {{ item.product_variant.name }}</p>
+                  {% endif %}
+                  <p class="cart-item-options" style="font-size: 0.6875rem; margin-top: 0.25rem;">Qty: {{ item.quantity }}</p>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          
+          <div style="border-top: 1px solid var(--border-color); padding-top: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+            <div class="summary-item-row">
+              <span>Subtotal</span>
+              <strong>{% format_price subtotal %}</strong>
+            </div>
+            <div class="summary-item-row">
+              <span>Shipping</span>
+              <strong>{% format_price delivery_charge %}</strong>
+            </div>
+            
+            <div class="summary-item-row total" style="margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+              <span>Total</span>
+              <strong>{% format_price grand_total %}</strong>
+            </div>
+          </div>
+          
+          <!-- Promo Code -->
+          <form class="checkout-promo-form" onsubmit="applyCoupon(event, this)">
+            {% csrf_token %}
+            <input class="editorial-input" name="coupon_code" placeholder="Gift Card or Promo Code" type="text" value="{{ coupon.code|default:'' }}" style="padding: 0.75rem 0; font-size: 0.8125rem;"/>
+            <button class="promo-apply-btn text-label-caps" type="submit" style="font-size: 11px;">{% if coupon %}Update{% else %}Apply{% endif %}</button>
+          </form>
+          {% if coupon %}
+          <div style="margin-top: 0.5rem; font-size: 0.85rem; color: #155724; display: flex; justify-content: space-between;">
+              <span>Applied: <strong>{{ coupon.code }}</strong></span>
+              <a href="#" onclick="document.querySelector('.checkout-promo-form input').value=''; document.querySelector('.checkout-promo-form button').click(); return false;" style="color: #d32f2f; text-decoration: underline;">Remove</a>
+          </div>
+          {% endif %}
+          
+        </div>
+      </div>
+      
+    </div>
+  </main>{% endblock %}
+{% block scripts %}
+<script>
+    function selectShipping(method) {
+      document.getElementById('ship-express').classList.remove('active');
+      document.getElementById('ship-standard').classList.remove('active');
+      
+      if (method === 'express') {
+        document.getElementById('ship-express').classList.add('active');
+      } else {
+        document.getElementById('ship-standard').classList.add('active');
+      }
+    }
+
+    function selectPayment(method) {
+      document.querySelectorAll('.payment-method-option').forEach(el => el.classList.remove('active'));
+      const activeEl = document.getElementById('pay-' + method);
+      if (activeEl) {
+        activeEl.classList.add('active');
+      }
+    }
+
+    function placeOrder() {
+      alert('Order Placed Successfully! Thank you for shopping with MAISON.');
+      window.location.href = 'index.html';
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+      const phoneInput = document.querySelector("#recipient-phone");
+      if (phoneInput) {
+        const iti = window.intlTelInput(phoneInput, {
+          initialCountry: "auto",
+          geoIpLookup: function(callback) {
+            fetch("https://ipapi.co/json")
+              .then(function(res) { return res.json(); })
+              .then(function(data) { callback(data.country_code); })
+              .catch(function() { callback("us"); });
+          },
+          utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js",
+        });
+
+        const form = document.getElementById("checkout-form");
+        if (form) {
+          form.addEventListener("submit", function(e) {
+            if (phoneInput.value.trim()) {
+              if (iti.isValidNumber()) {
+                phoneInput.value = iti.getNumber();
+              } else {
+                e.preventDefault();
+                alert("Please enter a valid phone number.");
+              }
+            }
+          });
+        }
+      }
+    });
+  </script>
+{% endblock %}

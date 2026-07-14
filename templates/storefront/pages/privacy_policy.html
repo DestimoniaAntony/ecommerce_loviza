@@ -1,0 +1,46 @@
+{% extends 'storefront/base.html' %}
+{% block content %}
+<main style="padding: 4rem var(--margin-desktop); max-width: 8000px; margin: 0 auto; min-height: 60vh;">
+  <h1 class="font-serif" style="font-size: 2.5rem; margin-bottom: 1rem; text-align: center;">Privacy Policy</h1>
+  <div style="text-align: center; margin-bottom: 3rem; color: var(--text-secondary); font-size: 0.9rem;">
+    <a href="{% url 'storefront:home' %}" style="color: var(--text-primary); text-decoration: none;">Home</a> 
+    <span style="margin: 0 0.5rem;">&gt;</span> 
+    <span>Privacy Policy</span>
+  </div>
+  <div class="prose" style="line-height: 1.8; color: var(--text-secondary); text-align: justify;">
+    <p>This Privacy Policy describes how we collect and use your personal information when you visit or make a purchase from our Website.</p>
+    <ul style="list-style-type: disc; margin-left: 2rem; margin-bottom: 1.5rem;">
+      <li>All credit/debit cards details and personally identifiable information will NOT be stored, sold, shared, rented or leased to any third parties.</li>
+      <li>The Website Policies and Terms & Conditions may be changed or updated occasionally to meet the requirements and standards. Therefore the Customers are encouraged to frequently visit these sections in order to be updated about the changes on the website. Modifications will be effective on the day they are posted.</li>
+    </ul>
+
+    <h3 style="font-size: 1.5rem; margin-top: 2rem; margin-bottom: 1rem; color: var(--text-color);">How do we use your personal information?</h3>
+    <p>We use the Order Information that we collect generally to complete any orders placed through the Website (including processing your payment information, arranging for shipping, and providing you with invoices and/or order confirmations). Additionally, we use this Order Information to:</p>
+    <ul style="list-style-type: disc; margin-left: 2rem; margin-bottom: 1.5rem;">
+      <li>Communicate with you.</li>
+      <li>Screen our orders for potential risk or fraud.</li>
+      <li>When in line with the preferences you have shared with us, provide you with information or advertising relating to our products or services.</li>
+    </ul>
+    
+    <p>We use the Device Information that we collect to help us screen for potential risk and fraud (in particular, your IP address), and more generally to improve and optimize our Site (for example, by generating analytics about how our customers browse and interact with the Site, and to assess the success of our marketing and advertising campaigns).</p>
+    
+    <h3 style="font-size: 1.5rem; margin-top: 2rem; margin-bottom: 1rem; color: var(--text-color);">Sharing your personal Information</h3>
+    <p>We share your Personal Information with third parties to help us use your Personal Information.</p>
+    <p>Finally, we may also share your Personal Information to comply with applicable laws and regulations, to respond to a subpoena, search warrant or other lawful request for information we receive, or to otherwise protect our rights.</p>
+    
+    <h3 style="font-size: 1.5rem; margin-top: 2rem; margin-bottom: 1rem; color: var(--text-color);">Behavioural advertising</h3>
+    <p>We use your Personal Information to provide you with targeted advertisements or marketing communications we believe may be of interest to you.</p>
+
+    <h3 style="font-size: 1.5rem; margin-top: 2rem; margin-bottom: 1rem; color: var(--text-color);">Changes</h3>
+    <p>We may update this privacy policy from time to time in order to reflect, for example, changes to our practices or for other operational, legal or regulatory reasons.</p>
+    
+    <h3 style="font-size: 1.5rem; margin-top: 2rem; margin-bottom: 1rem; color: var(--text-color);">Minors</h3>
+    <p>The Site is not intended for individuals under the age of 18.</p>
+
+    <h3 style="font-size: 1.5rem; margin-top: 2rem; margin-bottom: 1rem; color: var(--text-color);">Contact us</h3>
+    <p>For more information about our privacy practices, if you have questions, or if you would like to make a complain, please contact us by e-mail at:<br>
+    <a href="mailto:info@laha.ae" style="color: var(--accent-color);">info@laha.ae</a></p>
+
+  </div>
+</main>
+{% endblock %}

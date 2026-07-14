@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Checkout | MAISON</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=EB+Garamond:wght@400;500&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link href="css/style.css" rel="stylesheet"/>
+</head>
+<body>
+
+  <!-- Minimal Checkout Header -->
+  <header style="position: static; background-color: var(--surface-lowest);">
+    <div class="nav-container" style="padding: 1.5rem var(--margin-desktop); display: flex; align-items: center;">
+      <div style="flex: 1;">
+        <a class="text-label-caps" href="collection.html" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+          <span class="material-symbols-outlined" style="font-size: 1rem;">west</span> Back
+        </a>
+      </div>
+      <div class="nav-brand" style="flex: 2; text-align: center;">
+        <a href="index.html"><h1>MAISON</h1></a>
+      </div>
+      <div style="flex: 1; text-align: right;">
+        <span class="text-label-caps text-secondary">SECURE CHECKOUT</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="checkout-main">
+    <div class="checkout-grid">
+      
+      <!-- Left Column: Checkout Forms -->
+      <div class="checkout-forms">
+        
+        <!-- Section 1: Customer Contact -->
+        <section>
+          <h3 class="text-label-caps form-section-title">1. Customer Contact</h3>
+          <div class="form-grid">
+            <div class="newsletter-input-wrapper">
+              <input class="editorial-input" placeholder="Email Address" type="email" required/>
+            </div>
+            <div class="newsletter-input-wrapper">
+              <input class="editorial-input" placeholder="Phone Number (e.g. +971 50 123 4567)" type="tel" required/>
+            </div>
+          </div>
+        </section>
+        
+        <!-- Section 2: Shipping Address -->
+        <section>
+          <h3 class="text-label-caps form-section-title">2. Shipping Address</h3>
+          <div class="form-grid">
+            <div class="form-row-2">
+              <div class="newsletter-input-wrapper">
+                <input class="editorial-input" placeholder="First Name" type="text" required/>
+              </div>
+              <div class="newsletter-input-wrapper">
+                <input class="editorial-input" placeholder="Last Name" type="text" required/>
+              </div>
+            </div>
+            <div class="newsletter-input-wrapper">
+              <input class="editorial-input" placeholder="Street Address" type="text" required/>
+            </div>
+            <div class="newsletter-input-wrapper">
+              <input class="editorial-input" placeholder="Apartment, Suite, Unit (optional)" type="text"/>
+            </div>
+            <div class="form-row-3">
+              <div class="newsletter-input-wrapper">
+                <input class="editorial-input" placeholder="City" type="text" required/>
+              </div>
+              <div class="newsletter-input-wrapper">
+                <input class="editorial-input" placeholder="Postal Code" type="text" required/>
+              </div>
+              <div class="newsletter-input-wrapper">
+                <select class="editorial-select">
+                  <option value="AE">UAE</option>
+                  <option value="SA">Saudi Arabia</option>
+                  <option value="QA">Qatar</option>
+                  <option value="OM">Oman</option>
+                  <option value="US">USA</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        <!-- Section 3: Shipping Method -->
+        <section>
+          <h3 class="text-label-caps form-section-title">3. Shipping Method</h3>
+          <div class="shipping-methods">
+            <div class="shipping-method-option active" id="ship-express" onclick="selectShipping('express')">
+              <div>
+                <strong class="text-label-caps" style="font-size: 0.75rem;">Express Courier</strong>
+                <p class="text-caption text-secondary" style="margin-top: 0.25rem;">Delivery in 1-2 business days</p>
+              </div>
+              <strong class="text-label-caps">Free</strong>
+            </div>
+            <div class="shipping-method-option" id="ship-standard" onclick="selectShipping('standard')">
+              <div>
+                <strong class="text-label-caps" style="font-size: 0.75rem;">Standard Delivery</strong>
+                <p class="text-caption text-secondary" style="margin-top: 0.25rem;">Delivery in 3-5 business days</p>
+              </div>
+              <strong class="text-label-caps">Free</strong>
+            </div>
+          </div>
+        </section>
+        
+        <!-- Section 4: Payment Details -->
+        <section>
+          <h3 class="text-label-caps form-section-title">4. Payment</h3>
+          <div class="payment-methods">
+            
+            <!-- Credit Card Option -->
+            <div class="payment-method-option active" id="pay-cc" onclick="selectPayment('cc')">
+              <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <strong class="text-label-caps" style="font-size: 0.75rem;">Credit / Debit Card</strong>
+                <span class="material-symbols-outlined">credit_card</span>
+              </div>
+              
+              <div class="payment-inputs" id="cc-form-inputs">
+                <div class="newsletter-input-wrapper">
+                  <input class="editorial-input" placeholder="Card Number" type="text" maxlength="19"/>
+                </div>
+                <div class="newsletter-input-wrapper">
+                  <input class="editorial-input" placeholder="Cardholder Name" type="text"/>
+                </div>
+                <div class="form-row-2">
+                  <div class="newsletter-input-wrapper">
+                    <input class="editorial-input" placeholder="Expiry Date (MM/YY)" type="text" maxlength="5"/>
+                  </div>
+                  <div class="newsletter-input-wrapper">
+                    <input class="editorial-input" placeholder="Security Code (CVV)" type="password" maxlength="4"/>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Cash on Delivery -->
+            <div class="payment-method-option" id="pay-cod" onclick="selectPayment('cod')">
+              <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <strong class="text-label-caps" style="font-size: 0.75rem;">Cash On Delivery (COD)</strong>
+                <span class="material-symbols-outlined">payments</span>
+              </div>
+            </div>
+            
+          </div>
+        </section>
+        
+        <!-- Place Order -->
+        <div style="margin-top: 2rem;">
+          <button class="checkout-btn text-label-caps" style="font-size: 0.9375rem;" onclick="placeOrder()">PLACE ORDER</button>
+        </div>
+        
+      </div>
+      
+      <!-- Right Column: Order Summary -->
+      <div class="checkout-summary">
+        <div class="checkout-summary-sticky">
+          <h3 class="text-label-caps" style="font-size: 0.875rem;">Order Summary</h3>
+          
+          <div class="cart-item-list" style="gap: 1.5rem;">
+            <!-- Summary Product 1 -->
+            <!-- Recommended Admin Upload Thumbnail Size: 200x266px (3:4 Aspect Ratio) -->
+            <div class="cart-item" style="gap: 1rem;">
+              <div class="cart-item-img" style="width: 4.5rem; background-image: url('images/product_main.png')"></div>
+              <div class="cart-item-details" style="padding: 0;">
+                <div>
+                  <div class="cart-item-header" style="margin-bottom: 0.25rem;">
+                    <h4 style="font-size: 0.875rem;">Silk Overlay Abaya</h4>
+                    <p class="text-label-caps" style="font-size: 0.75rem;">$450</p>
+                  </div>
+                  <p class="cart-item-options" style="font-size: 0.6875rem;">Color: Obsidian Black</p>
+                  <p class="cart-item-options" style="font-size: 0.6875rem;">Size: Medium</p>
+                  <p class="cart-item-options" style="font-size: 0.6875rem; margin-top: 0.25rem;">Qty: 1</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Summary Product 2 -->
+            <!-- Recommended Admin Upload Thumbnail Size: 200x266px (3:4 Aspect Ratio) -->
+            <div class="cart-item" style="gap: 1rem;">
+              <div class="cart-item-img" style="width: 4.5rem; background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDkfT-tS3y5JmzqPMqpAYOk60FNjzKQmo4fHI04kcQq5gKh2ow-WcdwggdwH0ilRPy_gTvcy1ddiHz2XqLWfxAUjQDyZhPKW10Q7a7jamXKpym5-uwXQ4yIek6hfrdR-aezQcgMsT26ZAGtZYP-aPKTdc9kof6WOpj4bYIgVAyFQlADU884i1V8EMu_2Y0oo9IIrfOER57vG80ai3UpwGBm-fvzOcthD_v6rsIh2Fu8ZHeaM1pTU1yS2-lgc5R7bU6Z6R_ssNFHC3mA')"></div>
+              <div class="cart-item-details" style="padding: 0;">
+                <div>
+                  <div class="cart-item-header" style="margin-bottom: 0.25rem;">
+                    <h4 style="font-size: 0.875rem;">Ivory Pashmina</h4>
+                    <p class="text-label-caps" style="font-size: 0.75rem;">$180</p>
+                  </div>
+                  <p class="cart-item-options" style="font-size: 0.6875rem;">Color: Ivory</p>
+                  <p class="cart-item-options" style="font-size: 0.6875rem;">Size: One Size</p>
+                  <p class="cart-item-options" style="font-size: 0.6875rem; margin-top: 0.25rem;">Qty: 1</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div style="border-top: 1px solid var(--border-color); padding-top: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+            <div class="summary-item-row">
+              <span>Subtotal</span>
+              <strong>$630.00</strong>
+            </div>
+            <div class="summary-item-row">
+              <span>Shipping</span>
+              <strong>Free</strong>
+            </div>
+            <div class="summary-item-row">
+              <span>Estimated Tax</span>
+              <strong>$0.00</strong>
+            </div>
+            
+            <div class="summary-item-row total">
+              <span>Total</span>
+              <strong>$630.00</strong>
+            </div>
+          </div>
+          
+          <!-- Promo Code -->
+          <form class="checkout-promo-form" onsubmit="event.preventDefault(); alert('Promo code applied!');">
+            <input class="editorial-input" placeholder="Gift Card or Promo Code" type="text" style="padding: 0.75rem 0; font-size: 0.8125rem;"/>
+            <button class="promo-apply-btn text-label-caps" type="submit" style="font-size: 11px;">Apply</button>
+          </form>
+          
+        </div>
+      </div>
+      
+    </div>
+  </main>
+
+  <script>
+    function selectShipping(method) {
+      document.getElementById('ship-express').classList.remove('active');
+      document.getElementById('ship-standard').classList.remove('active');
+      
+      if (method === 'express') {
+        document.getElementById('ship-express').classList.add('active');
+      } else {
+        document.getElementById('ship-standard').classList.add('active');
+      }
+    }
+
+    function selectPayment(method) {
+      document.getElementById('pay-cc').classList.remove('active');
+      document.getElementById('pay-cod').classList.remove('active');
+      const ccInputs = document.getElementById('cc-form-inputs');
+      
+      if (method === 'cc') {
+        document.getElementById('pay-cc').classList.add('active');
+        ccInputs.style.display = 'flex';
+      } else {
+        document.getElementById('pay-cod').classList.add('active');
+        ccInputs.style.display = 'none';
+      }
+    }
+
+    function placeOrder() {
+      alert('Order Placed Successfully! Thank you for shopping with MAISON.');
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+{% extends 'base/vendor_base.html' %}
+{% load static %}
+
+{% block title %}Create Stock Transfer — CommerceHub{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{% url 'commercehub_app:dashboard' %}">Dashboard</a>
+    <span class="breadcrumb-sep">›</span>
+    <a href="{% url 'inventory:stock_transfer_list' %}">Stock Transfers</a>
+    <span class="breadcrumb-sep">›</span>
+    <span>Create Stock Transfer</span>
+</div>
+
+<div class="data-card" style="padding: 28px; margin-bottom: 24px;">
+    <h2 class="form-section-title" style="font-size: 16px; margin-bottom: 24px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">New Stock Transfer Request</h2>
+    
+    <form method="post" id="transferForm">
+        {% csrf_token %}
+
+        <!-- Header details -->
+        <div class="form-section">
+            <div class="form-grid-3">
+                <div class="form-group">
+                    <label class="form-label" for="transfer_number">Transfer Number</label>
+                    <input type="text" id="transfer_number" name="transfer_number" class="form-input" value="{{ transfer_number }}" readonly style="background: rgba(255,255,255,0.02); font-family: monospace;">
+                    <p class="form-hint">Generated automatically.</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="from_branch_id">Source / From Branch <span class="req">*</span></label>
+                    <select id="from_branch_id" name="from_branch_id" class="form-input" required style="height: 42px; padding: 0 12px; cursor: pointer;">
+                        <option value="">Select Source Branch...</option>
+                        {% for branch in branches %}
+                            <option value="{{ branch.id }}">{{ branch.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <p class="form-hint">Branch that stock is leaving.</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="to_branch_id">Destination / To Branch <span class="req">*</span></label>
+                    <select id="to_branch_id" name="to_branch_id" class="form-input" required style="height: 42px; padding: 0 12px; cursor: pointer;">
+                        <option value="">Select Destination...</option>
+                        {% for branch in branches %}
+                            <option value="{{ branch.id }}">{{ branch.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <p class="form-hint">Branch receiving the stock.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Items table -->
+        <div class="form-section">
+            <h3 class="form-section-title" style="margin-bottom: 16px;">Transfer Line Items</h3>
+            
+            <div style="overflow-x: auto; margin-bottom: 20px;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left;" id="itemsTable">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-size: 13px;">
+                            <th style="padding: 10px 12px; width: 65%;">Product Variant <span class="req">*</span></th>
+                            <th style="padding: 10px 12px; width: 25%; text-align: center;">Quantity to Transfer <span class="req">*</span></th>
+                            <th style="padding: 10px 12px; width: 10%; text-align: center;">Remove</th>
+                        </tr>
+                    </thead>
+                    <tbody id="itemsBody">
+                        <!-- Dynamic rows will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Add Row Button -->
+            <div style="margin-bottom: 24px;">
+                <button type="button" class="btn btn-outline" onclick="addRow()" style="height: 42px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="vertical-align: middle; margin-right: 6px;">
+                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Add Row
+                </button>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="notes">Transfer Notes / Reason</label>
+                <textarea id="notes" name="notes" class="form-input" rows="3" placeholder="Enter reason for transfer (e.g. outlet restock, stock adjustment, etc...)"></textarea>
+            </div>
+        </div>
+
+        <div class="form-actions" style="margin-top: 32px; border-top: 1px solid var(--border-color); padding-top: 24px;">
+            <button type="submit" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="vertical-align: middle; margin-right: 6px;">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+                </svg>
+                Create Transfer
+            </button>
+            <a href="{% url 'inventory:stock_transfer_list' %}" class="btn btn-ghost">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<!-- Row Template (stored in script tag, hidden) -->
+<script type="text/template" id="rowTemplate">
+    <tr style="border-bottom: 1px solid var(--border-color-light);">
+        <td style="padding: 12px 6px;">
+            <select name="variant_id[]" class="form-input row-variant-select" required style="height: 38px; padding: 0 8px;">
+                <option value="">Choose variant...</option>
+                {% for variant in variants %}
+                    <option value="{{ variant.id }}">
+                        {{ variant.product.name }} {% if variant.name %}({{ variant.name }}){% endif %} — [SKU: {{ variant.sku }}]
+                    </option>
+                {% endfor %}
+            </select>
+        </td>
+        <td style="padding: 12px 6px; text-align: center;">
+            <input type="number" name="quantity[]" class="form-input" min="0.01" step="0.01" value="1.00" required style="height: 38px; text-align: center; max-width: 150px; margin: 0 auto;">
+        </td>
+        <td style="padding: 12px 6px; text-align: center;">
+            <button type="button" class="btn btn-sm btn-ghost text-danger" onclick="removeRow(this)" style="padding: 6px; min-width: auto; height: auto;">
+                ❌
+            </button>
+        </td>
+    </tr>
+</script>
+
+<script>
+    const rowTemplateHTML = document.getElementById('rowTemplate').innerHTML;
+    const itemsBody = document.getElementById('itemsBody');
+
+    // Add first row on load
+    window.addEventListener('DOMContentLoaded', () => {
+        addRow();
+    });
+
+    function addRow() {
+        const tempDiv = document.createElement('tbody');
+        tempDiv.innerHTML = rowTemplateHTML;
+        const newRow = tempDiv.firstElementChild;
+        itemsBody.appendChild(newRow);
+    }
+
+    function removeRow(button) {
+        const row = button.closest('tr');
+        row.remove();
+        
+        // If table empty, add one row back
+        if (itemsBody.children.length === 0) {
+            addRow();
+        }
+    }
+
+    // Client-side validations
+    document.getElementById('transferForm').addEventListener('submit', function(e) {
+        const fromBranch = document.getElementById('from_branch_id').value;
+        const toBranch = document.getElementById('to_branch_id').value;
+
+        if (fromBranch && toBranch && fromBranch === toBranch) {
+            e.preventDefault();
+            alert('Source and destination branches cannot be the same location.');
+            return;
+        }
+
+        const selects = document.querySelectorAll('.row-variant-select');
+        let hasDuplicates = false;
+        const seenIds = new Set();
+        
+        selects.forEach(select => {
+            if (select.value) {
+                if (seenIds.has(select.value)) {
+                    hasDuplicates = true;
+                }
+                seenIds.add(select.value);
+            }
+        });
+
+        if (hasDuplicates) {
+            e.preventDefault();
+            alert('Duplicate variants selected. Please adjust quantities of a single line item instead.');
+        }
+    });
+</script>
+{% endblock %}

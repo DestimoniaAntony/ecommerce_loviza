@@ -1,0 +1,68 @@
+{% extends 'base/vendor_base.html' %}
+{% load static %}
+
+{% block title %}Loyalty Program Settings — CommerceHub{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{% url 'commercehub_app:dashboard' %}">Dashboard</a>
+    <span class="breadcrumb-sep">›</span>
+    <span>Loyalty Program Settings</span>
+</div>
+
+<div class="data-card" style="max-width: 700px; padding: 28px;">
+    <form action="{% url 'crm:loyalty_settings' %}" method="post">
+        {% csrf_token %}
+
+        <div class="form-section">
+            <h3 class="form-section-title" style="font-size: 1.1rem; font-weight: 600; color: var(--text-primary); border-bottom: 2px solid var(--border-color); padding-bottom: 8px; margin-bottom: 20px;">Loyalty Program Configuration</h3>
+            
+            <div class="form-group" style="margin-bottom: 24px;">
+                <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; color: var(--text-primary); background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); padding: 16px; border-radius: var(--radius-md);">
+                    <input type="checkbox" id="is_enabled" name="is_enabled" {% if program.is_enabled %}checked{% endif %} style="width: 20px; height: 20px; accent-color: var(--color-primary);">
+                    <div>
+                        <strong style="display: block; font-size: 14px; margin-bottom: 2px;">Enable Customer Loyalty Rewards</strong>
+                        <span style="font-size: 12px; color: var(--text-muted);">Activate automatic point earning on storefront orders and allow point discounts at checkout.</span>
+                    </div>
+                </label>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label class="form-label" for="points_per_currency">Points Earned per Unit of Currency Spent</label>
+                <input type="number" step="0.0001" id="points_per_currency" name="points_per_currency" class="form-input" 
+                       value="{{ program.points_per_currency }}">
+                <span class="text-muted" style="font-size: 0.8rem; display: block; margin-top: 4px;">
+                    e.g. Set to <strong>0.0100</strong> to award 1 point for every ₹100 spent (Calculation: Paid Total × Points Value).
+                </span>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label class="form-label" for="currency_per_point">Value of 1 Point in Store Discount</label>
+                <input type="number" step="0.01" id="currency_per_point" name="currency_per_point" class="form-input" 
+                       value="{{ program.currency_per_point }}">
+                <span class="text-muted" style="font-size: 0.8rem; display: block; margin-top: 4px;">
+                    e.g. Set to <strong>0.10</strong> to value each point as ₹0.10 discount (100 points = ₹10 off at checkout).
+                </span>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label class="form-label" for="min_points_to_redeem">Minimum Accumulated Points Required to Redeem</label>
+                <input type="number" id="min_points_to_redeem" name="min_points_to_redeem" class="form-input" 
+                       value="{{ program.min_points_to_redeem }}">
+                <span class="text-muted" style="font-size: 0.8rem; display: block; margin-top: 4px;">
+                    Customers cannot redeem points unless their ledger balance meets or exceeds this limit.
+                </span>
+            </div>
+        </div>
+
+        <div style="margin-top: 32px; display: flex; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+            <button type="submit" class="btn btn-primary" style="padding: 10px 24px;">
+                Save Configuration
+            </button>
+            <a href="{% url 'commercehub_app:dashboard' %}" class="btn btn-outline" style="padding: 10px 24px;">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

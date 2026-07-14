@@ -1,0 +1,63 @@
+{% extends 'storefront/base.html' %}
+{% load static %}
+{% load currency_tags %}
+
+{% block title %}Order Success — {{ request.tenant.business_name }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 4rem auto; padding: 2rem; text-align: center;">
+    <div style="padding: 3rem 2rem; background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border-radius: 8px; border: 1px solid #eee;">
+        <!-- Animated Checkmark Icon -->
+        <div style="display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; background: #d4edda; color: #155724; border-radius: 50%; margin-bottom: 1.5rem;">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+        </div>
+
+        <h2 style="font-family: 'EB Garamond', serif; font-size: 2.5rem; margin-bottom: 0.5rem; color: #111;">Order Placed Successfully!</h2>
+        <p style="color: #555; margin-bottom: 2.5rem; font-size: 1rem;">Thank you for your purchase. Your order has been recorded and is currently pending fulfillment.</p>
+
+        <!-- Order Summary Detail Block -->
+        <div style="background: #f9f9f9; border: 1px solid #eaeaea; border-radius: 8px; padding: 24px; text-align: left; margin-bottom: 32px;">
+            <h3 style="font-size: 15px; font-weight: 700; color: #111; margin-bottom: 16px; border-bottom: 1px solid #eaeaea; padding-bottom: 8px;">Order Details</h3>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px 24px; font-size: 14px;">
+                <div>
+                    <span style="color: #666; display: block; font-size: 12px; font-weight: 600; text-transform: uppercase;">Order Number</span>
+                    <strong style="color: #111; font-size: 16px;">{{ order.order_number }}</strong>
+                </div>
+                
+                <div>
+                    <span style="color: #666; display: block; font-size: 12px; font-weight: 600; text-transform: uppercase;">Payment Method</span>
+                    <strong style="color: #111;">{{ order.get_payment_method_display }}</strong>
+                </div>
+
+                <div>
+                    <span style="color: #666; display: block; font-size: 12px; font-weight: 600; text-transform: uppercase;">Total Amount</span>
+                    <strong style="color: #111; font-size: 16px;">{% format_price order.total_amount %}</strong>
+                </div>
+
+                <div>
+                    <span style="color: #666; display: block; font-size: 12px; font-weight: 600; text-transform: uppercase;">Order Date</span>
+                    <span style="color: #444;">{{ order.created_at|date:"f A, N j, Y" }}</span>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; border-top: 1px solid #eaeaea; padding-top: 16px;">
+                <span style="color: #666; display: block; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Shipping Address</span>
+                <p style="color: #444; font-size: 13px; line-height: 1.6; white-space: pre-line; margin: 0;">{{ order.shipping_address }}</p>
+            </div>
+        </div>
+
+        <!-- Call to Action Actions -->
+        <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+            <a href="{% url 'storefront:home' %}" style="padding: 0.75rem 1.5rem; text-decoration: none; border: 1px solid #000; color: #000; font-weight: 600; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; transition: all 0.2s;">
+                Continue Shopping
+            </a>
+            <a href="{% url 'storefront:profile' %}" style="padding: 0.75rem 1.5rem; text-decoration: none; background: #000; color: #fff; font-weight: 600; font-size: 0.875rem; border: 1px solid #000; text-transform: uppercase; letter-spacing: 0.05em; transition: all 0.2s;">
+                View Order History
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

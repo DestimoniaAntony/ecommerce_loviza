@@ -1,0 +1,227 @@
+{% extends 'base/vendor_base.html' %}
+{% load static %}
+
+{% block title %}Create Purchase Order — CommerceHub{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{% url 'commercehub_app:dashboard' %}">Dashboard</a>
+    <span class="breadcrumb-sep">›</span>
+    <a href="{% url 'inventory:purchase_order_list' %}">Purchase Orders</a>
+    <span class="breadcrumb-sep">›</span>
+    <span>Create Purchase Order</span>
+</div>
+
+<div class="data-card" style="padding: 28px; margin-bottom: 24px;">
+    <h2 class="form-section-title" style="font-size: 16px; margin-bottom: 24px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">New Purchase Order (Draft)</h2>
+    
+    <form method="post" id="poForm">
+        {% csrf_token %}
+
+        <!-- Header details -->
+        <div class="form-section">
+            <div class="form-grid-3">
+                <div class="form-group">
+                    <label class="form-label" for="po_number">PO Number</label>
+                    <input type="text" id="po_number" name="po_number" class="form-input" value="{{ po_number }}" readonly style="background: rgba(255,255,255,0.02); font-family: monospace;">
+                    <p class="form-hint">Generated automatically.</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="supplier_id">Supplier <span class="req">*</span></label>
+                    <select id="supplier_id" name="supplier_id" class="form-input" required style="height: 42px; padding: 0 12px; cursor: pointer;">
+                        <option value="">Select Supplier...</option>
+                        {% for supplier in suppliers %}
+                            <option value="{{ supplier.id }}">{{ supplier.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="branch_id">Target Branch <span class="req">*</span></label>
+                    <select id="branch_id" name="branch_id" class="form-input" required style="height: 42px; padding: 0 12px; cursor: pointer;">
+                        <option value="">Select Branch...</option>
+                        {% for branch in branches %}
+                            <option value="{{ branch.id }}" {% if branch.is_main_branch %}selected{% endif %}>{{ branch.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <p class="form-hint">Branch that will receive the stock.</p>
+                </div>
+            </div>
+
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="order_date">Order Date <span class="req">*</span></label>
+                    <input type="date" id="order_date" name="order_date" class="form-input" value="{% now 'Y-m-d' %}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="expected_delivery_date">Expected Delivery Date</label>
+                    <input type="date" id="expected_delivery_date" name="expected_delivery_date" class="form-input">
+                </div>
+            </div>
+        </div>
+
+        <!-- Items table -->
+        <div class="form-section">
+            <h3 class="form-section-title" style="margin-bottom: 16px;">Order Line Items</h3>
+            
+            <div style="overflow-x: auto; margin-bottom: 20px;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left;" id="itemsTable">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-size: 13px;">
+                            <th style="padding: 10px 12px; width: 45%;">Product Variant <span class="req">*</span></th>
+                            <th style="padding: 10px 12px; width: 15%; text-align: center;">Quantity <span class="req">*</span></th>
+                            <th style="padding: 10px 12px; width: 15%; text-align: right;">Unit Cost (₹) <span class="req">*</span></th>
+                            <th style="padding: 10px 12px; width: 15%; text-align: right;">Total Cost (₹)</th>
+                            <th style="padding: 10px 12px; width: 10%; text-align: center;">Remove</th>
+                        </tr>
+                    </thead>
+                    <tbody id="itemsBody">
+                        <!-- Dynamic rows will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Buttons and Total -->
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 24px; margin-bottom: 24px;">
+                <button type="button" class="btn btn-outline" onclick="addRow()" style="height: 42px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="vertical-align: middle; margin-right: 6px;">
+                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Add Row
+                </button>
+                <div style="font-size: 18px; font-weight: 700; color: var(--text-primary);">
+                    Grand Total: <span style="color: var(--color-primary-light);">₹<span id="grandTotal">0.00</span></span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="notes">Notes / Instructions</label>
+                <textarea id="notes" name="notes" class="form-input" rows="3" placeholder="Enter purchase terms, supplier delivery instruction note, payment agreements, etc..."></textarea>
+            </div>
+        </div>
+
+        <div class="form-actions" style="margin-top: 32px; border-top: 1px solid var(--border-color); padding-top: 24px;">
+            <button type="submit" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="vertical-align: middle; margin-right: 6px;">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+                </svg>
+                Create PO Draft
+            </button>
+            <a href="{% url 'inventory:purchase_order_list' %}" class="btn btn-ghost">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<!-- Raw HTML Template for Rows (stored in script tag, hidden) -->
+<script type="text/template" id="rowTemplate">
+    <tr style="border-bottom: 1px solid var(--border-color-light);">
+        <td style="padding: 12px 6px;">
+            <select name="variant_id[]" class="form-input row-variant-select" required style="height: 38px; padding: 0 8px;" onchange="handleVariantChange(this)">
+                <option value="">Choose variant...</option>
+                {% for variant in variants %}
+                    <option value="{{ variant.id }}" data-price="{{ variant.price }}">
+                        {{ variant.product.name }} {% if variant.name %}({{ variant.name }}){% endif %} — [SKU: {{ variant.sku }}]
+                    </option>
+                {% endfor %}
+            </select>
+        </td>
+        <td style="padding: 12px 6px; text-align: center;">
+            <input type="number" name="quantity[]" class="form-input row-qty" min="0.01" step="0.01" value="1.00" required style="height: 38px; text-align: center;" oninput="calculateRow(this)">
+        </td>
+        <td style="padding: 12px 6px; text-align: right;">
+            <input type="number" name="unit_cost[]" class="form-input row-cost" min="0.00" step="0.01" value="0.00" required style="height: 38px; text-align: right;" oninput="calculateRow(this)">
+        </td>
+        <td style="padding: 12px 6px; text-align: right; font-weight: 600; font-size: 14px; color: var(--text-primary);">
+            ₹<span class="row-total">0.00</span>
+        </td>
+        <td style="padding: 12px 6px; text-align: center;">
+            <button type="button" class="btn btn-sm btn-ghost text-danger" onclick="removeRow(this)" style="padding: 6px; min-width: auto; height: auto;">
+                ❌
+            </button>
+        </td>
+    </tr>
+</script>
+
+<script>
+    const rowTemplateHTML = document.getElementById('rowTemplate').innerHTML;
+    const itemsBody = document.getElementById('itemsBody');
+
+    // Add first row on load
+    window.addEventListener('DOMContentLoaded', () => {
+        addRow();
+    });
+
+    function addRow() {
+        const tempDiv = document.createElement('tbody');
+        tempDiv.innerHTML = rowTemplateHTML;
+        const newRow = tempDiv.firstElementChild;
+        itemsBody.appendChild(newRow);
+        
+        // Re-initialize select value and cost calculation
+        calculateGrandTotal();
+    }
+
+    function removeRow(button) {
+        const row = button.closest('tr');
+        row.remove();
+        
+        // If table empty, add one row back
+        if (itemsBody.children.length === 0) {
+            addRow();
+        }
+        calculateGrandTotal();
+    }
+
+    function handleVariantChange(selectElement) {
+        const selectedOption = selectElement.options[selectElement.selectedIndex];
+        const price = selectedOption.getAttribute('data-price') || "0.00";
+        
+        // Set default unit cost to variant standard price
+        const row = selectElement.closest('tr');
+        const costInput = row.querySelector('.row-cost');
+        costInput.value = parseFloat(price).toFixed(2);
+        
+        calculateRow(costInput);
+    }
+
+    function calculateRow(inputElement) {
+        const row = inputElement.closest('tr');
+        const qty = parseFloat(row.querySelector('.row-qty').value) || 0.00;
+        const cost = parseFloat(row.querySelector('.row-cost').value) || 0.00;
+        
+        const rowTotal = qty * cost;
+        row.querySelector('.row-total').innerText = rowTotal.toFixed(2);
+        
+        calculateGrandTotal();
+    }
+
+    function calculateGrandTotal() {
+        const rowTotals = document.querySelectorAll('.row-total');
+        let grandTotal = 0.00;
+        rowTotals.forEach(span => {
+            grandTotal += parseFloat(span.innerText) || 0.00;
+        });
+        document.getElementById('grandTotal').innerText = grandTotal.toFixed(2);
+    }
+
+    // Client-side validate before submit
+    document.getElementById('poForm').addEventListener('submit', function(e) {
+        const selects = document.querySelectorAll('.row-variant-select');
+        let hasDuplicates = false;
+        const seenIds = new Set();
+        
+        selects.forEach(select => {
+            if (select.value) {
+                if (seenIds.has(select.value)) {
+                    hasDuplicates = true;
+                }
+                seenIds.add(select.value);
+            }
+        });
+
+        if (hasDuplicates) {
+            e.preventDefault();
+            alert('Duplicate variants selected. Please adjust quantities of a single line item instead.');
+        }
+    });
+</script>
+{% endblock %}

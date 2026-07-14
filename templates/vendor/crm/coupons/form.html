@@ -1,0 +1,90 @@
+{% extends 'base/vendor_base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }} — CommerceHub{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{% url 'commercehub_app:dashboard' %}">Dashboard</a>
+    <span class="breadcrumb-sep">›</span>
+    <a href="{% url 'crm:coupon_list' %}">Promo Coupons</a>
+    <span class="breadcrumb-sep">›</span>
+    <span>{{ page_title }}</span>
+</div>
+
+<div class="data-card" style="max-width: 700px; padding: 28px;">
+    <form action="{{ action_url }}" method="post">
+        {% csrf_token %}
+
+        <div class="form-section">
+            <h3 class="form-section-title" style="font-size: 1.1rem; font-weight: 600; color: var(--text-primary); border-bottom: 2px solid var(--border-color); padding-bottom: 8px; margin-bottom: 20px;">Coupon Details</h3>
+            
+            <div class="form-group">
+                <label class="form-label" for="code">Coupon Code *</label>
+                <input type="text" id="code" name="code" class="form-input" placeholder="e.g. SUMMER50" 
+                       value="{{ coupon.code|default:'' }}" required {% if coupon %}disabled{% endif %} style="text-transform: uppercase;">
+                {% if coupon %}
+                    <span class="text-muted" style="font-size: 0.8rem; display: block; margin-top: 4px;">Coupon code cannot be changed once created.</span>
+                {% endif %}
+            </div>
+
+            <div class="form-grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <div class="form-group">
+                    <label class="form-label" for="discount_type">Discount Type *</label>
+                    <select name="discount_type" id="discount_type" class="form-input" required style="background: var(--bg-surface, #1e1e2e); color: var(--text-primary);">
+                        <option value="percentage" {% if coupon.discount_type == 'percentage' %}selected{% endif %}>Percentage (%)</option>
+                        <option value="flat" {% if coupon.discount_type == 'flat' %}selected{% endif %}>Flat Amount</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="discount_value">Discount Value *</label>
+                    <input type="number" step="0.01" id="discount_value" name="discount_value" class="form-input" required 
+                           value="{{ coupon.discount_value|default:'0.00' }}">
+                </div>
+            </div>
+
+            <div class="form-grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <div class="form-group">
+                    <label class="form-label" for="min_purchase">Minimum Purchase Limit</label>
+                    <input type="number" step="0.01" id="min_purchase" name="min_purchase" class="form-input" 
+                           value="{{ coupon.min_purchase|default:'0.00' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="usage_limit">Total Usage Limit (Optional)</label>
+                    <input type="number" id="usage_limit" name="usage_limit" class="form-input" placeholder="No limit" 
+                           value="{{ coupon.usage_limit|default:'' }}">
+                </div>
+            </div>
+
+            <div class="form-grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <div class="form-group">
+                    <label class="form-label" for="start_date">Start Date *</label>
+                    <input type="date" id="start_date" name="start_date" class="form-input" required 
+                           value="{{ coupon.start_date|date:'Y-m-d'|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="end_date">End Date *</label>
+                    <input type="date" id="end_date" name="end_date" class="form-input" required 
+                           value="{{ coupon.end_date|date:'Y-m-d'|default:'' }}">
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 24px;">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--text-primary);">
+                    <input type="checkbox" id="is_active" name="is_active" {% if coupon.is_active|default:True %}checked{% endif %} style="width: 18px; height: 18px; accent-color: var(--color-primary);">
+                    <span>Enable Coupon (Active &amp; valid for use at checkout)</span>
+                </label>
+            </div>
+        </div>
+
+        <div style="margin-top: 32px; display: flex; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+            <button type="submit" class="btn btn-primary" style="padding: 10px 24px;">
+                Save Coupon
+            </button>
+            <a href="{% url 'crm:coupon_list' %}" class="btn btn-outline" style="padding: 10px 24px;">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

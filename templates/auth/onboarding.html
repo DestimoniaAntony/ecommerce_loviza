@@ -1,0 +1,605 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Vendor Onboarding — CommerceHub{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Premium Onboarding Wizard Styles */
+    .onboarding-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-xl);
+        padding: 40px;
+        width: 100%;
+        max-width: 850px;
+        box-shadow: var(--shadow-lg);
+        margin: 40px auto;
+        position: relative;
+        overflow: hidden;
+    }
+    .wizard-steps {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 40px;
+        position: relative;
+    }
+    .wizard-steps::before {
+        content: '';
+        position: absolute;
+        top: 15px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: var(--border-color);
+        z-index: 0;
+    }
+    .wizard-step-progress {
+        position: absolute;
+        top: 15px;
+        left: 0;
+        height: 2px;
+        background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+        z-index: 1;
+        transition: width 0.3s ease;
+        width: 0%;
+    }
+    .step-indicator {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 60px;
+    }
+    .step-circle {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--bg-surface);
+        border: 2px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-muted);
+        transition: var(--transition);
+    }
+    .step-indicator.active .step-circle {
+        border-color: var(--color-primary);
+        color: white;
+        background: var(--color-primary);
+        box-shadow: 0 0 12px rgba(99, 102, 241, 0.4);
+    }
+    .step-indicator.completed .step-circle {
+        border-color: var(--color-success);
+        color: white;
+        background: var(--color-success);
+    }
+    .step-label {
+        margin-top: 8px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-muted);
+        text-align: center;
+        white-space: nowrap;
+    }
+    .step-indicator.active .step-label { color: var(--text-primary); }
+    .step-indicator.completed .step-label { color: var(--color-success); }
+
+    .wizard-panel {
+        display: none;
+        animation: slideIn 0.3s ease forwards;
+    }
+    .wizard-panel.active { display: block; }
+    
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .wizard-header {
+        margin-bottom: 28px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border-color-light);
+    }
+    .wizard-header h3 { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+    .wizard-header p { color: var(--text-secondary); font-size: 14px; }
+
+    .wizard-footer {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border-color-light);
+    }
+
+    /* Custom File Upload Styling for Onboarding */
+    .file-input-hidden { display: none; }
+    .file-preview {
+        max-width: 100%;
+        max-height: 80px;
+        margin-top: 10px;
+        border-radius: var(--radius-sm);
+        object-fit: contain;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="auth-container auth-center">
+    <div class="onboarding-card">
+        
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h2 class="brand-name text-gradient">CommerceHub Onboarding</h2>
+            <p class="brand-tagline" style="color: var(--text-muted); font-size: 13px;">Create your enterprise store in minutes</p>
+        </div>
+
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+
+        <!-- Progress Steps -->
+        <div class="wizard-steps">
+            <div class="wizard-step-progress" id="stepProgress"></div>
+            <div class="step-indicator active" data-step="1">
+                <div class="step-circle">1</div>
+                <span class="step-label">Identity</span>
+            </div>
+            <div class="step-indicator" data-step="2">
+                <div class="step-circle">2</div>
+                <span class="step-label">Owner</span>
+            </div>
+            <div class="step-indicator" data-step="3">
+                <div class="step-circle">3</div>
+                <span class="step-label">Address</span>
+            </div>
+            <div class="step-indicator" data-step="4">
+                <div class="step-circle">4</div>
+                <span class="step-label">Settings</span>
+            </div>
+            <div class="step-indicator" data-step="5">
+                <div class="step-circle">5</div>
+                <span class="step-label">Branding</span>
+            </div>
+            <div class="step-indicator" data-step="6">
+                <div class="step-circle">6</div>
+                <span class="step-label">Plan</span>
+            </div>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" id="onboardingForm">
+            {% csrf_token %}
+
+            <!-- ── STEP 1: BUSINESS IDENTITY ── -->
+            <div class="wizard-panel active" data-panel="1">
+                <div class="wizard-header">
+                    <h3>Business Identity</h3>
+                    <p>Tell us about your business store profile.</p>
+                </div>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label" for="biz_name">Business Name <span class="req">*</span></label>
+                        <input type="text" id="biz_name" name="business_name" class="form-input" 
+                               placeholder="Acme Cakes" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="biz_type">Business Type <span class="req">*</span></label>
+                        <select id="biz_type" name="business_type" class="form-select" required>
+                            <option value="single_store">Single Store</option>
+                            <option value="multi_branch">Multi Branch</option>
+                            <option value="multi_partner">Multi Partner</option>
+                            <option value="franchise">Franchise</option>
+                            <option value="online_only">Online Store</option>
+                            <option value="whatsapp_store">WhatsApp Store</option>
+                            <option value="wholesale">Wholesale</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label" for="gst">GST Number</label>
+                        <input type="text" id="gst" name="gst_number" class="form-input" placeholder="22AAAAA0000A1Z5" maxlength="20">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="pan">PAN Number</label>
+                        <input type="text" id="pan" name="pan_number" class="form-input" placeholder="AAAAA9999A" maxlength="20">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── STEP 2: OWNER CREDENTIALS ── -->
+            <div class="wizard-panel" data-panel="2">
+                <div class="wizard-header">
+                    <h3>Owner Credentials</h3>
+                    <p>Create the primary administrator account for your store portal.</p>
+                </div>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label" for="owner_first">First Name <span class="req">*</span></label>
+                        <input type="text" id="owner_first" name="owner_first_name" class="form-input" placeholder="e.g. John" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="owner_last">Last Name</label>
+                        <input type="text" id="owner_last" name="owner_last_name" class="form-input" placeholder="e.g. Doe">
+                    </div>
+                </div>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label" for="phone">Phone Number (Login User ID) <span class="req">*</span></label>
+                        <input type="tel" id="phone" name="phone" class="form-input" placeholder="9876543210" required maxlength="15">
+                        <p class="form-hint">Used for primary password or OTP login.</p>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email Address</label>
+                        <input type="email" id="email" name="email" class="form-input" placeholder="business@example.com">
+                    </div>
+                </div>
+                <div class="form-group" style="max-width: 400px;">
+                    <label class="form-label" for="password">Password <span class="req">*</span></label>
+                    <input type="password" id="password" name="password" class="form-input" placeholder="Set login password" required>
+                </div>
+            </div>
+
+            <!-- ── STEP 3: PHYSICAL ADDRESS ── -->
+            <div class="wizard-panel" data-panel="3">
+                <div class="wizard-header">
+                    <h3>Physical Address</h3>
+                    <p>Physical address used as your main branch storefront location.</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="address_line1">Address Line 1 <span class="req">*</span></label>
+                    <input type="text" id="address_line1" name="address_line1" class="form-input" placeholder="Shop No. / Street / Locality" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="address_line2">Address Line 2</label>
+                    <input type="text" id="address_line2" name="address_line2" class="form-input" placeholder="Area / Landmark">
+                </div>
+                <div class="form-grid-3">
+                    <div class="form-group">
+                        <label class="form-label" for="city">City <span class="req">*</span></label>
+                        <input type="text" id="city" name="city" class="form-input" placeholder="Mumbai" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="state">State <span class="req">*</span></label>
+                        <input type="text" id="state" name="state" class="form-input" placeholder="Maharashtra" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="pincode">Pincode <span class="req">*</span></label>
+                        <input type="text" id="pincode" name="pincode" class="form-input" placeholder="400001" required maxlength="10">
+                    </div>
+                </div>
+                <div class="form-group" style="max-width: 300px;">
+                    <label class="form-label" for="country">Country</label>
+                    <input type="text" id="country" name="country" class="form-input" value="India">
+                </div>
+            </div>
+
+            <!-- ── STEP 4: STORE SETTINGS ── -->
+            <div class="wizard-panel" data-panel="4">
+                <div class="wizard-header">
+                    <h3>Store Settings</h3>
+                    <p>Currency, local time options, and primary customer order workflow.</p>
+                </div>
+                <div class="form-grid-3">
+                    <div class="form-group">
+                        <label class="form-label">Currency Code</label>
+                        <select name="currency" class="form-select">
+                            <option value="INR">INR — Indian Rupee</option>
+                            <option value="USD">USD — US Dollar</option>
+                            <option value="EUR">EUR — Euro</option>
+                            <option value="GBP">GBP — British Pound</option>
+                            <option value="AED">AED — UAE Dirham</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Currency Symbol</label>
+                        <input type="text" name="currency_symbol" class="form-input" value="₹" maxlength="5">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Timezone</label>
+                        <select name="timezone" class="form-select">
+                            <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+                            <option value="Asia/Dubai">Asia/Dubai (GST)</option>
+                            <option value="Asia/Singapore">Asia/Singapore (SGT)</option>
+                            <option value="Europe/London">Europe/London (GMT)</option>
+                            <option value="America/New_York">America/New_York (EST)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Checkout Workflow</label>
+                    <div class="workflow-radio-grid">
+                        <label class="workflow-radio-card">
+                            <input type="radio" name="checkout_workflow" value="online_payment" checked>
+                            <div class="workflow-radio-content">
+                                <span class="wf-icon">&#128179;</span>
+                                <span class="wf-name">Online Payment</span>
+                                <span class="wf-desc">Customer pays directly at checkout</span>
+                            </div>
+                        </label>
+                        <label class="workflow-radio-card">
+                            <input type="radio" name="checkout_workflow" value="approval_payment">
+                            <div class="workflow-radio-content">
+                                <span class="wf-icon">&#10003;</span>
+                                <span class="wf-name">Approval then Payment</span>
+                                <span class="wf-desc">Admin reviews and sends payment link</span>
+                            </div>
+                        </label>
+                        <label class="workflow-radio-card">
+                            <input type="radio" name="checkout_workflow" value="whatsapp_enquiry">
+                            <div class="workflow-radio-content">
+                                <span class="wf-icon">&#128172;</span>
+                                <span class="wf-name">WhatsApp Enquiry</span>
+                                <span class="wf-desc">Orders go to WhatsApp for discussion</span>
+                            </div>
+                        </label>
+                        <label class="workflow-radio-card">
+                            <input type="radio" name="checkout_workflow" value="cod_only">
+                            <div class="workflow-radio-content">
+                                <span class="wf-icon">&#128666;</span>
+                                <span class="wf-name">Cash on Delivery</span>
+                                <span class="wf-desc">No upfront payment required</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── STEP 5: BRANDING & COLORS ── -->
+            <div class="wizard-panel" data-panel="5">
+                <div class="wizard-header">
+                    <h3>Visual Branding</h3>
+                    <p>Customize store accent colors and visual icons.</p>
+                </div>
+                <div class="form-grid-3">
+                    <div class="form-group">
+                        <label class="form-label">Logo</label>
+                        <div class="file-upload-zone" id="logoZone">
+                            <input type="file" name="logo" id="logoInput" accept="image/*" class="file-input-hidden">
+                            <div class="file-upload-content" onclick="document.getElementById('logoInput').click()">
+                                <span class="file-upload-icon">&#128247;</span>
+                                <span class="file-upload-text">Upload Logo</span>
+                            </div>
+                            <img id="logoPreview" class="file-preview" style="display:none;">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Banner</label>
+                        <div class="file-upload-zone" id="bannerZone">
+                            <input type="file" name="banner" id="bannerInput" accept="image/*" class="file-input-hidden">
+                            <div class="file-upload-content" onclick="document.getElementById('bannerInput').click()">
+                                <span class="file-upload-icon">&#128444;</span>
+                                <span class="file-upload-text">Upload Banner</span>
+                            </div>
+                            <img id="bannerPreview" class="file-preview" style="display:none;">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Favicon</label>
+                        <div class="file-upload-zone" id="faviconZone">
+                            <input type="file" name="favicon" id="faviconInput" accept="image/*" class="file-input-hidden">
+                            <div class="file-upload-content" onclick="document.getElementById('faviconInput').click()">
+                                <span class="file-upload-icon">&#127756;</span>
+                                <span class="file-upload-text">Upload Favicon</span>
+                            </div>
+                            <img id="faviconPreview" class="file-preview" style="display:none;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-grid-2" style="max-width: 400px; margin-top: 20px;">
+                    <div class="form-group">
+                        <label class="form-label">Primary Brand Color</label>
+                        <div class="color-input-wrap">
+                            <input type="color" name="primary_color" class="color-picker" id="primaryColor" value="#6366f1">
+                            <input type="text" class="form-input color-hex-input" id="primaryHex" value="#6366f1" maxlength="7">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Secondary Brand Color</label>
+                        <div class="color-input-wrap">
+                            <input type="color" name="secondary_color" class="color-picker" id="secondaryColor" value="#8b5cf6">
+                            <input type="text" class="form-input color-hex-input" id="secondaryHex" value="#8b5cf6" maxlength="7">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── STEP 6: CHOOSE PLAN ── -->
+            <div class="wizard-panel" data-panel="6">
+                <div class="wizard-header">
+                    <h3>Subscription Plan</h3>
+                    <p>Choose the plan that suits your business scale.</p>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px;">
+                    {% for plan in plans %}
+                    <label class="plan-select-item" style="padding: 16px; border: 1px solid var(--border-color); border-radius: var(--radius); cursor: pointer; display: flex; align-items: flex-start; gap: 12px; transition: var(--transition);">
+                        <input type="radio" name="plan_id" value="{{ plan.pk }}" style="margin-top: 4px;"
+                               {% if plan.plan_type == 'trial' %}checked{% endif %} required>
+                        <div style="flex: 1;">
+                            <strong style="display: block; font-size: 15px; color: var(--text-primary);">{{ plan.name }}</strong>
+                            <span style="display: block; font-size: 16px; font-weight: 700; color: var(--color-primary-light); margin-top: 4px;">
+                                {% if plan.price == 0 %}Free{% else %}₹{{ plan.price }}/mo{% endif %}
+                            </span>
+                            <span style="display: block; font-size: 11px; color: var(--text-muted); margin-top: 8px; line-height: 1.4;">
+                                • {{ plan.max_products }} Products Limit<br>
+                                • {{ plan.max_branches }} Branch Limit<br>
+                                {% if plan.trial_days %}• {{ plan.trial_days }}-day Trial{% endif %}
+                            </span>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Buttons Row -->
+            <div class="wizard-footer">
+                <button type="button" class="btn btn-ghost" id="prevBtn" style="visibility: hidden;">
+                    ← Previous
+                </button>
+                <button type="button" class="btn btn-primary" id="nextBtn">
+                    Next Step →
+                </button>
+            </div>
+        </form>
+
+        <div style="text-align: center; margin-top: 30px; font-size: 13px; color: var(--text-muted);">
+            Already registered? <a href="{% url 'accounts:vendor_login' %}" style="color: var(--text-link);">Log in here</a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentStep = 1;
+    const totalSteps = 6;
+
+    const panels = document.querySelectorAll('.wizard-panel');
+    const steps = document.querySelectorAll('.step-indicator');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const progress = document.getElementById('stepProgress');
+    const form = document.getElementById('onboardingForm');
+
+    function updateWizard() {
+        // Toggle panel views
+        panels.forEach(p => {
+            if(parseInt(p.dataset.panel) === currentStep) {
+                p.classList.add('active');
+            } else {
+                p.classList.remove('active');
+            }
+        });
+
+        // Toggle step header highlights
+        steps.forEach(s => {
+            const stepNum = parseInt(s.dataset.step);
+            if (stepNum === currentStep) {
+                s.classList.add('active');
+                s.classList.remove('completed');
+            } else if (stepNum < currentStep) {
+                s.classList.add('completed');
+                s.classList.remove('active');
+            } else {
+                s.classList.remove('active', 'completed');
+            }
+        });
+
+        // Progress bar width
+        const progressWidth = ((currentStep - 1) / (totalSteps - 1)) * 100;
+        progress.style.width = `${progressWidth}%`;
+
+        // Configure footer buttons
+        if (currentStep === 1) {
+            prevBtn.style.visibility = 'hidden';
+        } else {
+            prevBtn.style.visibility = 'visible';
+        }
+
+        if (currentStep === totalSteps) {
+            nextBtn.textContent = 'Complete Setup ✔';
+            nextBtn.classList.remove('btn-primary');
+            nextBtn.classList.add('btn-success');
+        } else {
+            nextBtn.textContent = 'Next Step →';
+            nextBtn.classList.remove('btn-success');
+            nextBtn.classList.add('btn-primary');
+        }
+    }
+
+    function validateStep(step) {
+        const panel = document.querySelector(`.wizard-panel[data-panel="${step}"]`);
+        const inputs = panel.querySelectorAll('[required]');
+        let isValid = true;
+
+        inputs.forEach(i => {
+            if (!i.value.trim()) {
+                isValid = false;
+                i.style.borderColor = 'var(--color-danger)';
+            } else {
+                i.style.borderColor = 'var(--border-color)';
+            }
+        });
+
+        if (!isValid) {
+            // Trigger visual alert
+            alert('Please fill out all required fields before proceeding.');
+        }
+        return isValid;
+    }
+
+    nextBtn.addEventListener('click', () => {
+        if (!validateStep(currentStep)) return;
+
+        if (currentStep < totalSteps) {
+            currentStep++;
+            updateWizard();
+        } else {
+            // Submit form
+            nextBtn.disabled = true;
+            nextBtn.textContent = 'Saving details...';
+            form.submit();
+        }
+    });
+
+    prevBtn.addEventListener('click', () => {
+        if (currentStep > 1) {
+            currentStep--;
+            updateWizard();
+        }
+    });
+
+    // Image preview helper function
+    function setupImagePreview(inputId, previewId, zoneId) {
+        const input   = document.getElementById(inputId);
+        const preview = document.getElementById(previewId);
+        const zone    = document.getElementById(zoneId);
+
+        if (!input) return;
+        input.addEventListener('change', function() {
+            const file = this.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                zone.querySelector('.file-upload-content').style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    setupImagePreview('logoInput',    'logoPreview',    'logoZone');
+    setupImagePreview('bannerInput',  'bannerPreview',  'bannerZone');
+    setupImagePreview('faviconInput', 'faviconPreview', 'faviconZone');
+
+    // Branding color hex picker sync
+    function syncColor(pickerId, hexId) {
+        const picker = document.getElementById(pickerId);
+        const hex    = document.getElementById(hexId);
+        if (!picker || !hex) return;
+
+        picker.addEventListener('input', () => { hex.value = picker.value; });
+        hex.addEventListener('input', () => {
+            if (/^#[0-9A-Fa-f]{6}$/.test(hex.value)) {
+                picker.value = hex.value;
+            }
+        });
+    }
+
+    syncColor('primaryColor',   'primaryHex');
+    syncColor('secondaryColor', 'secondaryHex');
+    
+    // Set initial wizard state
+    updateWizard();
+</script>
+{% endblock %}

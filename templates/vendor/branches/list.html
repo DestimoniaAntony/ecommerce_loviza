@@ -1,0 +1,225 @@
+{% extends 'base/vendor_base.html' %}
+{% load static %}
+
+{% block title %}Branches &amp; Franchise — {{ request.user.vendor.business_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header-row">
+    <div class="page-header-info">
+        <p class="page-subtitle">Manage store branches, business partners, and franchise store networks.</p>
+    </div>
+</div>
+
+<div class="create-form-layout" style="gap: 28px;">
+
+    <!-- ═══ LEFT: BRANCHES LIST ═══ -->
+    <div class="create-form-main" style="flex: 2;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 class="section-title" style="margin: 0;">Branches</h3>
+            {% if can_add_branch %}
+            <a href="{% url 'branches:branch_create' %}" class="btn btn-sm btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/>
+                    <line x1="8" y1="12" x2="16" y2="12"/>
+                </svg>
+                Add Branch
+            </a>
+            {% else %}
+            <button class="btn btn-sm btn-primary" style="opacity: 0.5; cursor: not-allowed;" title="Branch limit reached on your current plan">
+                Add Branch (Limit Reached)
+            </button>
+            {% endif %}
+        </div>
+
+        <div class="data-card">
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Branch Name</th>
+                            <th>Code</th>
+                            <th>Contact</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for branch in branches %}
+                        <tr>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <strong style="color: var(--text-primary);">{{ branch.name }}</strong>
+                                    {% if branch.is_main_branch %}
+                                        <span class="status-badge status-approved" style="font-size: 8px; padding: 1px 6px;">Main</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td><code class="code-val" style="font-size: 11px;">{{ branch.code }}</code></td>
+                            <td>
+                                <div class="contact-info">
+                                    <span>{{ branch.phone }}</span>
+                                    {% if branch.email %}<span class="text-muted">{{ branch.email }}</span>{% endif %}
+                                </div>
+                            </td>
+                            <td class="text-secondary" style="font-size: 13px;">
+                                {{ branch.city }}{% if branch.state %}, {{ branch.state }}{% endif %}
+                            </td>
+                            <td>
+                                {% if branch.is_active %}
+                                    <span class="status-badge status-approved" style="font-size: 9px; padding: 2px 8px;">Active</span>
+                                {% else %}
+                                    <span class="status-badge status-suspended" style="font-size: 9px; padding: 2px 8px;">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="table-actions" style="display: flex; gap: 8px;">
+                                    <a href="{% url 'branches:branch_edit' branch.pk %}" class="btn btn-sm btn-outline">
+                                        Edit
+                                    </a>
+                                    {% if not branch.is_main_branch %}
+                                    <form method="post" action="{% url 'branches:branch_delete' branch.pk %}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete the branch {{ branch.name }}?')">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline text-danger" style="border-color: #fee2e2; background: #fef2f2;">
+                                            Delete
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6">
+                                <div class="table-empty">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                    </svg>
+                                    <p>No branch locations added yet.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- FRANCHISE SECTION -->
+        {% if request.user.vendor.business_type == 'franchise' %}
+        <div style="margin-top: 40px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 class="section-title" style="margin: 0;">Franchise Store Network</h3>
+                {% if not franchise_as_child %}
+                <a href="{% url 'branches:franchise_create' %}" class="btn btn-sm btn-outline">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                    </svg>
+                    New Franchise Link
+                </a>
+                {% endif %}
+            </div>
+
+            {% if franchise_as_child %}
+            <!-- Bound to a parent brand -->
+            <div class="detail-card" style="border-left: 4px solid var(--color-accent); background: rgba(14,165,233,0.02);">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                    <span style="font-size: 24px;">🏢</span>
+                    <div>
+                        <h4 style="margin: 0; font-size: 16px;">Franchise Store of <strong>{{ franchise_as_child.parent_vendor.business_name }}</strong></h4>
+                        <p class="text-secondary" style="font-size: 12px; margin-top: 2px;">Your store shares the parent brand catalog, but manages branch-specific inventory and local checkouts.</p>
+                    </div>
+                </div>
+                <div style="margin-top: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; font-size: 13px;">
+                    <div>Agreement Period: <strong>{{ franchise_as_child.agreement_start_date|date:"d M Y" }} &mdash; {{ franchise_as_child.agreement_end_date|date:"d M Y" }}</strong></div>
+                    <div>Royalty Terms: <strong>{{ franchise_as_child.royalty_percentage }}%</strong></div>
+                </div>
+            </div>
+            {% else %}
+            <div class="data-card">
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Franchise Store</th>
+                                <th>Agreement Period</th>
+                                <th>Royalty Pct</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for fran in franchises_as_parent %}
+                            <tr>
+                                <td>
+                                    <strong>{{ fran.child_vendor.business_name }}</strong>
+                                    <span class="text-muted" style="display: block; font-size: 11px;">{{ fran.child_vendor.slug }}.commercehub.in</span>
+                                </td>
+                                <td class="text-secondary" style="font-size: 13px;">
+                                    {{ fran.agreement_start_date|date:"d M Y" }} &mdash; {{ fran.agreement_end_date|date:"d M Y" }}
+                                </td>
+                                <td><strong>{{ fran.royalty_percentage }}%</strong></td>
+                                <td>
+                                    {% if fran.is_active %}
+                                        <span class="status-badge status-approved" style="font-size: 8px;">Active</span>
+                                    {% else %}
+                                        <span class="status-badge status-suspended" style="font-size: 8px;">Expired</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4">
+                                    <div class="table-empty" style="padding: 24px;">
+                                        <p style="font-size: 13px; margin: 0;">No franchise store links established yet.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    </div><!-- end create-form-main -->
+
+    <!-- ═══ RIGHT: PARTNERS SIDEBAR ═══ -->
+    {% if request.user.vendor.business_type == 'multi_partner' %}
+    <div class="create-form-sidebar" style="flex: 1; max-width: 400px; min-width: 320px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 class="section-title" style="margin: 0;">Business Partners</h3>
+            <a href="{% url 'branches:partner_create' %}" class="btn btn-sm btn-ghost">
+                + Add Partner
+            </a>
+        </div>
+
+        <div class="create-sidebar-card" style="padding: 16px; display: flex; flex-direction: column; gap: 14px;">
+            {% for partner in partners %}
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 12px 14px; position: relative;">
+                <h4 style="margin: 0; font-size: 14px; font-weight: 600;">{{ partner.name }}</h4>
+                <div style="margin-top: 6px; font-size: 12px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 2px;">
+                    <span>📞 {{ partner.phone }}</span>
+                    {% if partner.email %}<span>✉️ {{ partner.email }}</span>{% endif %}
+                </div>
+                <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; border-top: 1px solid var(--border-color-light); padding-top: 8px;">
+                    <a href="{% url 'branches:partner_edit' partner.pk %}" style="font-size: 11px;" class="btn-link">Edit</a>
+                    <form method="post" action="{% url 'branches:partner_delete' partner.pk %}" style="display: inline;" onsubmit="return confirm('Remove partner {{ partner.name }}?')">
+                        {% csrf_token %}
+                        <button type="submit" style="font-size: 11px;" class="btn-link text-danger">Remove</button>
+                    </form>
+                </div>
+            </div>
+            {% empty %}
+            <div style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px; font-style: italic;">
+                No business partners defined.
+            </div>
+            {% endfor %}
+        </div>
+    </div><!-- end create-form-sidebar -->
+    {% endif %}
+
+</div><!-- end create-form-layout -->
+{% endblock %}

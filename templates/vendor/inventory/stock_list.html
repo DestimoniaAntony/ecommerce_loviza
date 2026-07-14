@@ -1,0 +1,353 @@
+{% extends 'base/vendor_base.html' %}
+{% load static core_tags %}
+
+{% block title %}Stock Levels — CommerceHub{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{% url 'commercehub_app:dashboard' %}">Dashboard</a>
+    <span class="breadcrumb-sep">›</span>
+    <span>Stock Levels</span>
+</div>
+
+<div class="page-header-row" style="margin-bottom: 24px;">
+    <div class="page-header-info">
+        <p class="page-subtitle">Track and adjust physical stock quantities of your variants across all registered branches.</p>
+    </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="data-card" style="margin-bottom: 24px; padding: 20px 24px;">
+    <form method="get" style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 200px; position: relative;">
+            <input type="text" name="q" value="{{ q|default:'' }}" class="form-input" placeholder="Search product or SKU..." style="padding-left: 36px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted);">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+        </div>
+        
+        <div>
+            <select name="category" class="form-input" style="min-width: 160px; height: 42px; padding: 0 12px; cursor: pointer;">
+                <option value="">All Categories</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}" {% if selected_category == category.id|stringformat:"i" %}selected{% endif %}>{{ category.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <select name="alert" class="form-input" style="min-width: 160px; height: 42px; padding: 0 12px; cursor: pointer;">
+                <option value="">All Stock Levels</option>
+                <option value="low" {% if selected_alert == 'low' %}selected{% endif %}>⚠️ Low Stock Warnings</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-ghost" style="border: 1px solid var(--border-color); background: rgba(255,255,255,0.02); height: 42px;">Apply Filter</button>
+        {% if q or selected_category or selected_alert %}
+            <a href="{% url 'inventory:branch_inventory_list' %}" class="btn btn-ghost text-muted" style="height: 42px; display: inline-flex; align-items: center;">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Stock Matrix Grid -->
+<div class="data-card" style="margin-bottom: 32px;">
+    {% if stock_data %}
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.01);">
+                        <th style="padding: 16px 24px; font-weight: 600; font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; min-width: 250px;">Product / Variant SKU</th>
+                        {% for branch in branches %}
+                            <th style="padding: 16px 24px; font-weight: 600; font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; text-align: center;">
+                                {{ branch.name }}
+                                {% if branch.is_main_branch %}
+                                    <span style="font-size: 9px; background: rgba(14,165,233,0.15); color: #38bdf8; padding: 1px 5px; border-radius: 4px; display: block; width: fit-content; margin: 4px auto 0;">MAIN</span>
+                                {% endif %}
+                            </th>
+                        {% endfor %}
+                        <th style="padding: 16px 24px; font-weight: 600; font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; text-align: center;">Total Stock</th>
+                        <th style="padding: 16px 24px; font-weight: 600; font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; text-align: right;">Adjust</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in stock_data %}
+                        <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.01)'" onmouseout="this.style.background='transparent'">
+                            <td style="padding: 16px 24px;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    {% if row.variant.image %}
+                                        <img src="{{ row.variant.image.url }}" alt="sku logo" style="width: 38px; height: 38px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-color);">
+                                    {% else %}
+                                        <div style="width: 38px; height: 38px; background: rgba(255,255,255,0.04); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--text-muted); border: 1px solid var(--border-color);">📦</div>
+                                    {% endif %}
+                                    <div>
+                                        <div style="font-weight: 600; font-size: 15px; color: var(--text-primary);">
+                                            {{ row.variant.product.name }}
+                                            {% if row.variant.name %}
+                                                <span style="font-weight: 500; font-size: 13px; color: var(--text-secondary);">({{ row.variant.name }})</span>
+                                            {% endif %}
+                                        </div>
+                                        <div style="font-family: monospace; font-size: 12px; color: var(--text-muted); margin-top: 4px; display: flex; align-items: center; gap: 8px;">
+                                            <span>SKU: {{ row.variant.sku }}</span>
+                                            {% if row.is_low_stock %}
+                                                <span style="background: rgba(245,158,11,0.15); color: var(--color-warning); font-size: 9px; font-weight: bold; text-transform: uppercase; padding: 1px 6px; border-radius: 3px;">Low Stock</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            
+                            <!-- Branch stocks columns -->
+                            {% for branch in branches %}
+                                <td style="padding: 16px 24px; text-align: center;">
+                                    {% with bi=row.branch_stocks|dict_get:branch.id %}
+                                        <div style="font-size: 15px; font-weight: 600; color: {% if bi.stock_qty <= bi.reorder_level and bi.reorder_level > 0 %}var(--color-warning){% else %}var(--text-primary){% endif %};">
+                                            {{ bi.stock_qty|floatformat:2 }}
+                                        </div>
+                                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+                                            Min: {{ bi.reorder_level|floatformat:2 }}
+                                        </div>
+                                        
+                                        <!-- Quick manual update button for this specific branch/variant -->
+                                        <button type="button" class="btn btn-sm btn-ghost" 
+                                                onclick="openAdjustmentModal('{{ row.variant.id }}', '{{ row.variant.product.name }} {% if row.variant.name %}({{ row.variant.name }}){% endif %}', '{{ branch.id }}', '{{ branch.name }}', '{{ bi.stock_qty|floatformat:2 }}')"
+                                                style="font-size: 11px; padding: 2px 6px; margin-top: 4px; height: auto;">
+                                            ✏️ Adjust
+                                        </button>
+                                    {% endwith %}
+                                </td>
+                            {% endfor %}
+
+                            <!-- Total aggregate stock -->
+                            <td style="padding: 16px 24px; text-align: center;">
+                                <span style="font-size: 16px; font-weight: 700; color: var(--color-primary-light);">{{ row.total_qty|floatformat:2 }}</span>
+                            </td>
+
+                            <!-- General action -->
+                            <td style="padding: 16px 24px; text-align: right;">
+                                <button type="button" class="btn btn-sm btn-outline" 
+                                        onclick="openAdjustmentModal('{{ row.variant.id }}', '{{ row.variant.product.name }} {% if row.variant.name %}({{ row.variant.name }}){% endif %}', '', '', '0.00')"
+                                        style="font-size: 12px; padding: 6px 12px; border-radius: 6px;">
+                                    Adjust Stock
+                                </button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="table-empty" style="padding: 60px 24px; text-align: center;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48" style="color: var(--text-muted); margin-bottom: 16px;">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+            </svg>
+            <p style="font-size: 16px; font-weight: 600; color: var(--text-secondary); margin: 0 0 8px 0;">No stock records found</p>
+            <p style="font-size: 13px; color: var(--text-muted); margin: 0;">Make sure you have registered active product variants and branches.</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- History Log Card -->
+<div class="data-card" style="padding: 24px;">
+    <h3 class="form-section-title" style="margin-bottom: 20px; font-size: 14px;">Recent Stock Adjustments Audit Trail</h3>
+    {% if logs %}
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
+                        <th style="padding: 10px 16px; font-weight: 600;">Timestamp</th>
+                        <th style="padding: 10px 16px; font-weight: 600;">Product SKU</th>
+                        <th style="padding: 10px 16px; font-weight: 600;">Branch</th>
+                        <th style="padding: 10px 16px; font-weight: 600; text-align: center;">Change Quantity</th>
+                        <th style="padding: 10px 16px; font-weight: 600;">Reason</th>
+                        <th style="padding: 10px 16px; font-weight: 600;">Adjusted By</th>
+                        <th style="padding: 10px 16px; font-weight: 600;">Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                        <tr style="border-bottom: 1px solid var(--border-color-light);">
+                            <td style="padding: 10px 16px; color: var(--text-muted);">{{ log.created_at|date:"Y-m-d H:i" }}</td>
+                            <td style="padding: 10px 16px; font-weight: 600; color: var(--text-primary);">{{ log.product_variant.sku }}</td>
+                            <td style="padding: 10px 16px; color: var(--text-secondary);">{{ log.branch.name }}</td>
+                            <td style="padding: 10px 16px; text-align: center; font-weight: bold; color: {% if log.quantity_changed < 0 %}var(--color-danger){% else %}var(--color-success){% endif %};">
+                                {% if log.quantity_changed > 0 %}+{% endif %}{{ log.quantity_changed|floatformat:2 }}
+                            </td>
+                            <td style="padding: 10px 16px; text-transform: capitalize;">
+                                <span style="padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500;
+                                    {% if log.reason == 'correction' %}background: rgba(14,165,233,0.12); color: var(--color-info);
+                                    {% elif log.reason == 'damaged' or log.reason == 'theft' %}background: rgba(239,68,68,0.12); color: var(--color-danger);
+                                    {% else %}background: rgba(255,255,255,0.05); color: var(--text-secondary);{% endif %}">
+                                    {{ log.get_reason_display }}
+                                </span>
+                            </td>
+                            <td style="padding: 10px 16px; color: var(--text-muted);">{{ log.user.get_short_name|default:log.user.phone }}</td>
+                            <td style="padding: 10px 16px; color: var(--text-muted); font-style: italic;">{{ log.notes|default:"—" }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p style="font-size: 13px; color: var(--text-muted); margin: 0; font-style: italic;">No adjustments logged yet.</p>
+    {% endif %}
+</div>
+
+<!-- Stock Adjustment Modal -->
+<div id="adjustmentModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div class="data-card" style="width: 100%; max-width: 500px; padding: 28px; margin: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); position: relative; border-color: var(--color-primary);">
+        <button type="button" onclick="closeAdjustmentModal()" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer; line-height: 1;">&times;</button>
+        
+        <h3 class="form-section-title" style="margin-bottom: 24px; font-size: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; color: var(--text-primary);">Manual Stock Take / Adjustment</h3>
+        
+        <form method="post" action="{% url 'inventory:branch_inventory_adjust' %}">
+            {% csrf_token %}
+            <input type="hidden" id="modal_variant_id" name="variant_id">
+            
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label class="form-label">Product Variant</label>
+                <div id="modal_product_name" style="font-weight: 700; font-size: 15px; color: var(--text-primary); background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 10px 14px; border-radius: 6px;"></div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label class="form-label" for="modal_branch_select">Physical Branch <span class="req">*</span></label>
+                <select id="modal_branch_select" name="branch_id" class="form-input" required onchange="updateCurrentStockHint()" style="height: 42px; padding: 0 12px;">
+                    <option value="">Select branch...</option>
+                    {% for branch in branches %}
+                        <option value="{{ branch.id }}">{{ branch.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 12px; border-radius: 6px; margin-bottom: 16px; font-size: 13px; color: var(--text-secondary); display: flex; justify-content: space-between;">
+                <span>Current Stock Level:</span>
+                <strong id="modal_current_stock" style="color: var(--color-primary-light);">0.00</strong>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label class="form-label">Adjustment Type</label>
+                <div style="display: flex; gap: 16px; margin-top: 6px;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                        <input type="radio" name="adjustment_type" value="set" checked>
+                        <span>Override Stock (Stock-Take)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                        <input type="radio" name="adjustment_type" value="diff">
+                        <span>Relative Change (+/-)</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label class="form-label" for="modal_qty">Quantity Value <span class="req">*</span></label>
+                <input type="number" id="modal_qty" name="qty" class="form-input" placeholder="0.00" step="0.01" required>
+                <p class="form-hint" id="modal_qty_hint">Set exact stock level (e.g. 24.50)</p>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label class="form-label" for="modal_reason">Reason for Adjustment <span class="req">*</span></label>
+                <select id="modal_reason" name="reason" class="form-input" style="height: 42px; padding: 0 12px;">
+                    <option value="correction">Stock Correction (Audit)</option>
+                    <option value="damaged">Damaged Goods</option>
+                    <option value="theft">Theft / Loss</option>
+                    <option value="promotion">Promotion / Giveaway</option>
+                    <option value="other">Other Reason</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 24px;">
+                <label class="form-label" for="modal_notes">Auditor Notes</label>
+                <input type="text" id="modal_notes" name="notes" class="form-input" placeholder="Optional notes for history logs...">
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button type="button" onclick="closeAdjustmentModal()" class="btn btn-ghost" style="border: 1px solid var(--border-color);">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Adjustment</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // JS Helper to parse current stocks database for modal client-side hints
+    const stockDatabase = {
+        {% for row in stock_data %}
+            "{{ row.variant.id }}": {
+                {% for b_id, bi in row.branch_stocks.items %}
+                    "{{ b_id }}": "{{ bi.stock_qty|floatformat:2 }}",
+                {% endfor %}
+            },
+        {% endfor %}
+    };
+
+    function openAdjustmentModal(variantId, variantName, branchId, branchName, currentStock) {
+        document.getElementById('modal_variant_id').value = variantId;
+        document.getElementById('modal_product_name').innerText = variantName;
+        
+        const branchSelect = document.getElementById('modal_branch_select');
+        branchSelect.value = branchId;
+        
+        if (branchId) {
+            branchSelect.setAttribute('disabled', 'true');
+            // Form needs value, if disabled it doesn't submit. So let's insert a hidden input if disabled
+            let hiddenBranch = document.getElementById('hidden_branch_id');
+            if (!hiddenBranch) {
+                hiddenBranch = document.createElement('input');
+                hiddenBranch.type = 'hidden';
+                hiddenBranch.id = 'hidden_branch_id';
+                hiddenBranch.name = 'branch_id';
+                branchSelect.form.appendChild(hiddenBranch);
+            }
+            hiddenBranch.value = branchId;
+        } else {
+            branchSelect.removeAttribute('disabled');
+            const hiddenBranch = document.getElementById('hidden_branch_id');
+            if (hiddenBranch) {
+                hiddenBranch.remove();
+            }
+        }
+
+        updateCurrentStockHint();
+        
+        const modal = document.getElementById('adjustmentModal');
+        modal.style.display = 'flex';
+        document.getElementById('modal_qty').focus();
+    }
+
+    function closeAdjustmentModal() {
+        document.getElementById('adjustmentModal').style.display = 'none';
+    }
+
+    function updateCurrentStockHint() {
+        const variantId = document.getElementById('modal_variant_id').value;
+        const branchId = document.getElementById('modal_branch_select').value;
+        
+        let stockVal = "0.00";
+        if (variantId && branchId && stockDatabase[variantId] && stockDatabase[variantId][branchId]) {
+            stockVal = stockDatabase[variantId][branchId];
+        }
+        document.getElementById('modal_current_stock').innerText = stockVal;
+    }
+
+    // Toggle hint helper based on radio
+    const radios = document.getElementsByName('adjustment_type');
+    for (let r of radios) {
+        r.addEventListener('change', function() {
+            const hint = document.getElementById('modal_qty_hint');
+            if (this.value === 'set') {
+                hint.innerText = "Set exact stock level (e.g. 24.50)";
+            } else {
+                hint.innerText = "Increment or decrement current stock (e.g. +10.00 or -5.50)";
+            }
+        });
+    }
+
+    // Close on click outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('adjustmentModal');
+        if (event.target === modal) {
+            closeAdjustmentModal();
+        }
+    }
+</script>
+{% endblock %}

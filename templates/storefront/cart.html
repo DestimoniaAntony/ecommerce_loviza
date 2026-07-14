@@ -1,0 +1,183 @@
+{% extends 'storefront/base.html' %}
+{% load static %}
+{% load currency_tags %}
+
+{% block content %}
+<main style="padding: 4rem 2rem; max-width: 1200px; margin: 0 auto; min-height: 50vh;">
+    <div style="text-align: center; margin-bottom: 3rem;">
+        <h1 class="text-display-md" style="font-weight: 300; margin-bottom: 1rem;">Shopping Cart</h1>
+        <p class="text-label-caps" style="color: #666; font-size: 0.75rem;">
+            <a href="{% url 'storefront:home' %}" style="text-decoration: none; color: inherit;">Home</a> 
+            &gt; Your Shopping Cart
+        </p>
+    </div>
+
+    {% if cart and cart.items.count > 0 %}
+    <div class="cart-table-container" style="overflow-x: auto;">
+        <table class="cart-table" style="width: 100%; border-collapse: collapse; margin-bottom: 3rem; min-width: 600px;">
+            <thead>
+                <tr style="border-bottom: 1px solid #eee; text-align: left;">
+                    <th class="text-label-caps" style="padding-bottom: 1rem; font-weight: normal; color: #333;">Product</th>
+                    <th class="text-label-caps" style="padding-bottom: 1rem; font-weight: normal; color: #333; text-align: right;">Price</th>
+                    <th class="text-label-caps" style="padding-bottom: 1rem; font-weight: normal; color: #333; text-align: center;">Quantity</th>
+                    <th class="text-label-caps" style="padding-bottom: 1rem; font-weight: normal; color: #333; text-align: right;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cart.items.all %}
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 2rem 0; display: flex; gap: 1.5rem; align-items: flex-start;">
+                        <a href="{% url 'storefront:product_detail' item.product_variant.product.slug %}">
+                            <img src="{% if item.product_variant.image %}{{ item.product_variant.image.url }}{% elif item.product_variant.product.image %}{{ item.product_variant.product.image.url }}{% elif item.product_variant.product.images.first %}{{ item.product_variant.product.images.first.image.url }}{% else %}{% static 'storefront/images/product_main.png' %}{% endif %}" alt="{{ item.product_variant.product.name }}" style="width: 120px; height: 160px; object-fit: cover;">
+                        </a>
+                        <div style="padding-top: 0.5rem;">
+                            <a href="{% url 'storefront:product_detail' item.product_variant.product.slug %}" style="text-decoration: none; color: inherit;">
+                                <h3 class="text-body-md" style="font-weight: 500; margin-bottom: 0.5rem;">{{ item.product_variant.product.name }}</h3>
+                            </a>
+                            
+                            {% if item.product_variant.attributes_data %}
+                                <div style="color: #666; font-size: 0.85rem; line-height: 1.5;">
+                                {% for key, val in item.product_variant.attributes_data.items %}
+                                    <p style="margin: 0;">{{ key|title }}: {{ val }}</p>
+                                {% endfor %}
+                                </div>
+                            {% elif item.product_variant.name %}
+                                <p style="color: #666; font-size: 0.85rem; margin: 0;">Variant: {{ item.product_variant.name }}</p>
+                            {% endif %}
+                            
+                            <form method="post" action="{% url 'storefront:cart_remove' %}" style="margin-top: 0.75rem;">
+                                {% csrf_token %}
+                                <input type="hidden" name="item_id" value="{{ item.id }}">
+                                <button type="submit" style="background: none; border: none; color: #666; text-decoration: underline; cursor: pointer; padding: 0; font-size: 0.85rem;">Remove</button>
+                            </form>
+                        </div>
+                    </td>
+                    <td class="text-label-caps" style="padding: 2rem 0; text-align: right; vertical-align: middle;">
+                        {% format_price item.product_variant.price %}
+                    </td>
+                    <td style="padding: 2rem 0; text-align: center; vertical-align: middle;">
+                        <form method="post" action="{% url 'storefront:cart_update' %}" style="display: inline-flex; align-items: center; border: 1px solid #ddd; padding: 0.5rem;">
+                            {% csrf_token %}
+                            <input type="hidden" name="item_id" value="{{ item.id }}">
+                            <button type="button" onclick="this.form.quantity.value=parseInt(this.form.quantity.value)-1; this.form.submit();" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #333; padding: 0 0.5rem;">&minus;</button>
+                            <input type="number" name="quantity" value="{{ item.quantity }}" style="width: 40px; text-align: center; border: none; background: transparent; font-family: inherit; font-size: 1rem; -moz-appearance: textfield; pointer-events: none;">
+                            <button type="button" onclick="this.form.quantity.value=parseInt(this.form.quantity.value)+1; this.form.submit();" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #333; padding: 0 0.5rem;">&plus;</button>
+                        </form>
+                    </td>
+                    <td class="text-label-caps" style="padding: 2rem 0; text-align: right; vertical-align: middle; font-weight: 500;">
+                        {% format_price item.total_cost %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="cart-summary" style="display: flex; justify-content: flex-end; margin-bottom: 5rem;">
+            <div style="width: 100%; max-width: 400px; text-align: right;">
+                <!-- Cart Note Section -->
+                <div id="cart-page-note-section" style="margin-bottom: 1.5rem; text-align: left;">
+                    {% if cart.note %}
+                    <div id="page-note-display-area" style="background: var(--surface-container-low); padding: 1rem; border-radius: 4px; display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+                        <div style="flex-grow: 1;">
+                            <div style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;"><span class="material-symbols-outlined" style="font-size: 1rem;">edit</span> Note for seller</div>
+                            <p style="font-size: 0.875rem; color: var(--text-secondary); white-space: pre-wrap; margin: 0;">{{ cart.note }}</p>
+                        </div>
+                        <button type="button" onclick="document.getElementById('page-note-display-area').style.display='none'; document.getElementById('page-note-edit-area').style.display='block';" style="background: none; border: none; text-decoration: underline; font-size: 0.75rem; cursor: pointer; padding: 0;">Edit</button>
+                    </div>
+                    
+                    <div id="page-note-edit-area" style="display: none;">
+                    {% else %}
+                    <button id="page-note-toggle-btn" type="button" onclick="this.style.display='none'; document.getElementById('page-note-edit-area').style.display='block';" style="width: 100%; background: var(--surface-container-low); border: none; padding: 0.75rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; cursor: pointer; border-radius: 4px; font-weight: 500; font-size: 0.9rem;">
+                        <span class="material-symbols-outlined" style="font-size: 1.1rem;">edit</span> Note
+                    </button>
+                    
+                    <div id="page-note-edit-area" style="display: none;">
+                    {% endif %}
+                        <div style="font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <span class="material-symbols-outlined" style="font-size: 1.1rem;">edit</span> Add note for seller
+                        </div>
+                        <form method="post" action="{% url 'storefront:cart_note_update' %}">
+                            {% csrf_token %}
+                            <textarea name="note" rows="4" style="width: 100%; border: 1px solid var(--border-color); border-radius: 4px; padding: 0.75rem; font-family: inherit; font-size: 0.875rem; resize: vertical; margin-bottom: 0.75rem;">{{ cart.note|default:'' }}</textarea>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button type="button" onclick="{% if cart.note %}document.getElementById('page-note-edit-area').style.display='none'; document.getElementById('page-note-display-area').style.display='flex';{% else %}document.getElementById('page-note-edit-area').style.display='none'; document.getElementById('page-note-toggle-btn').style.display='flex';{% endif %}" style="flex: 1; padding: 0.75rem; background: transparent; border: 1px solid #000; cursor: pointer; font-weight: 500; font-size: 0.9rem;">Cancel</button>
+                                <button type="submit" style="flex: 1; padding: 0.75rem; background: #000; color: #fff; border: 1px solid #000; cursor: pointer; font-weight: 500; font-size: 0.9rem;">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Coupon Code Section -->
+                <div style="margin-bottom: 1.5rem; border-top: 1px solid #eee; padding-top: 1.5rem;">
+                    <form id="cart-promo-form" onsubmit="applyCoupon(event, this)" style="display: flex; gap: 0.5rem;">
+                        {% csrf_token %}
+                        <input class="editorial-input" type="text" name="coupon_code" placeholder="Enter coupon code" value="{{ coupon.code|default:'' }}" style="flex: 1; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.875rem;" />
+                        <button type="submit" style="padding: 0 1.5rem; background: #000; color: #fff; border: 1px solid #000; font-size: 0.875rem; cursor: pointer; text-transform: uppercase;">{% if coupon %}Update{% else %}Apply{% endif %}</button>
+                    </form>
+                    {% if coupon %}
+                    <div style="margin-top: 0.5rem; font-size: 0.85rem; color: #155724; display: flex; justify-content: space-between;">
+                        <span>Applied: <strong>{{ coupon.code }}</strong></span>
+                        <a href="#" onclick="document.querySelector('#cart-promo-form input').value=''; document.querySelector('#cart-promo-form button').click(); return false;" style="color: #d32f2f; text-decoration: underline;">Remove</a>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem;">
+                    <h3 class="text-body-md" style="font-weight: normal; margin: 0; color: #666;">Subtotal</h3>
+                    <span style="font-size: 1rem; font-weight: 500;">{% format_price subtotal %}</span>
+                </div>
+                {% if coupon_discount > 0 %}
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem;">
+                    <h3 class="text-body-md" style="font-weight: normal; margin: 0; color: #155724;">Discount ({{ coupon.code }})</h3>
+                    <span style="font-size: 1rem; font-weight: 500; color: #155724;">-{% format_price coupon_discount %}</span>
+                </div>
+                {% endif %}
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1rem; border-top: 1px solid #eee; padding-top: 0.5rem;">
+                    <h3 class="text-body-md" style="font-weight: bold; margin: 0;">Total</h3>
+                    <span style="font-size: 1.2rem; font-weight: bold;">{% format_price grand_total %}</span>
+                </div>
+                <p style="color: #666; font-size: 0.85rem; margin-bottom: 1.5rem;">Tax included and shipping calculated at checkout</p>
+                
+                <button class="primary-cta-btn text-label-caps" style="width: 100%; padding: 1rem; font-size: 0.9rem;" onclick="location.href='{% url 'storefront:checkout' %}'">CHECK OUT</button>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 4rem 0;">
+        <p class="text-secondary" style="margin-bottom: 2rem;">Your cart is currently empty.</p>
+        <button class="primary-cta-btn text-label-caps" onclick="location.href='{% url 'storefront:home' %}'">Continue Shopping</button>
+    </div>
+    {% endif %}
+
+    {% if recommended_products %}
+    <section class="related-section" style="margin-top: 6rem; padding-top: 3rem; border-top: 1px solid #eee;">
+        <div class="section-header" style="margin-bottom: 2rem;">
+            <h2 class="text-body-lg" style="font-weight: 300;">Recently Viewed Products</h2>
+        </div>
+        
+        <div class="related-grid scroll-snap-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;">
+            {% for rel_product in recommended_products %}
+            <div class="product-card" onclick="location.href='{% url 'storefront:product_detail' rel_product.slug %}'" style="cursor: pointer;">
+                <div class="product-card-img-wrapper" style="margin-bottom: 1rem; overflow: hidden; background-color: #f5f5f5; aspect-ratio: 3/4;">
+                    {% if rel_product.image %}
+                    <img alt="{{ rel_product.name }}" src="{{ rel_product.image.url }}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;">
+                    {% elif rel_product.images.first %}
+                    <img alt="{{ rel_product.name }}" src="{{ rel_product.images.first.image.url }}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;">
+                    {% else %}
+                    <img alt="{{ rel_product.name }}" src="{% static 'storefront/images/product_main.png' %}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;">
+                    {% endif %}
+                </div>
+                <div class="product-card-details">
+                    <h3 class="text-body-md" style="margin-bottom: 0.25rem;">{{ rel_product.name }}</h3>
+                    <p class="text-label-caps" style="color: #d32f2f;">
+                        {% format_price rel_product.price_range %}
+                    </p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+</main>
+{% endblock %}

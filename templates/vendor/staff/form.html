@@ -1,0 +1,116 @@
+{% extends 'base/vendor_base.html' %}
+{% load static %}
+
+{% block title %}{% if staff_user %}Edit Staff — {{ staff_user.get_full_name }}{% else %}Add Staff Member{% endif %} — CommerceHub{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{% url 'commercehub_app:dashboard' %}">Dashboard</a>
+    <span class="breadcrumb-sep">›</span>
+    <a href="{% url 'accounts:staff_list' %}">Staff Management</a>
+    <span class="breadcrumb-sep">›</span>
+    <span>{% if staff_user %}Edit Staff{% else %}Add Staff Member{% endif %}</span>
+</div>
+
+<div class="data-card" style="max-width: 800px; padding: 28px;">
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="form-section">
+            <h3 class="form-section-title">Personal Details</h3>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="first_name">First Name <span class="req">*</span></label>
+                    <input type="text" id="first_name" name="first_name" class="form-input" 
+                           placeholder="e.g. John" required 
+                           value="{{ staff_user.first_name|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="last_name">Last Name</label>
+                    <input type="text" id="last_name" name="last_name" class="form-input" 
+                           placeholder="e.g. Doe" 
+                           value="{{ staff_user.last_name|default:'' }}">
+                </div>
+            </div>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="phone">Phone Number (Login ID) <span class="req">*</span></label>
+                    <input type="tel" id="phone" name="phone" class="form-input" 
+                           placeholder="9876543210" required maxlength="15"
+                           value="{{ staff_user.phone|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="email">Email Address</label>
+                    <input type="email" id="email" name="email" class="form-input" 
+                           placeholder="john.doe@example.com" 
+                           value="{{ staff_user.email|default:'' }}">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3 class="form-section-title">Credentials &amp; Access</h3>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="password">Password {% if not staff_user %}<span class="req">*</span>{% endif %}</label>
+                    <input type="password" id="password" name="password" class="form-input" 
+                           placeholder="{% if staff_user %}Leave blank to keep unchanged{% else %}Set login password{% endif %}"
+                           {% if not staff_user %}required{% endif %}>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="role_id">Access Role <span class="req">*</span></label>
+                    <select id="role_id" name="role_id" class="form-select" required>
+                        <option value="">-- Select Role --</option>
+                        {% for role in roles %}
+                            <option value="{{ role.pk }}" {% if staff_user.role.pk == role.pk %}selected{% endif %}>
+                                {{ role.name }} {% if not role.is_custom %}(System Default){% endif %}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="branch_id">Assigned Branch Scope</label>
+                    <select id="branch_id" name="branch_id" class="form-select">
+                        <option value="">All Branches</option>
+                        {% for branch in branches %}
+                            <option value="{{ branch.pk }}" {% if staff_user.branch.pk == branch.pk %}selected{% endif %}>
+                                {{ branch.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <p class="form-hint">Restrict this staff member to transactions from a single branch location.</p>
+                </div>
+                {% if staff_user %}
+                <div class="form-group">
+                    <label class="form-label">Account Status</label>
+                    <div style="display: flex; gap: 16px; margin-top: 10px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-primary);">
+                            <input type="radio" name="is_active" value="true" {% if staff_user.is_active %}checked{% endif %}>
+                            <span>Active / Enabled</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-primary);">
+                            <input type="radio" name="is_active" value="false" {% if not staff_user.is_active %}checked{% endif %}>
+                            <span>Disabled / Locked</span>
+                        </label>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="form-actions" style="margin-top: 32px;">
+            <button type="submit" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                    <polyline points="17 21 17 13 7 13 7 21"/>
+                    <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                {% if staff_user %}Save Changes{% else %}Add Staff Member{% endif %}
+            </button>
+            <a href="{% url 'accounts:staff_list' %}" class="btn btn-ghost">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

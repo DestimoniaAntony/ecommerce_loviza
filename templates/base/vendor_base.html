@@ -1,0 +1,267 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title|default:"Vendor Panel" }} — CommerceHub{% endblock %}
+{% block body_class %}vendor-layout{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="admin-wrapper">
+
+    <!-- ── SIDEBAR ── -->
+    <aside class="sidebar vendor-sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="logo-icon">
+                    {% if request.user.vendor.logo %}
+                        <img src="{{ request.user.vendor.logo.url }}" alt="logo" style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                        <div class="vendor-logo-placeholder" style="background: linear-gradient(135deg, {{ request.user.vendor.primary_color|default:'#6366f1' }}, {{ request.user.vendor.secondary_color|default:'#8b5cf6' }}); width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white;">
+                            {{ request.user.vendor.business_name|first|upper }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="logo-text">
+                    <span class="logo-name">{{ request.user.vendor.business_name|default:"My Store" }}</span>
+                    <span class="logo-badge">Vendor Panel</span>
+                </div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <span class="nav-section-label">Overview</span>
+                <a href="{% url 'commercehub_app:dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="5" height="8" rx="1"/><rect x="10" y="3" width="11" height="4" rx="1"/>
+                        <rect x="10" y="10" width="11" height="11" rx="1"/><rect x="3" y="14" width="5" height="7" rx="1"/>
+                    </svg>
+                    <span>Analytics Dashboard</span>
+                </a>
+                <a href="{% url 'commercehub_app:settings' %}" class="nav-item {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    </svg>
+                    <span>Store Settings</span>
+                </a>
+                <a href="{% url 'commercehub_app:email_settings' %}" class="nav-item {% if request.resolver_match.url_name == 'email_settings' %}active{% endif %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                        <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                    <span>Email Settings</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <span class="nav-section-label">Store</span>
+                <a href="{% url 'catalog:product_list' %}" class="nav-item {% if 'product' in request.resolver_match.url_name %}active{% endif %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
+                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                    </svg>
+                    <span>Products</span>
+                </a>
+                <a href="{% url 'catalog:category_list' %}" class="nav-item {% if 'category' in request.resolver_match.url_name %}active{% endif %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    <span>Categories</span>
+                </a>
+                <a href="{% url 'catalog:attribute_list' %}" class="nav-item {% if 'attribute' in request.resolver_match.url_name %}active{% endif %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/>
+                        <line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/>
+                    </svg>
+                    <span>Attributes</span>
+                </a>
+                <a href="{% url 'commercehub_app:order_list' %}" class="nav-item {% if 'order' in request.resolver_match.url_name %}active{% endif %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                    </svg>
+                    <span>Orders</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <span class="nav-section-label">Inventory</span>
+                <a href="{% url 'inventory:branch_inventory_list' %}" class="nav-item {% if 'inventory' in request.resolver_match.url_name and 'supplier' not in request.resolver_match.url_name and 'purchase' not in request.resolver_match.url_name and 'transfer' not in request.resolver_match.url_name %}active{% endif %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                        <line x1="12" y1="22.08" x2="12" y2="12"/>
+                    </svg>
+                    <span>Stock Levels</span>
+                </a>
+                <a href="{% url 'inventory:supplier_list' %}" class="nav-item {% if 'supplier' in request.resolver_match.url_name %}active{% endif %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                    <span>Suppliers</span>
+                </a>
+                <a href="{% url 'inventory:purchase_order_list' %}" class="nav-item {% if 'purchase_order' in request.resolver_match.url_name %}active{% endif %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                        <polyline points="10 9 9 9 8 9"/>
+                    </svg>
+                    <span>Purchase Orders</span>
+                </a>
+                <a href="{% url 'inventory:stock_transfer_list' %}" class="nav-item {% if 'stock_transfer' in request.resolver_match.url_name %}active{% endif %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 3h5v5"/>
+                        <path d="M4 20L21 3"/>
+                        <path d="M21 16v5h-5"/>
+                        <path d="M4 4l17 17"/>
+                    </svg>
+                    <span>Stock Transfers</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <span class="nav-section-label">CRM &amp; Loyalty</span>
+                <a href="{% url 'crm:coupon_list' %}" class="nav-item {% if 'coupon' in request.resolver_match.url_name %}active{% endif %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/>
+                    </svg>
+                    <span>Promo Coupons</span>
+                </a>
+                <a href="{% url 'crm:loyalty_settings' %}" class="nav-item {% if 'loyalty' in request.resolver_match.url_name %}active{% endif %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                    <span>Loyalty Program</span>
+                </a>
+                <a href="{% url 'crm:customer_list' %}" class="nav-item {% if 'customer' in request.resolver_match.url_name %}active{% endif %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                    <span>Customer CRM</span>
+                </a>
+                <a href="{% url 'crm:subscriber_list' %}" class="nav-item {% if 'subscriber' in request.resolver_match.url_name %}active{% endif %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                        <path d="M22 6l-10 7L2 6"></path>
+                    </svg>
+                    <span>Subscribers</span>
+                </a>
+                <a href="{% url 'crm:message_list' %}" class="nav-item {% if 'message' in request.resolver_match.url_name %}active{% endif %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                        <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                    <span>Contact Messages</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <span class="nav-section-label">Organization</span>
+                <a href="{% url 'branches:branch_list' %}" class="nav-item {% if 'branch' in request.resolver_match.url_name or 'franchise' in request.resolver_match.url_name %}active{% endif %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                        <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                    <span>Branches &amp; Franchise</span>
+                </a>
+                <a href="{% url 'accounts:staff_list' %}" class="nav-item {% if 'staff' in request.resolver_match.url_name %}active{% endif %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                    <span>Staff Management</span>
+                </a>
+                <a href="{% url 'accounts:role_list' %}" class="nav-item {% if 'role' in request.resolver_match.url_name %}active{% endif %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                        <line x1="8" y1="21" x2="16" y2="21"/>
+                        <line x1="12" y1="17" x2="12" y2="21"/>
+                    </svg>
+                    <span>Roles &amp; Permissions</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <span class="nav-section-label">Account</span>
+                <a href="{% url 'accounts:logout' %}" class="nav-item nav-item-danger">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                        <polyline points="16 17 21 12 16 7"/>
+                        <line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-user">
+                <div class="user-avatar">{{ request.user.get_short_name|first|upper }}</div>
+                <div class="user-info">
+                    <span class="user-name">{{ request.user.get_full_name|default:request.user.phone }}</span>
+                    <span class="user-role">{{ request.user.role.name|default:"Vendor Owner" }}</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ── MAIN CONTENT ── -->
+    <div class="main-content">
+        <!-- Top Bar -->
+        <header class="topbar">
+            <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>
+            </button>
+            <div class="topbar-title">
+                <h1 class="page-title">{{ page_title|default:"Dashboard" }}</h1>
+            </div>
+            <div class="topbar-actions">
+                <button id="themeToggle" class="theme-toggle-btn" aria-label="Toggle theme" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; padding:6px; display:flex; align-items:center; justify-content:center;">
+                    <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                    <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
+                <div class="topbar-user">
+                    <div class="user-avatar sm">{{ request.user.get_short_name|first|upper }}</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Messages -->
+        {% if messages %}
+        <div class="messages-container">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible" role="alert">
+                <span>{{ message }}</span>
+                <button class="alert-close" onclick="this.parentElement.remove()">×</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Page Content -->
+        <main class="page-content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/admin.js' %}"></script>
+{% endblock %}

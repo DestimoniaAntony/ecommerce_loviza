@@ -1,0 +1,120 @@
+{% extends 'base/vendor_base.html' %}
+{% load static %}
+
+{% block title %}Product Catalog — {{ request.user.vendor.business_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header-row">
+    <div class="page-header-info">
+        <p class="page-subtitle">Manage your product catalog, pricing, SKUs, and inventory levels.</p>
+    </div>
+    <div class="page-header-actions">
+        <a href="{% url 'catalog:product_create' %}" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/>
+                <line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+            Add Product
+        </a>
+    </div>
+</div>
+
+<div class="data-card">
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Variants</th>
+                    <th>Price Range</th>
+                    {% if request.user.vendor.track_inventory %}
+                    <th>Total Stock</th>
+                    {% endif %}
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 44px; height: 44px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; border-radius: 4px; overflow: hidden; border: 1px solid var(--border-color);">
+                                {% with product.variants.first as first_variant %}
+                                    {% if first_variant and first_variant.image %}
+                                        <img src="{{ first_variant.image.url }}" alt="{{ product.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                    {% else %}
+                                        <span style="font-size: 18px;">📦</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </div>
+                            <div>
+                                <strong style="color: var(--text-primary); font-size: 14px; display: block;">{{ product.name }}</strong>
+                                <span class="text-muted" style="font-size: 11px; display: block;">/{{ product.slug }}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-secondary" style="font-size: 13px;">
+                        {{ product.category.name|default:"—" }}
+                    </td>
+                    <td>
+                        {% if product.status == 'published' %}
+                            <span class="status-badge status-approved" style="font-size: 9px; padding: 2px 8px;">Published</span>
+                        {% elif product.status == 'draft' %}
+                            <span class="status-badge status-pending" style="font-size: 9px; padding: 2px 8px;">Draft</span>
+                        {% else %}
+                            <span class="status-badge status-suspended" style="font-size: 9px; padding: 2px 8px;">Archived</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if product.has_variants %}
+                            <span class="badge badge-info" style="font-size: 10px; font-weight: 600; background: rgba(14,165,233,0.1); color: var(--color-accent);">
+                                {{ product.variants.count }} variants
+                            </span>
+                        {% else %}
+                            <span class="text-muted" style="font-size: 12px;">Single Product</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <strong style="color: var(--text-primary); font-size: 13px;">
+                            {{ product.price_range }}
+                        </strong>
+                    </td>
+                    {% if request.user.vendor.track_inventory %}
+                    <td>
+                        <span style="font-size: 13px; font-weight: 500;">
+                            {{ product.total_stock }}
+                        </span>
+                    </td>
+                    {% endif %}
+                    <td>
+                        <div class="table-actions" style="display: flex; gap: 6px;">
+                            <a href="{% url 'catalog:product_edit' product.pk %}" class="btn btn-sm btn-outline" style="font-size: 12px; padding: 4px 10px;">Edit</a>
+                            <form method="post" action="{% url 'catalog:product_delete' product.pk %}" style="display: inline;" onsubmit="return confirm('Remove product {{ product.name }}?')">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-ghost text-danger" style="font-size: 12px; padding: 4px 10px; border: none; background: transparent; cursor: pointer;">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="{% if request.user.vendor.track_inventory %}7{% else %}6{% endif %}">
+                        <div class="table-empty" style="padding: 48px 0; text-align: center;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48" style="color: var(--text-muted); margin-bottom: 12px;">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                <line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/>
+                                <line x1="9" y1="17" x2="13" y2="17"/>
+                            </svg>
+                            <p style="font-size: 15px; font-weight: 500; color: var(--text-secondary); margin: 0 0 16px 0;">No products in your catalog yet.</p>
+                            <a href="{% url 'catalog:product_create' %}" class="btn btn-primary btn-sm">Add First Product</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

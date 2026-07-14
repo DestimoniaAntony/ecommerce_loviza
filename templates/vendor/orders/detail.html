@@ -1,0 +1,385 @@
+{% extends 'base/vendor_base.html' %}
+{% load static %}
+
+{% block title %}Order Details — {{ order.order_number }} — CommerceHub{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{% url 'commercehub_app:dashboard' %}">Dashboard</a>
+    <span class="breadcrumb-sep">›</span>
+    <a href="{% url 'commercehub_app:order_list' %}">Orders</a>
+    <span class="breadcrumb-sep">›</span>
+    <span>#{{ order.order_number }}</span>
+</div>
+
+<div class="page-header-row" style="margin-bottom: 24px;">
+    <div class="page-header-info">
+        <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px 0;">Order #{{ order.order_number }}</h2>
+        <p class="page-subtitle" style="margin: 0;">Placed on {{ order.created_at|date:"d M Y, h:i A" }} at branch: <strong>{{ order.branch.name }}</strong></p>
+    </div>
+</div>
+
+<div class="detail-grid">
+    <!-- ── LEFT COLUMN: ITEMS & SUMMARY ── -->
+    <div class="detail-main">
+        <!-- Order Items Card -->
+        <div class="data-card" style="padding: 24px; margin-bottom: 24px;">
+            <h3 class="card-section-title">Order Items</h3>
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Product Details</th>
+                            <th class="text-right">Price</th>
+                            <th class="text-center">Quantity</th>
+                            <th class="text-right">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order.items.all %}
+                        <tr>
+                            <td>
+                                <div class="item-info">
+                                    <strong style="color: var(--text-primary);">{{ item.product_variant.product.name }}</strong>
+                                    {% if item.product_variant.name and item.product_variant.name != "Default" %}
+                                        <span class="text-muted" style="display: block; font-size: 0.85rem; margin-top: 2px;">Variant: {{ item.product_variant.name }}</span>
+                                    {% endif %}
+                                    <span class="text-muted" style="display: block; font-size: 0.8rem; margin-top: 2px;">SKU: {{ item.product_variant.sku }}</span>
+                                </div>
+                            </td>
+                            <td class="text-right" style="color: var(--text-primary);">
+                                {{ order.vendor.currency_symbol|default:"₹" }}{{ item.price }}
+                            </td>
+                            <td class="text-center" style="color: var(--text-primary); font-weight: 500;">
+                                {{ item.quantity }}
+                            </td>
+                            <td class="text-right" style="font-weight: 600; color: var(--text-primary);">
+                                {{ order.vendor.currency_symbol|default:"₹" }}{{ item.total_cost }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Financial Summary Block -->
+            <div class="summary-block">
+                <div class="summary-row">
+                    <span class="summary-label">Subtotal</span>
+                    <span class="summary-val">{{ order.vendor.currency_symbol|default:"₹" }}{{ order.subtotal_amount }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Tax</span>
+                    <span class="summary-val">{{ order.vendor.currency_symbol|default:"₹" }}{{ order.tax_amount }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Delivery Charge</span>
+                    <span class="summary-val">{{ order.vendor.currency_symbol|default:"₹" }}{{ order.delivery_charge }}</span>
+                </div>
+                <div class="summary-row grand-total">
+                    <span class="summary-label">Grand Total</span>
+                    <span class="summary-val">{{ order.vendor.currency_symbol|default:"₹" }}{{ order.total_amount }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer Note Card -->
+        {% if order.notes %}
+        <div class="data-card" style="padding: 24px;">
+            <h3 class="card-section-title">Customer Notes</h3>
+            <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); padding: 16px; border-radius: var(--radius-md); color: var(--text-primary); font-style: italic; line-height: 1.5;">
+                "{{ order.notes }}"
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ── RIGHT COLUMN: CONTROL PANEL & DETAILS ── -->
+    <div class="detail-sidebar">
+        <!-- Order Control Panel Card -->
+        <div class="data-card panel-card" style="padding: 24px; margin-bottom: 24px;">
+            <h3 class="card-section-title">Fulfillment Actions</h3>
+            
+            <div class="status-summary-box">
+                <div class="status-box-item">
+                    <span class="label">Current Status</span>
+                    <div>
+                        {% if order.status == 'awaiting_approval' %}
+                            <span class="status-badge status-pending">Awaiting Approval</span>
+                        {% elif order.status == 'pending' %}
+                            <span class="status-badge status-pending">Pending</span>
+                        {% elif order.status == 'processing' %}
+                            <span class="status-badge" style="background: rgba(14, 165, 233, 0.12); color: #38bdf8;">Processing</span>
+                        {% elif order.status == 'shipped' %}
+                            <span class="status-badge" style="background: rgba(99, 102, 241, 0.12); color: #818cf8;">Shipped</span>
+                        {% elif order.status == 'delivered' %}
+                            <span class="status-badge status-approved">Delivered</span>
+                        {% elif order.status == 'cancelled' %}
+                            <span class="status-badge status-suspended">Cancelled</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Approval Mode Workflow vs General Lifecycle Transitions -->
+            {% if order.status == 'awaiting_approval' %}
+            <div class="alert alert-info" style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); padding: 14px; border-radius: var(--radius-md); margin-bottom: 20px;">
+                <p style="margin: 0; font-size: 0.85rem; line-height: 1.4; color: #a5b4fc;">
+                    <strong>Approval Required:</strong> Inventory stock has <strong>not</strong> been deducted yet. Approving this order will deduct stock, log inventory adjustments, and mark the order as <strong>Pending</strong> (ready for payment/fulfillment).
+                </p>
+            </div>
+            
+            <div class="action-buttons-stack">
+                <form action="{% url 'commercehub_app:order_action' order.pk %}" method="post" style="width: 100%;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="approve">
+                    <button type="submit" class="btn btn-primary btn-full">
+                        Approve &amp; Deduct Stock
+                    </button>
+                </form>
+
+                <form action="{% url 'commercehub_app:order_action' order.pk %}" method="post" style="width: 100%; margin-top: 10px;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_status">
+                    <input type="hidden" name="status" value="cancelled">
+                    <button type="submit" class="btn btn-danger btn-full btn-outline" onclick="return confirm('Are you sure you want to cancel this order?')">
+                        Reject / Cancel Order
+                    </button>
+                </form>
+            </div>
+            {% else %}
+            <!-- General status change form -->
+            <form action="{% url 'commercehub_app:order_action' order.pk %}" method="post" style="margin-top: 16px;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_status">
+                
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label" for="status_select">Update Fulfillment Status</label>
+                    <select name="status" id="status_select" class="form-input" style="background: var(--bg-surface, #1e1e2e); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 8px 12px; width: 100%;">
+                        <option value="pending" {% if order.status == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="processing" {% if order.status == 'processing' %}selected{% endif %}>Processing</option>
+                        <option value="shipped" {% if order.status == 'shipped' %}selected{% endif %}>Shipped</option>
+                        <option value="delivered" {% if order.status == 'delivered' %}selected{% endif %}>Delivered</option>
+                        <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                </div>
+
+                {% if order.status != 'cancelled' %}
+                <div style="background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.15); padding: 12px; border-radius: var(--radius-md); margin-bottom: 16px;">
+                    <p style="margin: 0; font-size: 0.8rem; color: #fca5a5; line-height: 1.4;">
+                        <strong>Note:</strong> Transitioning order status to <strong>Cancelled</strong> will automatically restock the inventory quantities and write adjustment logs back to the catalog.
+                    </p>
+                </div>
+                {% endif %}
+
+                <button type="submit" class="btn btn-primary btn-full">
+                    Update Status
+                </button>
+            </form>
+            {% endif %}
+        </div>
+
+        <!-- Customer & Shipping details -->
+        <div class="data-card" style="padding: 24px; margin-bottom: 24px;">
+            <h3 class="card-section-title">Customer &amp; Shipping</h3>
+            <div class="meta-details-list">
+                <div class="meta-item">
+                    <span class="label">Customer Account</span>
+                    <strong style="color: var(--text-primary);">{{ order.customer.get_full_name|default:order.customer.phone }}</strong>
+                </div>
+                <div class="meta-item">
+                    <span class="label">Recipient Name</span>
+                    <strong style="color: var(--text-primary);">{{ order.shipping_name }}</strong>
+                </div>
+                <div class="meta-item">
+                    <span class="label">Contact Phone</span>
+                    <strong style="color: var(--text-primary);">{{ order.shipping_phone }}</strong>
+                </div>
+                <div class="meta-item" style="border-bottom: none; padding-bottom: 0;">
+                    <span class="label">Shipping Address</span>
+                    <div style="color: var(--text-primary); font-size: 0.9rem; line-height: 1.5; margin-top: 4px; background: rgba(255, 255, 255, 0.01); border: 1px solid var(--border-color); padding: 12px; border-radius: var(--radius-md);">
+                        {{ order.shipping_address|linebreaksbr }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Info Card -->
+        <div class="data-card" style="padding: 24px;">
+            <h3 class="card-section-title">Payment Information</h3>
+            <div class="meta-details-list">
+                <div class="meta-item">
+                    <span class="label">Payment Method</span>
+                    <strong style="color: var(--text-primary);">{{ order.get_payment_method_display }}</strong>
+                </div>
+                <div class="meta-item">
+                    <span class="label">Payment Status</span>
+                    <div>
+                        {% if order.payment_status == 'paid' %}
+                            <span class="badge badge-success" style="background: rgba(16, 185, 129, 0.12); color: #34d399;">Paid</span>
+                        {% elif order.payment_status == 'failed' %}
+                            <span class="badge badge-danger" style="background: rgba(239, 68, 68, 0.12); color: #f87171;">Failed</span>
+                        {% else %}
+                            <span class="badge badge-warning" style="background: rgba(245, 158, 11, 0.12); color: #fbbf24;">Unpaid</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if order.gateway_order_id or order.gateway_payment_id %}
+                <div class="meta-item">
+                    <span class="label">Gateway Order ID</span>
+                    <span class="text-muted" style="font-family: monospace; font-size: 0.85rem;">{{ order.gateway_order_id|default:"-" }}</span>
+                </div>
+                <div class="meta-item" style="border-bottom: none; padding-bottom: 0;">
+                    <span class="label">Gateway Payment ID</span>
+                    <span class="text-muted" style="font-family: monospace; font-size: 0.85rem;">{{ order.gateway_payment_id|default:"-" }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Manual Payment Status Update Form -->
+            <form action="{% url 'commercehub_app:order_action' order.pk %}" method="post" style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_payment_status">
+                
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label" for="payment_status_select" style="font-size: 0.85rem; font-weight: 500; color: var(--text-muted);">Change Payment Status</label>
+                    <select name="payment_status" id="payment_status_select" class="form-input" style="background: var(--bg-surface, #1e1e2e); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 8px 12px; width: 100%; margin-top: 6px;">
+                        <option value="pending" {% if order.payment_status == 'pending' %}selected{% endif %}>Pending (Unpaid)</option>
+                        <option value="paid" {% if order.payment_status == 'paid' %}selected{% endif %}>Paid</option>
+                        <option value="failed" {% if order.payment_status == 'failed' %}selected{% endif %}>Failed</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full btn-sm" style="padding: 8px 12px; font-size: 0.85rem;">
+                    Update Payment Status
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Layout Grid */
+.detail-grid {
+    display: grid;
+    grid-template-columns: 2.2fr 1.3fr;
+    gap: 24px;
+    align-items: start;
+}
+
+@media (max-width: 1024px) {
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Card titles */
+.card-section-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    margin: 0 0 20px 0;
+}
+
+/* Financial Summary styling */
+.summary-block {
+    margin-top: 24px;
+    border-top: 1px dashed var(--border-color);
+    padding-top: 16px;
+    max-width: 320px;
+    margin-left: auto;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+
+.summary-row .summary-val {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.summary-row.grand-total {
+    border-top: 1px solid var(--border-color);
+    padding-top: 12px;
+    margin-top: 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.summary-row.grand-total .summary-val {
+    color: var(--color-primary, #6366f1);
+    font-weight: 700;
+}
+
+/* Meta list detail fields */
+.meta-details-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    padding-bottom: 10px;
+}
+
+.meta-item .label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Alignment utilities */
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+
+/* Buttons and layouts */
+.btn-full {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 16px;
+    font-size: 0.95rem;
+}
+.btn-danger.btn-outline {
+    background: transparent;
+    border: 1px solid var(--color-danger, #ef4444);
+    color: var(--color-danger, #ef4444);
+}
+.btn-danger.btn-outline:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.status-summary-box {
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px solid var(--border-color);
+    padding: 16px;
+    border-radius: var(--radius-md);
+    margin-bottom: 16px;
+}
+
+.status-box-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.status-box-item .label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+</style>
+{% endblock %}

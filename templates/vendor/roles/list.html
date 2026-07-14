@@ -1,0 +1,62 @@
+{% extends 'base/vendor_base.html' %}
+{% load static %}
+
+{% block title %}Roles &amp; Permissions — {{ request.user.vendor.business_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header-row">
+    <div class="page-header-info">
+        <p class="page-subtitle">Configure access groups and system module permissions for your store staff.</p>
+    </div>
+    <div class="page-header-actions">
+        <a href="{% url 'accounts:role_create' %}" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/>
+                <line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+            Create Custom Role
+        </a>
+    </div>
+</div>
+
+<div class="detail-grid" style="grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));">
+    {% for role in roles %}
+    <div class="detail-card" style="display: flex; flex-direction: column; justify-content: space-between; border-left: 4px solid {% if role.is_custom %}var(--color-primary){% else %}var(--color-success){% endif %};">
+        <div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                <h3 style="margin: 0; font-size: 18px;">{{ role.name }}</h3>
+                {% if role.is_custom %}
+                    <span class="status-badge status-pending" style="font-size: 9px; padding: 2px 8px;">Custom</span>
+                {% else %}
+                    <span class="status-badge status-approved" style="font-size: 9px; padding: 2px 8px;">System Default</span>
+                {% endif %}
+            </div>
+            <p class="text-secondary" style="font-size: 13px; margin-bottom: 16px;">{{ role.description|default:"No description provided." }}</p>
+            
+            <div style="margin-top: 12px;">
+                <span class="form-label" style="font-size: 11px;">Granted Permissions:</span>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
+                    {% for perm in role.permissions.all %}
+                        <span class="badge badge-info" style="font-size: 10px; font-weight: 500; background: rgba(14,165,233,0.1); color: var(--color-accent);">{{ perm.name }}</span>
+                    {% empty %}
+                        <span class="text-muted" style="font-size: 12px; font-style: italic;">No permissions granted.</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        {% if role.is_custom %}
+        <div style="margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--border-color-light); display: flex; justify-content: flex-end;">
+            <a href="{% url 'accounts:role_edit' role.pk %}" class="btn btn-sm btn-outline">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+                Edit Role
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

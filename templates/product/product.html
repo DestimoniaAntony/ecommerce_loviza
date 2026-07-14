@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>MAISON | Luxury Editorial Product</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=EB+Garamond:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link href="css/style.css" rel="stylesheet"/>
+  <script src="js/main.js" defer></script>
+</head>
+<body>
+
+  <!-- Header Navigation -->
+  <header>
+    <nav class="nav-container">
+      <div class="hamburger-menu" onclick="toggleMobileMenu()">
+        <span class="material-symbols-outlined" id="mobile-menu-toggle-icon">menu</span>
+      </div>
+      
+      <div class="nav-links">
+        <a class="text-label-caps" href="index.html">Home</a>
+        <a class="text-label-caps active" href="collection.html">Abayas</a>
+        <a class="text-label-caps" href="collection.html">Collections</a>
+      </div>
+      
+      <div class="nav-brand">
+        <a href="index.html"><h1>MAISON</h1></a>
+      </div>
+      
+      <div class="nav-icons">
+        <span class="material-symbols-outlined" onclick="toggleSearch()">search</span>
+        <span class="material-symbols-outlined" onclick="location.href='profile.html'" style="cursor: pointer;">person</span>
+        <span class="material-symbols-outlined" onclick="location.href='wishlist.html'" style="cursor: pointer;">favorite</span>
+        <div class="cart-icon-wrapper" onclick="toggleCart()">
+          <span class="material-symbols-outlined">shopping_bag</span>
+          <span class="cart-badge">2</span>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Mobile Menu Drawer Overlay -->
+  <div class="mobile-nav-overlay" id="mobile-nav-overlay">
+    <a class="font-serif" href="index.html" onclick="toggleMobileMenu()">Home</a>
+    <a class="font-serif" href="collection.html" onclick="toggleMobileMenu()">Abayas</a>
+    <a class="font-serif" href="collection.html" onclick="toggleMobileMenu()">Collections</a>
+    <a class="font-serif" href="collection.html" onclick="toggleMobileMenu()">Travel Wear</a>
+    <a class="font-serif" href="collection.html" onclick="toggleMobileMenu()">Accessories</a>
+    <a class="font-serif text-accent" href="collection.html" onclick="toggleMobileMenu()" style="color: var(--accent-color)">Sale</a>
+  </div>
+
+  <!-- Main Product Detail Section -->
+  <main class="product-main">
+    <div class="product-layout">
+      
+      <!-- Left: Image Gallery -->
+      <div class="product-gallery">
+        <!-- Thumbnail Column -->
+        <!-- Recommended Admin Upload Thumbnail Size: 200x266px (3:4 Aspect Ratio) -->
+        <div class="gallery-thumbnails">
+          <div class="thumb-item active">
+            <img alt="Front View" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGsnr2MXXK0f8uRmfeaZ23gfBiVGZiiChixFo9wbCxNr9Y_m1-Kn-1kBxcZlE8L6iMQYPKDoX69OyVEUZbnbBP5xu3GS9KBLCKcO9A5fpVyML4lgqOkiHhQh36fnugahzVzjgvSHzEvN3EGRlRscCeuaR-5ATAUh2WPK7JYSKxg9XQtciNmHI2bCL5K7dYetDWXubImwi_ftQ28SixR8WHYz9PU2qTN7G5gPfBz4ZWN_l-RuzUEqzyYbkL6MY9DAgKyxW3VCGZVprB"/>
+          </div>
+          <div class="thumb-item">
+            <img alt="Back View" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDPw1i-OqX0bS9jUzGA2TdGQvgXQZRQRarTPoRT_WgkqFKhMuuoGXiG0w_uGCJxC0VKTjifdjwqGEpmTDVpqvmkh0obHtVZCXtNMyQhorVjwY-nCKB9LjDWEOKlHwANfyCUXXIoLR0yIfJJ5Dbu3oBL7Zofn5gYHka_5PT4V_nI4qsMjba2oJa9su1FLxC5Np2j4jPVor0SQXzHxh1prwpIyQAwYsvhd0KSUMKUW38-0baiVVTjali7Tr0BaOjCaMueviJhzMoGjOq"/>
+          </div>
+          <div class="thumb-item">
+            <img alt="Details View" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-vsWCjqrdTCIQR9mGdEt5eVgIO6YUvoFEhr98kRYTQ-lbv4jRA6usdGpdPlZPIUziT8T_bN8cM_A2rdsC-lfU1S1yTlYsnB45sdfcQaloYigxMDYPJQj75eAGkrL5roIHGUfK_ad_a7IsvP2pVYvRKKLmE2We1DSm69D7Hd4lxrxDaADRHa-d4IL56oZmluVfC2ZOmnUybGt8SHUDB12yH41AzZakpdPWVi40sivfHT_8bJdisdPxlxutZv5L6u-aBAZiFtbD8YLG"/>
+          </div>
+          <div class="thumb-item">
+            <img alt="Lifestyle View" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFb2tiFIYtHnKodB9gxBnxh1aLtD3-vIY7WDKrurY-qmZmB05F0fon2lJ9jj0AfH3dQdEDxqlCcknl-0glS8R7-vRiU8QoM1OVU07AvUKduZ3fLHE0hcr3RXzEqgDYgPLQCqLGizRQAz-KcN-SRfdlLh2IkVaa5P15X9oTXF_2FPeMCjMEjBKS1Gzr8QDhfg0Bk5P7TcS4Mmolp7Thr_wcFhLvqSDvdivA16_s2Q95DsZlSKMvFFzuSAsj1X1JAhXMt4IAVyLjWKlD"/>
+          </div>
+        </div>
+        
+        <!-- Main Feature Image -->
+        <!-- Recommended Admin Upload Main Product Size: 1200x1600px (3:4 Aspect Ratio) -->
+        <div class="gallery-main-img">
+          <img alt="Obsidian black silk abaya" id="main-image" src="images/product_main.png"/>
+        </div>
+      </div>
+      
+      <!-- Right: Purchase Panel (Sticky) -->
+      <div class="product-panel">
+        <div class="product-panel-sticky">
+          <!-- Header Info -->
+          <div class="product-title-section">
+            <span class="text-label-caps text-secondary">NEW ARRIVAL / NOIR COLLECTION</span>
+            <h1 class="text-display-md">Signature Silk Abaya</h1>
+            <p class="text-headline-lg product-price">$1,250.00</p>
+          </div>
+          
+          <!-- Description -->
+          <p class="text-body-md product-description">
+            An architectural masterpiece crafted from the finest double-faced Italian silk. Featuring a fluid silhouette that redefines modest elegance for the modern woman.
+          </p>
+          
+          <!-- Selectors -->
+          <div class="product-options">
+            <!-- Color swatches -->
+            <div class="option-group">
+              <span class="text-label-caps">Color: Obsidian</span>
+              <div class="color-swatches">
+                <button class="swatch active" onclick="this.parentNode.querySelectorAll('.swatch').forEach(s=>s.classList.remove('active')); this.classList.add('active')">
+                  <span style="background-color: #000000;"></span>
+                </button>
+                <button class="swatch" onclick="this.parentNode.querySelectorAll('.swatch').forEach(s=>s.classList.remove('active')); this.classList.add('active')">
+                  <span style="background-color: #3D3D3F;"></span>
+                </button>
+                <button class="swatch" onclick="this.parentNode.querySelectorAll('.swatch').forEach(s=>s.classList.remove('active')); this.classList.add('active')">
+                  <span style="background-color: #F5F5F5; border: 1px solid var(--border-color)"></span>
+                </button>
+              </div>
+            </div>
+            
+            <!-- Sizes -->
+            <div class="option-group">
+              <div class="size-header">
+                <span class="text-label-caps">Select Size</span>
+                <button class="text-label-caps size-guide-btn text-secondary">Size Guide</button>
+              </div>
+              <div class="size-grid">
+                <button class="size-btn text-label-caps" onclick="this.parentNode.querySelectorAll('.size-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active')">XS</button>
+                <button class="size-btn text-label-caps active" onclick="this.parentNode.querySelectorAll('.size-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active')">S</button>
+                <button class="size-btn text-label-caps" onclick="this.parentNode.querySelectorAll('.size-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active')">M</button>
+                <button class="size-btn text-label-caps" onclick="this.parentNode.querySelectorAll('.size-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active')">L</button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Actions -->
+          <div class="cta-actions">
+            <button class="primary-cta-btn text-label-caps" onclick="toggleCart()">Add to Cart</button>
+            <button class="secondary-cta-btn text-label-caps" onclick="location.href='checkout.html'">Buy Now</button>
+          </div>
+          
+          <!-- Accordion details -->
+          <div class="accordion-wrapper">
+            <!-- Item 1 -->
+            <div class="accordion-item">
+              <button class="accordion-trigger" onclick="toggleAccordion(this)">
+                <span class="text-label-caps">Description & Fabric</span>
+                <span class="material-symbols-outlined chevron">expand_more</span>
+              </button>
+              <div class="accordion-content">
+                <div class="accordion-inner-content">
+                  <p>Crafted with a commitment to timeless quality. 100% heavy-weight Italian silk crepe. Features invisible side pockets and hand-rolled hems.</p>
+                  <ul>
+                    <li>Dry clean only</li>
+                    <li>Designed for an oversized fit</li>
+                    <li>Made in Italy</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Item 2 -->
+            <div class="accordion-item">
+              <button class="accordion-trigger" onclick="toggleAccordion(this)">
+                <span class="text-label-caps">Shipping & Delivery</span>
+                <span class="material-symbols-outlined chevron">expand_more</span>
+              </button>
+              <div class="accordion-content">
+                <div class="accordion-inner-content">
+                  <p>Complimentary express shipping on all orders. Delivered in our signature Maison garment bag and gift box. Estimated arrival: 3-5 business days.</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Item 3 -->
+            <div class="accordion-item">
+              <button class="accordion-trigger" onclick="toggleAccordion(this)">
+                <span class="text-label-caps">Returns & Exchanges</span>
+                <span class="material-symbols-outlined chevron">expand_more</span>
+              </button>
+              <div class="accordion-content">
+                <div class="accordion-inner-content">
+                  <p>We offer a 14-day complimentary return window for all full-price items. Items must be returned in their original condition with all tags attached.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+
+    <!-- Related Products -->
+    <section class="related-section">
+      <div class="section-header">
+        <div>
+          <span class="text-label-caps text-secondary">Curated For You</span>
+          <h2 class="text-headline-lg" style="margin-top: 0.5rem;">Related Essentials</h2>
+        </div>
+        <a class="text-label-caps" style="text-decoration: underline;" href="collection.html">View All</a>
+      </div>
+      
+      <div class="related-grid">
+        
+        <!-- Product 1 -->
+        <div class="product-card" onclick="location.href='product.html'">
+          <div class="product-card-img-wrapper">
+            <img alt="Ivory leather clutch" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA016S5eZbXQ5hrYe7F7Kv5DWVq3Fb63D3dNMFJwBKw1pT51iI91tBBQLrmpwYgldjrToGZPSOjTn9ZrCPCSSdPckrnAwnmoA_JJS4N5yH4RplFtTxud-qSv1MVmZQKjw6SPHJJpSb3e2ObShIjbJPURqNcGqGGfN8Tb_PTsLW8tVx7Smxt0AnqwyIaOeQfm8Xzlk6PXXnCBM7yhuc7FylBFllzPCxB5V-4LKZw9SA5d7dxhz4-N6uFmtEub-fhPieQ_db7oEEPfejL"/>
+            <button class="product-quick-add text-label-caps" onclick="event.stopPropagation(); toggleCart()">Quick Add</button>
+          </div>
+          <div class="product-card-details">
+            <h3 class="text-body-md">Sculptural Leather Clutch</h3>
+            <p class="text-label-caps text-secondary">$850</p>
+          </div>
+        </div>
+        
+        <!-- Product 2 -->
+        <div class="product-card" onclick="location.href='product.html'">
+          <div class="product-card-img-wrapper">
+            <img alt="Monochrome silk veil" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDY8Va6caFms7Gc_BqTDdmQd8tmPzp4e0C78hLT2iMVDTSQ5EkUtMU-rojQEUCb6HbtDjcxrp_yjychVDnMf6j3V0pCv6MZLwXQQtc8w5DZXyfW26YdKeLyIruOF6XDHglWjhMUxiw_31wBzo-pA6QnAicOYTPqpT6XlaV8bbbIgiF2lTwtqHdzwJopHpboT2NuJ2Koz-47Y52_exV-P-aj3cJQWYBat8BK3LRMGg7gIMz8J9bpqkLz_R6KE9wPoUfNE-R9Arwby9Km"/>
+            <button class="product-quick-add text-label-caps" onclick="event.stopPropagation(); toggleCart()">Quick Add</button>
+          </div>
+          <div class="product-card-details">
+            <h3 class="text-body-md">Monochrome Silk Veil</h3>
+            <p class="text-label-caps text-secondary">$320</p>
+          </div>
+        </div>
+        
+        <!-- Product 3 -->
+        <div class="product-card" onclick="location.href='product.html'">
+          <div class="product-card-img-wrapper">
+            <img alt="Linear gold cuff" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4RqpeHld0Zx-_0MgzEXFYdbutzzpL_HuG1W9U-pdFtYjJtQUzBDGIzxnRT13lYif5kBFxP9vQ3_hPypFIiF3Zjbq5ogF9HRdg6xMfSeZ6yrk8mxYAjan4OkjlXQ5tI7fEfqaYrPlL-BshlfwjduN5y5kbYPOoOyghjixNhud552V29licgEoya-fdCvPgjPn_oBHpNLehDHPFgVmh3_A99JBkr2mxdSBxo9R2-WR0CF0Xh8c7H4O2JieSdJwdev9cQ_saG8J2Y8FL"/>
+            <button class="product-quick-add text-label-caps" onclick="event.stopPropagation(); toggleCart()">Quick Add</button>
+          </div>
+          <div class="product-card-details">
+            <h3 class="text-body-md">Linear Gold Cuff</h3>
+            <p class="text-label-caps text-secondary">$1,100</p>
+          </div>
+        </div>
+        
+        <!-- Product 4 -->
+        <div class="product-card" onclick="location.href='product.html'">
+          <div class="product-card-img-wrapper">
+            <img alt="Pointed-toe silk mules" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_PFGR-XuO5Q-JrvM9fl6swMFOYnJD2m5BcAA0iCj8wVDJfGBkVyLHml7ZwMCoL0kPjYfpSA1kot_HR_tQIz2REOtjz5KpBoPwX1TTdyUagVq1YbmXsPboORuutTEsUMSTn7odMsWjHrNqoLvAoI4aI6tiBW40H9uHWhw8Wz9L6BcCVFwTUhTtlKP4ZQ0TcvIvJ8HkPP4RNtmkAg8TPZTfB2BKC181SvdRs-D2F25UbwF8xjQ7RuVajkDfkytyjvcQejmp_4LHT4bV"/>
+            <button class="product-quick-add text-label-caps" onclick="event.stopPropagation(); toggleCart()">Quick Add</button>
+          </div>
+          <div class="product-card-details">
+            <h3 class="text-body-md">Tapered Silk Mules</h3>
+            <p class="text-label-caps text-secondary">$680</p>
+          </div>
+        </div>
+        
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h2 class="font-serif" style="font-size: 2.25rem; font-weight: 400;">MAISON</h2>
+        <p class="text-caption text-secondary" style="max-width: 20rem;">Elevating the everyday through architectural design and uncompromising quality since 2018.</p>
+      </div>
+      <div class="footer-col">
+        <span class="text-label-caps">Company</span>
+        <ul>
+          <li><a class="text-body-md" href="#">About Us</a></li>
+          <li><a class="text-body-md" href="#">Privacy Policy</a></li>
+          <li><a class="text-body-md" href="#">Newsletter</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <span class="text-label-caps">Service</span>
+        <ul>
+          <li><a class="text-body-md" href="#">Customer Service</a></li>
+          <li><a class="text-body-md" href="#">Shipping & Returns</a></li>
+          <li><a class="text-body-md" href="#">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <span class="text-label-caps">Social</span>
+        <ul>
+          <li><a class="text-body-md" href="#">Instagram</a></li>
+          <li><a class="text-body-md" href="#">Pinterest</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span class="text-label-caps">© 2024 MAISON. ALL RIGHTS RESERVED.</span>
+    </div>
+  </footer>
+
+  <!-- Fullscreen Search Overlay -->
+  <div class="search-overlay" id="search-overlay">
+    <div class="search-header">
+      <div class="font-serif" style="font-size: 2rem; font-weight: 400;">MAISON</div>
+      <button onclick="toggleSearch()">
+        <span class="material-symbols-outlined" style="font-size: 2rem;">close</span>
+      </button>
+    </div>
+    <div class="search-body">
+      <div class="search-input-section">
+        <input class="large-search-input" placeholder="Search for products, collections..." type="text"/>
+      </div>
+      <div class="search-suggestions">
+        <div class="recent-searches">
+          <h3 class="text-label-caps text-secondary">Recent Searches</h3>
+          <ul>
+            <li><a class="text-body-md" href="collection.html">Silk Abaya Black</a></li>
+            <li><a class="text-body-md" href="collection.html">Velvet Collection</a></li>
+            <li><a class="text-body-md" href="collection.html">Minimalist Scarf</a></li>
+          </ul>
+        </div>
+        <div class="trending-products">
+          <h3 class="text-label-caps text-secondary">Trending Products</h3>
+          <div class="trending-grid">
+            <div class="trending-item" onclick="location.href='product.html'">
+              <div class="trending-item-img">
+                <div style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAItd2pd6kexQUgyrprMFqoT9J30MuhDZbC8k2quVaVkdsCtYQJM9xwBUyEgmEpRCWBhQEjWh8hDYl81iEe_cWuNnbaPkpYfGUaXrk-8ApYR0pzWzaCMLh5n_88YHdHP6yK9kskkDfbs1ho4BIMDStHU_2aSohKC1tUl0_e_7HHg0cSfvRR6Hq3vtTblvLtsPE1pnZEMiOGPBdbL38nVy6IG_ObdIBiJ0kF3Xl3yrxLznByoiUGb3AUTDv3NkYUz-eW7azuF2CIXHY6')"></div>
+              </div>
+              <p class="text-body-md">Minimalist Linen Abaya</p>
+              <span class="text-label-caps text-secondary">$450</span>
+            </div>
+            <div class="trending-item" onclick="location.href='product.html'">
+              <div class="trending-item-img">
+                <div style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBhNxin_E341hsLphzTy6VqaaTVD5JUUWLSfRpcuwaMd-nfUc4VLel5NmLRUHEYeWtW1u8tGEE_HGClxjn4u2ub2dOlTOK9UhCoKsw-4DYC6CGYHmuNT_1VEH9XAFvR-GM5_sMgwPTIaXnFKo434aHEH-UHDE8bcIso9V3PIzT7Ot2JnzpiHrNR8zSkAiYiznysL-A2NR2FasSOKP7aPJnAWxA_jTV_Q8-GmUhUejYYESB8RdWr_miqUvk0J5cx9DVSYxy-e9KLXc3E')"></div>
+              </div>
+              <p class="text-body-md">Silk Monogram Scarf</p>
+              <span class="text-label-caps text-secondary">$120</span>
+            </div>
+            <div class="trending-item" onclick="location.href='product.html'">
+              <div class="trending-item-img">
+                <div style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDnC_wa5lDKMLQKicadHpLqHimbPxDeeZgFfj3B7e1j_tJhYR0y3UypVqBiXpYsHVII_Vx_n2ReP1_zJdk2_jBw_qzd7k6d2bjd2pE7NlKnM5_Ry7TBLyQCcX9APpX9zm8nu4v9-SZ-wUpYg7Bsj0Z-2C_6mWTFasytyypXnsRVvFf5MjiPV2eubPX6J7xmEPVNN_iP43OB48bPypHHub9rCHokZGvx2C6Z-Z3epi4mOF9IUmmiRuAguQIMTL7lxTc7GcLl07O3JL-s')"></div>
+              </div>
+              <p class="text-body-md">Evening Wool Abaya</p>
+              <span class="text-label-caps text-secondary">$580</span>
+            </div>
+            <div class="trending-item" onclick="location.href='product.html'">
+              <div class="trending-item-img">
+                <div style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD2HPxlXwayzxFOFeQnS2INlZguyGKo8T1jKHNBM6pCNiXwt14Y7_dwXOFTYEaPo0gh1ti4ynZvZvwdgTj3P5kY1fH2g5vTjSoxXoN1y5o3xS_G5gSwh')"></div>
+              </div>
+              <p class="text-body-md">Structured Leather Bag</p>
+              <span class="text-label-caps text-secondary">$890</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cart Drawer Overlay -->
+  <div class="drawer-overlay" id="cart-drawer-overlay" onclick="toggleCart()">
+    <div class="cart-drawer" id="cart-drawer" onclick="event.stopPropagation()">
+      <div class="drawer-header">
+        <h2 class="text-label-caps" style="font-size: 0.875rem;">Your Cart (2)</h2>
+        <button onclick="toggleCart()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="drawer-body">
+        <div class="cart-item-list">
+          <div class="cart-item">
+            <div class="cart-item-img" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB_bB1WWCbN_HjW5dazpfha4FakqPvyfPxrDQx1s6cZIR1G4ieEKyUPklH44H7JGG7Izwv0Q-ZTmmqNSRpo-97G_Q1FaV9u29ZEFQg3PwdjpSyI2xMl70Zqqnv8vkHeugu4LMs6qOeeOM5hs2xZ9FANM5xnBZ9mOjmE8YULehXCxYDVG34tJFUdMxcZy3MZPtZuEZooy0Q8GlsLKSkIEi-MDF-UWGn8w1xlgVTpn4K8I_i6OwLPntKXQUkl3R49y1nEhaprPYyDD724')"></div>
+            <div class="cart-item-details">
+              <div>
+                <div class="cart-item-header">
+                  <h4>Silk Overlay Abaya</h4>
+                  <p class="text-label-caps">$450</p>
+                </div>
+                <p class="cart-item-options">Color: Midnight Black</p>
+                <p class="cart-item-options">Size: Medium</p>
+              </div>
+              <div class="cart-item-footer">
+                <div class="quantity-selector">
+                  <button onclick="adjustQuantity(this, -1)">-</button>
+                  <span>1</span>
+                  <button onclick="adjustQuantity(this, 1)">+</button>
+                </div>
+                <button class="cart-item-remove">Remove</button>
+              </div>
+            </div>
+          </div>
+          <div class="cart-item">
+            <div class="cart-item-img" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDkfT-tS3y5JmzqPMqpAYOk60FNjzKQmo4fHI04kcQq5gKh2ow-WcdwggdwH0ilRPy_gTvcy1ddiHz2XqLWfxAUjQDyZhPKW10Q7a7jamXKpym5-uwXQ4yIek6hfrdR-aezQcgMsT26ZAGtZYP-aPKTdc9kof6WOpj4bYIgVAyFQlADU884i1V8EMu_2Y0oo9IIrfOER57vG80ai3UpwGBm-fvzOcthD_v6rsIh2Fu8ZHeaM1pTU1yS2-lgc5R7bU6Z6R_ssNFHC3mA')"></div>
+            <div class="cart-item-details">
+              <div>
+                <div class="cart-item-header">
+                  <h4>Ivory Pashmina</h4>
+                  <p class="text-label-caps">$180</p>
+                </div>
+                <p class="cart-item-options">Color: Ivory</p>
+                <p class="cart-item-options">Size: One Size</p>
+              </div>
+              <div class="cart-item-footer">
+                <div class="quantity-selector">
+                  <button onclick="adjustQuantity(this, -1)">-</button>
+                  <span>1</span>
+                  <button onclick="adjustQuantity(this, 1)">+</button>
+                </div>
+                <button class="cart-item-remove">Remove</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="drawer-footer">
+        <div class="subtotal-row">
+          <span class="text-label-caps" style="color: var(--text-muted)">Subtotal</span>
+          <span class="font-serif" style="font-size: 1.5rem;">$630</span>
+        </div>
+        <p>Shipping and taxes calculated at checkout.</p>
+        <button class="checkout-btn text-label-caps" onclick="location.href='checkout.html'">Proceed to Checkout</button>
+        <button class="continue-btn text-label-caps" onclick="toggleCart()">Continue Shopping</button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,314 @@
+{% extends 'base/vendor_base.html' %}
+{% load static %}
+
+{% block title %}Customer Profile — {{ customer.get_full_name|default:customer.phone }} — CommerceHub{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{% url 'commercehub_app:dashboard' %}">Dashboard</a>
+    <span class="breadcrumb-sep">›</span>
+    <a href="{% url 'crm:customer_list' %}">Customer CRM</a>
+    <span class="breadcrumb-sep">›</span>
+    <span>{{ customer.get_full_name|default:customer.phone }}</span>
+</div>
+
+<div class="page-header-row" style="margin-bottom: 24px;">
+    <div class="page-header-info">
+        <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px 0;">{{ customer.get_full_name|default:"Customer Profile" }}</h2>
+        <p class="page-subtitle" style="margin: 0;">Phone: <strong>{{ customer.phone }}</strong> | Email: <strong>{{ customer.email|default:"—" }}</strong> | Registered since: {{ customer.date_joined|date:"d M Y" }}</p>
+    </div>
+</div>
+
+<div class="detail-grid">
+    <!-- ── LEFT COLUMN: LEDGERS & HISTORY ── -->
+    <div class="detail-main">
+        <!-- Wallet Transactions Ledger -->
+        <div class="data-card" style="padding: 24px; margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
+                <h3 style="font-size: 1.1rem; font-weight: 600; color: var(--text-primary); margin: 0;">Wallet Balance: <span style="color: #34d399;">₹{{ wallet.balance }}</span></h3>
+                <span class="badge badge-info" style="font-size: 0.8rem; padding: 4px 10px;">Store Credits</span>
+            </div>
+            
+            <h4 style="font-size: 0.95rem; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">Transaction History</h4>
+            <div class="table-wrapper" style="max-height: 250px; overflow-y: auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Reason</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tx in wallet_transactions %}
+                        <tr>
+                            <td>
+                                {% if tx.transaction_type == 'credit' %}
+                                    <span class="status-badge status-approved" style="font-size: 9px; padding: 2px 6px;">Credit</span>
+                                {% else %}
+                                    <span class="status-badge status-suspended" style="font-size: 9px; padding: 2px 6px;">Debit</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong style="color: var(--text-primary);">₹{{ tx.amount }}</strong>
+                            </td>
+                            <td>
+                                <span class="text-secondary" style="font-size: 0.85rem;">{{ tx.reason }}</span>
+                                {% if tx.reference_order %}
+                                    <span class="text-muted" style="display: block; font-size: 0.75rem;">Ref: #{{ tx.reference_order.order_number }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="text-muted" style="font-size: 0.8rem;">{{ tx.created_at|date:"d M Y, h:i A" }}</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4">
+                                <div style="text-align: center; padding: 20px; color: var(--text-muted); font-style: italic; font-size: 0.9rem;">
+                                    No wallet transactions recorded.
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Loyalty points ledger entries -->
+        <div class="data-card" style="padding: 24px; margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
+                <h3 style="font-size: 1.1rem; font-weight: 600; color: var(--text-primary); margin: 0;">Loyalty Points: <span style="color: #38bdf8;">{{ total_points }} pts</span></h3>
+                <span class="badge badge-success" style="font-size: 0.8rem; padding: 4px 10px; background: rgba(16, 185, 129, 0.12); color: #34d399;">Points Ledger</span>
+            </div>
+
+            <h4 style="font-size: 0.95rem; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">Points Earned &amp; Redeemed</h4>
+            <div class="table-wrapper" style="max-height: 250px; overflow-y: auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Points</th>
+                            <th>Activity Type</th>
+                            <th>Description</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in loyalty_ledger %}
+                        <tr>
+                            <td>
+                                {% if entry.points >= 0 %}
+                                    <strong style="color: #34d399;">+{{ entry.points }} pts</strong>
+                                {% else %}
+                                    <strong style="color: #f87171;">{{ entry.points }} pts</strong>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if entry.transaction_type == 'earn' %}
+                                    <span class="badge badge-success" style="background: rgba(16, 185, 129, 0.1); color: #34d399; font-size: 9px; padding: 2px 6px;">Earned</span>
+                                {% elif entry.transaction_type == 'redeem' %}
+                                    <span class="badge badge-warning" style="background: rgba(245, 158, 11, 0.1); color: #fbbf24; font-size: 9px; padding: 2px 6px;">Redeemed</span>
+                                {% else %}
+                                    <span class="badge badge-info" style="background: rgba(7, 89, 133, 0.1); color: #38bdf8; font-size: 9px; padding: 2px 6px;">Adjustment</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="text-secondary" style="font-size: 0.85rem;">
+                                    {% if entry.transaction_type == 'earn' %}
+                                        Points awarded for purchase
+                                    {% elif entry.transaction_type == 'redeem' %}
+                                        Points redeemed at checkout
+                                    {% else %}
+                                        Manual Point Adjustment
+                                        {% if entry.reason %}
+                                            <span style="display: block; font-size: 0.75rem; color: var(--text-muted);">{{ entry.reason }}</span>
+                                        {% endif %}
+                                    {% endif %}
+                                </span>
+                                {% if entry.reference_order %}
+                                    <span class="text-muted" style="display: block; font-size: 0.75rem;">Ref Order: #{{ entry.reference_order.order_number }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="text-muted" style="font-size: 0.8rem;">{{ entry.created_at|date:"d M Y, h:i A" }}</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4">
+                                <div style="text-align: center; padding: 20px; color: var(--text-muted); font-style: italic; font-size: 0.9rem;">
+                                    No loyalty point activities recorded.
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Order history table -->
+        <div class="data-card" style="padding: 24px;">
+            <h3 class="card-section-title">Storefront Orders History</h3>
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Fulfillment</th>
+                            <th>Payment</th>
+                            <th>Grand Total</th>
+                            <th>Date Placed</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ord in orders %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'commercehub_app:order_detail' ord.pk %}" style="font-weight: 700; color: var(--color-primary-light);">
+                                    #{{ ord.order_number }}
+                                </a>
+                            </td>
+                            <td>
+                                {% if ord.status == 'awaiting_approval' %}
+                                    <span class="status-badge status-pending">Awaiting Approval</span>
+                                {% elif ord.status == 'pending' %}
+                                    <span class="status-badge status-pending">Pending</span>
+                                {% elif ord.status == 'processing' %}
+                                    <span class="status-badge" style="background: rgba(14, 165, 233, 0.12); color: #38bdf8;">Processing</span>
+                                {% elif ord.status == 'shipped' %}
+                                    <span class="status-badge" style="background: rgba(99, 102, 241, 0.12); color: #818cf8;">Shipped</span>
+                                {% elif ord.status == 'delivered' %}
+                                    <span class="status-badge status-approved">Delivered</span>
+                                {% elif ord.status == 'cancelled' %}
+                                    <span class="status-badge status-suspended">Cancelled</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if ord.payment_status == 'paid' %}
+                                    <span class="badge badge-success" style="background: rgba(16, 185, 129, 0.12); color: #34d399;">Paid</span>
+                                {% else %}
+                                    <span class="badge badge-warning" style="background: rgba(245, 158, 11, 0.12); color: #fbbf24;">Unpaid</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span style="font-weight: 600; color: var(--text-primary);">₹{{ ord.total_amount }}</span>
+                            </td>
+                            <td>
+                                <span class="text-muted">{{ ord.created_at|date:"d M Y" }}</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5">
+                                <div style="text-align: center; padding: 20px; color: var(--text-muted); font-style: italic; font-size: 0.9rem;">
+                                    This customer hasn't placed any orders yet.
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── RIGHT COLUMN: ADJUSTMENT FORMS ── -->
+    <div class="detail-sidebar">
+        <!-- Manual Wallet adjustments card -->
+        <div class="data-card" style="padding: 24px; margin-bottom: 24px;">
+            <h3 class="card-section-title" style="margin-bottom: 16px;">Adjust Wallet Credits</h3>
+            <form action="{% url 'crm:wallet_adjustment' customer.pk %}" method="post">
+                {% csrf_token %}
+                
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label class="form-label" for="action_type">Adjustment Action</label>
+                    <select name="action_type" id="action_type" class="form-input" style="background: var(--bg-surface, #1e1e2e); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 8px 12px; width: 100%;">
+                        <option value="credit">Credit Balance (+)</option>
+                        <option value="debit">Debit Balance (-)</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label class="form-label" for="wallet_amount">Amount (₹)</label>
+                    <input type="number" step="0.01" min="0.01" name="amount" id="wallet_amount" class="form-input" placeholder="0.00" required>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label" for="wallet_reason">Reason Description</label>
+                    <input type="text" name="reason" id="wallet_reason" class="form-input" placeholder="e.g. Refund, Goodwill credit" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full btn-sm">
+                    Apply Wallet Adjustment
+                </button>
+            </form>
+        </div>
+
+        <!-- Manual Loyalty points adjustments card -->
+        <div class="data-card" style="padding: 24px;">
+            <h3 class="card-section-title" style="margin-bottom: 16px;">Adjust Loyalty Points</h3>
+            <form action="{% url 'crm:loyalty_adjustment' customer.pk %}" method="post">
+                {% csrf_token %}
+
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label class="form-label" for="loyalty_points">Points Value (integer)</label>
+                    <input type="number" step="1" name="points" id="loyalty_points" class="form-input" placeholder="e.g. 50 or -50" required>
+                    <span class="text-muted" style="font-size: 0.75rem; display: block; margin-top: 4px;">Use positive numbers to add, negative numbers to subtract.</span>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label" for="loyalty_reason">Reason Description</label>
+                    <input type="text" name="reason" id="loyalty_reason" class="form-input" placeholder="e.g. Campaign bonus points" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full btn-sm">
+                    Apply Loyalty Adjustment
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Layout Grid */
+.detail-grid {
+    display: grid;
+    grid-template-columns: 2.2fr 1.3fr;
+    gap: 24px;
+    align-items: start;
+}
+
+@media (max-width: 1024px) {
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Card titles */
+.card-section-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    margin: 0 0 20px 0;
+}
+
+/* Alignment utilities */
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+
+/* Buttons and layouts */
+.btn-full {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 16px;
+    font-size: 0.95rem;
+}
+</style>
+{% endblock %}

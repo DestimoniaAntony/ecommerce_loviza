@@ -1,0 +1,120 @@
+{% extends 'base/vendor_base.html' %}
+{% load static %}
+
+{% block title %}{% if attribute %}Edit Attribute — {{ attribute.name }}{% else %}Add Attribute{% endif %} — CommerceHub{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{% url 'commercehub_app:dashboard' %}">Dashboard</a>
+    <span class="breadcrumb-sep">›</span>
+    <a href="{% url 'catalog:attribute_list' %}">Attributes</a>
+    <span class="breadcrumb-sep">›</span>
+    <span>{% if attribute %}Edit Attribute{% else %}New Attribute{% endif %}</span>
+</div>
+
+<div class="data-card" style="max-width: 650px; padding: 28px;">
+    <form method="post" id="attributeForm">
+        {% csrf_token %}
+
+        <div class="form-section">
+            <h3 class="form-section-title">{% if attribute %}Edit Attribute Details{% else %}Attribute Details{% endif %}</h3>
+            
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="name">Attribute Name <span class="req">*</span></label>
+                    <input type="text" id="name" name="name" class="form-input" placeholder="e.g. Color, Size, RAM" 
+                           value="{{ attribute.name|default:'' }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="code">System Code <span class="req">*</span></label>
+                    <input type="text" id="code" name="code" class="form-input" placeholder="e.g. color, size, ram" 
+                           value="{{ attribute.code|default:'' }}" required {% if attribute %}readonly style="background: rgba(255,255,255,0.03); color: var(--text-muted);"{% endif %}>
+                    <p class="form-hint">Unique identifier (letters/numbers/underscores only).</p>
+                </div>
+            </div>
+
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="type">Attribute Type <span class="req">*</span></label>
+                    <select id="type" name="type" class="form-select" required>
+                        {% for type_val, type_lbl in types %}
+                            <option value="{{ type_val }}" {% if attribute.type == type_val %}selected{% endif %}>
+                                {{ type_lbl }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="group_id">Attribute Group</label>
+                    <select id="group_id" name="group_id" class="form-select">
+                        <option value="">-- No Group (Unassigned) --</option>
+                        {% for gp in groups %}
+                            <option value="{{ gp.pk }}" {% if attribute.group_id == gp.pk %}selected{% endif %}>
+                                {{ gp.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- OPTIONS INPUT: Conditionally displayed via JS if type == 'select' -->
+            <div class="form-group" id="options-wrapper" style="display: none; transition: all 0.3s ease;">
+                <label class="form-label" for="options_text">Dropdown Options <span class="req">*</span></label>
+                <input type="text" id="options_text" name="options_text" class="form-input" 
+                       placeholder="e.g. Red, Blue, Green, Yellow" value="{{ options_text|default:'' }}">
+                <p class="form-hint">Enter comma-separated values for the select dropdown options.</p>
+            </div>
+
+            <div class="form-grid-2" style="margin-top: 14px;">
+                <div class="form-group">
+                    <label class="form-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;">
+                        <input type="checkbox" name="is_required" value="true" {% if attribute.is_required %}checked{% endif %} style="width: 16px; height: 16px; accent-color: var(--color-primary);">
+                        <span>Required field in products</span>
+                    </label>
+                    <p class="form-hint" style="margin-left: 24px;">Must be filled in when creating a product.</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;">
+                        <input type="checkbox" name="is_filterable" value="true" {% if attribute.is_filterable != False %}checked{% endif %} style="width: 16px; height: 16px; accent-color: var(--color-primary);">
+                        <span>Filterable in storefront</span>
+                    </label>
+                    <p class="form-hint" style="margin-left: 24px;">Can be used by customers to filter search results.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions" style="margin-top: 32px;">
+            <button type="submit" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                    <polyline points="17 21 17 13 7 13 7 21"/>
+                    <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                Save Attribute
+            </button>
+            <a href="{% url 'catalog:attribute_list' %}" class="btn btn-ghost">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const typeSelect = document.getElementById("type");
+        const optionsWrapper = document.getElementById("options-wrapper");
+        const optionsInput = document.getElementById("options_text");
+
+        function toggleOptions() {
+            if (typeSelect.value === "select") {
+                optionsWrapper.style.display = "block";
+                optionsInput.setAttribute("required", "required");
+            } else {
+                optionsWrapper.style.display = "none";
+                optionsInput.removeAttribute("required");
+            }
+        }
+
+        typeSelect.addEventListener("change", toggleOptions);
+        toggleOptions(); // run once on load
+    });
+</script>
+{% endblock %}

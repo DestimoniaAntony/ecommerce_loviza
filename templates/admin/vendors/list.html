@@ -1,0 +1,113 @@
+{% extends 'base/admin_base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Header Row -->
+<div class="page-header-row">
+    <div class="page-header-info">
+        <p class="page-subtitle">{{ total_count }} vendor{{ total_count|pluralize }} found</p>
+    </div>
+    <div class="page-header-actions">
+        <a href="{% url 'adminapp:vendor_create' %}" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/>
+                <line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+            Add Vendor
+        </a>
+    </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+    <form method="get" class="filter-form">
+        <div class="filter-group">
+            <input type="text" name="q" value="{{ search }}" placeholder="Search vendors..."
+                   class="filter-input" id="vendorSearch">
+        </div>
+        <div class="filter-group">
+            <select name="status" class="filter-select" onchange="this.form.submit()">
+                <option value="">All Statuses</option>
+                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+                <option value="suspended" {% if status_filter == 'suspended' %}selected{% endif %}>Suspended</option>
+                <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-outline">Search</button>
+        {% if search or status_filter %}
+        <a href="{% url 'adminapp:vendor_list' %}" class="btn btn-ghost">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Vendor Table -->
+<div class="data-card">
+    <div class="table-wrapper">
+        <table class="data-table" id="vendorTable">
+            <thead>
+                <tr>
+                    <th>Business</th>
+                    <th>Contact</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Joined</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for vendor in vendors %}
+                <tr>
+                    <td>
+                        <div class="table-entity">
+                            <div class="entity-avatar">{{ vendor.business_name|first|upper }}</div>
+                            <div class="entity-info">
+                                <strong>{{ vendor.business_name }}</strong>
+                                <span>{{ vendor.slug }}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="contact-info">
+                            <span>{{ vendor.phone }}</span>
+                            {% if vendor.email %}<span class="text-muted">{{ vendor.email }}</span>{% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="type-badge">{{ vendor.get_business_type_display }}</span>
+                    </td>
+                    <td>
+                        <span class="status-badge status-{{ vendor.status }}">
+                            {{ vendor.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="text-muted">{{ vendor.created_at|date:"d M Y" }}</td>
+                    <td>
+                        <div class="table-actions">
+                            <a href="{% url 'adminapp:vendor_detail' vendor.pk %}" class="btn btn-sm btn-outline">
+                                View
+                            </a>
+                            <a href="{% url 'adminapp:vendor_edit' vendor.pk %}" class="btn btn-sm btn-outline">
+                                Edit
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">
+                        <div class="table-empty">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                            </svg>
+                            <p>No vendors found.</p>
+                            <a href="{% url 'adminapp:vendor_create' %}" class="btn btn-primary">Add First Vendor</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

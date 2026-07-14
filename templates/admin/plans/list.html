@@ -1,0 +1,246 @@
+{% extends 'base/admin_base.html' %}
+{% load static %}
+
+{% block title %}Subscription Plans — CommerceHub{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header-row">
+    <div class="page-header-info">
+        <p class="page-subtitle">{{ plans|length }} plan{{ plans|length|pluralize }} configured &mdash; manage pricing and feature access for all vendors</p>
+    </div>
+    <div class="page-header-actions">
+        <a href="{% url 'adminapp:plan_create' %}" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Create Plan
+        </a>
+    </div>
+</div>
+
+<!-- Plan Cards Grid -->
+<div class="pricing-grid">
+    {% for plan in plans %}
+    <div class="pricing-card {% if plan.plan_type == 'professional' %}pricing-card-featured{% endif %} {% if not plan.is_active %}pricing-card-inactive{% endif %}">
+
+        {% if plan.plan_type == 'professional' %}
+        <div class="pricing-popular-badge">Most Popular</div>
+        {% endif %}
+        {% if plan.plan_type == 'enterprise' %}
+        <div class="pricing-popular-badge enterprise-badge">Enterprise</div>
+        {% endif %}
+
+        <!-- Plan Header -->
+        <div class="pricing-header">
+            <div class="pricing-icon pricing-icon-{{ plan.plan_type }}">
+                {% if plan.plan_type == 'trial' %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+                {% elif plan.plan_type == 'starter' %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                </svg>
+                {% elif plan.plan_type == 'standard' %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                {% elif plan.plan_type == 'professional' %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                {% else %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                </svg>
+                {% endif %}
+            </div>
+            <h3 class="pricing-name">{{ plan.name }}</h3>
+            {% if plan.description %}
+            <p class="pricing-desc">{{ plan.description }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Pricing -->
+        <div class="pricing-amount">
+            {% if plan.price == 0 %}
+            <span class="pricing-price-free">Free</span>
+            <span class="pricing-period">{{ plan.trial_days }}-day trial</span>
+            {% else %}
+            <div class="pricing-price-row">
+                <span class="pricing-currency">&#8377;</span>
+                <span class="pricing-price">{{ plan.price }}</span>
+                <span class="pricing-period">/month</span>
+            </div>
+            {% if plan.annual_price %}
+            <p class="pricing-annual">&#8377;{{ plan.annual_price }}/year &mdash; save {{ plan.price|add:"0"|add:"0"|add:"0" }}+</p>
+            {% endif %}
+            {% endif %}
+        </div>
+
+        <!-- Limits -->
+        <div class="pricing-limits">
+            <div class="limit-row">
+                <svg class="limit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
+                </svg>
+                <span class="limit-label">Products</span>
+                <span class="limit-value">{% if plan.max_products >= 999999 %}Unlimited{% else %}{{ plan.max_products }}{% endif %}</span>
+            </div>
+            <div class="limit-row">
+                <svg class="limit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                </svg>
+                <span class="limit-label">Branches</span>
+                <span class="limit-value">{% if plan.max_branches >= 999 %}Unlimited{% else %}{{ plan.max_branches }}{% endif %}</span>
+            </div>
+            <div class="limit-row">
+                <svg class="limit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <span class="limit-label">Staff</span>
+                <span class="limit-value">{% if plan.max_staff >= 999 %}Unlimited{% else %}{{ plan.max_staff }}{% endif %}</span>
+            </div>
+            <div class="limit-row">
+                <svg class="limit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                </svg>
+                <span class="limit-label">Orders/month</span>
+                <span class="limit-value">{% if plan.max_monthly_orders >= 999999 %}Unlimited{% else %}{{ plan.max_monthly_orders }}{% endif %}</span>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <ul class="pricing-features">
+            <li class="feature-item {% if plan.has_whatsapp %}feature-on{% else %}feature-off{% endif %}">
+                <span class="feature-check">{% if plan.has_whatsapp %}&#10003;{% else %}&times;{% endif %}</span>
+                WhatsApp Integration
+            </li>
+            <li class="feature-item {% if plan.has_loyalty %}feature-on{% else %}feature-off{% endif %}">
+                <span class="feature-check">{% if plan.has_loyalty %}&#10003;{% else %}&times;{% endif %}</span>
+                Loyalty &amp; Wallet System
+            </li>
+            <li class="feature-item {% if plan.has_crm %}feature-on{% else %}feature-off{% endif %}">
+                <span class="feature-check">{% if plan.has_crm %}&#10003;{% else %}&times;{% endif %}</span>
+                CRM Module
+            </li>
+            <li class="feature-item {% if plan.has_marketing %}feature-on{% else %}feature-off{% endif %}">
+                <span class="feature-check">{% if plan.has_marketing %}&#10003;{% else %}&times;{% endif %}</span>
+                Marketing Campaigns
+            </li>
+            <li class="feature-item {% if plan.has_api_access %}feature-on{% else %}feature-off{% endif %}">
+                <span class="feature-check">{% if plan.has_api_access %}&#10003;{% else %}&times;{% endif %}</span>
+                API Access
+            </li>
+            <li class="feature-item {% if plan.has_white_label %}feature-on{% else %}feature-off{% endif %}">
+                <span class="feature-check">{% if plan.has_white_label %}&#10003;{% else %}&times;{% endif %}</span>
+                White Label Branding
+            </li>
+            <li class="feature-item {% if plan.has_advanced_reports %}feature-on{% else %}feature-off{% endif %}">
+                <span class="feature-check">{% if plan.has_advanced_reports %}&#10003;{% else %}&times;{% endif %}</span>
+                Advanced Reports
+            </li>
+        </ul>
+
+        <!-- Footer -->
+        <div class="pricing-footer" style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="status-badge {% if plan.is_active %}status-approved{% else %}status-suspended{% endif %}">
+                {% if plan.is_active %}Active{% else %}Inactive{% endif %}
+            </span>
+            <a href="{% url 'adminapp:plan_edit' plan.pk %}" class="btn btn-outline" style="padding: 4px 12px; font-size: 12px;">Edit Plan</a>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state" style="grid-column: 1/-1; padding: 60px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="64" height="64">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+        </svg>
+        <p>No subscription plans found. Run <code>python manage.py seed_plans</code> to create default plans.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Comparison Summary Table -->
+{% if plans %}
+<div class="data-card" style="margin-top: 32px;">
+    <div class="card-header">
+        <h3 class="card-title">
+            <span class="card-title-dot primary"></span>
+            Plan Comparison
+        </h3>
+    </div>
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    {% for plan in plans %}<th style="text-align:center">{{ plan.name }}</th>{% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Monthly Price</strong></td>
+                    {% for plan in plans %}
+                    <td style="text-align:center">
+                        {% if plan.price == 0 %}
+                        <span class="badge badge-info">Free</span>
+                        {% else %}
+                        <strong>&#8377;{{ plan.price }}</strong>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td>Max Products</td>
+                    {% for plan in plans %}<td style="text-align:center">{% if plan.max_products >= 999999 %}&infin;{% else %}{{ plan.max_products }}{% endif %}</td>{% endfor %}
+                </tr>
+                <tr>
+                    <td>Max Branches</td>
+                    {% for plan in plans %}<td style="text-align:center">{% if plan.max_branches >= 999 %}&infin;{% else %}{{ plan.max_branches }}{% endif %}</td>{% endfor %}
+                </tr>
+                <tr>
+                    <td>Max Staff</td>
+                    {% for plan in plans %}<td style="text-align:center">{% if plan.max_staff >= 999 %}&infin;{% else %}{{ plan.max_staff }}{% endif %}</td>{% endfor %}
+                </tr>
+                <tr>
+                    <td>Orders / month</td>
+                    {% for plan in plans %}<td style="text-align:center">{% if plan.max_monthly_orders >= 999999 %}&infin;{% else %}{{ plan.max_monthly_orders }}{% endif %}</td>{% endfor %}
+                </tr>
+                <tr>
+                    <td>WhatsApp</td>
+                    {% for plan in plans %}<td style="text-align:center">{% if plan.has_whatsapp %}<span class="badge badge-success">Yes</span>{% else %}&mdash;{% endif %}</td>{% endfor %}
+                </tr>
+                <tr>
+                    <td>Loyalty &amp; Wallet</td>
+                    {% for plan in plans %}<td style="text-align:center">{% if plan.has_loyalty %}<span class="badge badge-success">Yes</span>{% else %}&mdash;{% endif %}</td>{% endfor %}
+                </tr>
+                <tr>
+                    <td>CRM</td>
+                    {% for plan in plans %}<td style="text-align:center">{% if plan.has_crm %}<span class="badge badge-success">Yes</span>{% else %}&mdash;{% endif %}</td>{% endfor %}
+                </tr>
+                <tr>
+                    <td>Marketing</td>
+                    {% for plan in plans %}<td style="text-align:center">{% if plan.has_marketing %}<span class="badge badge-success">Yes</span>{% else %}&mdash;{% endif %}</td>{% endfor %}
+                </tr>
+                <tr>
+                    <td>API Access</td>
+                    {% for plan in plans %}<td style="text-align:center">{% if plan.has_api_access %}<span class="badge badge-success">Yes</span>{% else %}&mdash;{% endif %}</td>{% endfor %}
+
+                <tr>
+                    <td>White Label</td>
+                    {% for plan in plans %}<td style="text-align:center">{% if plan.has_white_label %}<span class="badge badge-success">Yes</span>{% else %}&mdash;{% endif %}</td>{% endfor %}
+                </tr>
+                <tr>
+                    <td>Advanced Reports</td>
+                    {% for plan in plans %}<td style="text-align:center">{% if plan.has_advanced_reports %}<span class="badge badge-success">Yes</span>{% else %}&mdash;{% endif %}</td>{% endfor %}
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,609 @@
+{% extends 'base/admin_base.html' %}
+{% load static %}
+
+{% block title %}{{ vendor.business_name }} — Vendor Detail — CommerceHub{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<div class="breadcrumb">
+    <a href="{% url 'adminapp:vendor_list' %}">Vendors</a>
+    <span class="breadcrumb-sep">›</span>
+    <span>{{ vendor.business_name }}</span>
+</div>
+
+<!-- ── VENDOR PROFILE HEADER ── -->
+<div class="vendor-profile-header">
+    <div class="vendor-profile-left">
+        <div class="vendor-logo-wrap">
+            {% if vendor.logo %}
+                <img src="{{ vendor.logo.url }}" alt="{{ vendor.business_name }} logo" class="vendor-logo-img">
+            {% else %}
+                <div class="vendor-logo-placeholder" style="background: linear-gradient(135deg, {{ vendor.primary_color }}, {{ vendor.secondary_color }});">
+                    {{ vendor.business_name|first|upper }}
+                </div>
+            {% endif %}
+        </div>
+        <div class="vendor-profile-info">
+            <h2>{{ vendor.business_name }}</h2>
+            <p class="vendor-profile-sub">
+                <span class="type-badge">{{ vendor.get_business_type_display }}</span>
+                &nbsp;&bull;&nbsp;
+                <span class="text-muted">{{ vendor.slug }}.commercehub.in</span>
+
+            </p>
+            <div class="vendor-profile-contacts">
+                {% if vendor.phone %}<span class="contact-chip">&#128241; {{ vendor.phone }}</span>{% endif %}
+                {% if vendor.whatsapp_number %}<span class="contact-chip whatsapp-chip">&#128172; {{ vendor.whatsapp_number }}</span>{% endif %}
+                {% if vendor.email %}<span class="contact-chip">&#9993; {{ vendor.email }}</span>{% endif %}
+                {% if vendor.website %}<a href="{{ vendor.website }}" target="_blank" class="contact-chip link-chip">&#127760; {{ vendor.website }}</a>{% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="vendor-profile-right">
+        <span class="status-badge status-{{ vendor.status }} lg">{{ vendor.get_status_display }}</span>
+    </div>
+</div>
+
+<!-- ── ACTION BAR ── -->
+<div class="action-bar">
+    {% if vendor.status == 'pending' %}
+    <form method="post" action="{% url 'adminapp:vendor_approve' vendor.pk %}" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success">
+            &#10003; Approve Vendor
+        </button>
+    </form>
+    {% endif %}
+    {% if vendor.status == 'approved' %}
+    <button class="btn btn-danger" onclick="document.getElementById('suspendModal').style.display='flex'">
+        &#9888; Suspend Vendor
+    </button>
+    {% endif %}
+    {% if vendor.status == 'suspended' %}
+    <form method="post" action="{% url 'adminapp:vendor_approve' vendor.pk %}" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success">&#9654; Re-activate Vendor</button>
+    </form>
+    {% endif %}
+    <a href="{% url 'adminapp:vendor_edit' vendor.pk %}" class="btn btn-outline">
+        &#9998; Edit Vendor
+    </a>
+    <a href="{% url 'adminapp:vendor_list' %}" class="btn btn-ghost">&#8592; Back to Vendors</a>
+</div>
+
+<!-- ── SUBSCRIPTION BANNER ── -->
+{% with sub=vendor.active_subscription %}
+{% if sub %}
+<div class="subscription-banner {% if sub.days_remaining <= 5 %}sub-danger{% elif sub.days_remaining <= 14 %}sub-warning{% else %}sub-ok{% endif %}">
+    <div class="sub-banner-left">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+        </svg>
+        <span><strong>{{ sub.plan.name }}</strong> Plan &mdash; {% if sub.is_trial %}Trial Period{% else %}Active Subscription{% endif %}</span>
+    </div>
+    <div class="sub-banner-right">
+        <span>Expires: <strong>{{ sub.end_date|date:"d M Y" }}</strong></span>
+        <span class="sub-days {% if sub.days_remaining <= 5 %}text-danger{% elif sub.days_remaining <= 14 %}text-warning{% endif %}">{{ sub.days_remaining }} days remaining</span>
+    </div>
+</div>
+{% else %}
+<div class="subscription-banner sub-danger">
+    <div class="sub-banner-left">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span><strong>No active subscription</strong> &mdash; vendor cannot access the platform</span>
+    </div>
+</div>
+{% endif %}
+{% endwith %}
+
+<!-- ── TABS ── -->
+<div class="detail-tabs">
+    <button class="detail-tab active" data-tab="overview">Overview</button>
+    <button class="detail-tab" data-tab="contact">Contact &amp; Address</button>
+    <button class="detail-tab" data-tab="branding">Branding &amp; Social</button>
+    <button class="detail-tab" data-tab="settings">Store Settings</button>
+    <button class="detail-tab" data-tab="subscription">Subscription</button>
+    <button class="detail-tab" data-tab="seo">SEO</button>
+</div>
+
+<!-- ═══ TAB: OVERVIEW ═══ -->
+<div class="tab-panel active" id="tab-overview">
+    <div class="fields-grid">
+
+        <!-- Business Identity -->
+        <div class="fields-section">
+            <h4 class="fields-section-title">Business Identity</h4>
+            <dl class="field-list">
+                <div class="field-row">
+                    <dt>Business Name</dt>
+                    <dd>{{ vendor.business_name }}</dd>
+                </div>
+                <div class="field-row">
+                    <dt>Slug / URL Handle</dt>
+                    <dd><code class="code-val">{{ vendor.slug }}</code></dd>
+                </div>
+                <div class="field-row">
+                    <dt>Business Type</dt>
+                    <dd><span class="type-badge">{{ vendor.get_business_type_display }}</span></dd>
+                </div>
+                <div class="field-row">
+                    <dt>GST Number</dt>
+                    <dd>{{ vendor.gst_number|default:"—" }}</dd>
+                </div>
+                <div class="field-row">
+                    <dt>PAN Number</dt>
+                    <dd>{{ vendor.pan_number|default:"—" }}</dd>
+                </div>
+                <div class="field-row">
+                    <dt>Status</dt>
+                    <dd><span class="status-badge status-{{ vendor.status }}">{{ vendor.get_status_display }}</span></dd>
+                </div>
+            </dl>
+        </div>
+
+        <!-- Store Settings -->
+        <div class="fields-section">
+            <h4 class="fields-section-title">Store Settings</h4>
+            <dl class="field-list">
+                <div class="field-row">
+                    <dt>Currency</dt>
+                    <dd>{{ vendor.currency }} ({{ vendor.currency_symbol }})</dd>
+                </div>
+                <div class="field-row">
+                    <dt>Timezone</dt>
+                    <dd>{{ vendor.timezone }}</dd>
+                </div>
+                <div class="field-row">
+                    <dt>Checkout Workflow</dt>
+                    <dd><span class="workflow-badge">{{ vendor.get_checkout_workflow_display }}</span></dd>
+                </div>
+
+                <div class="field-row">
+                    <dt>Registered On</dt>
+                    <dd>{{ vendor.created_at|date:"d M Y H:i" }}</dd>
+                </div>
+                {% if vendor.approved_at %}
+                <div class="field-row">
+                    <dt>Approved On</dt>
+                    <dd>{{ vendor.approved_at|date:"d M Y H:i" }}</dd>
+                </div>
+                {% endif %}
+                {% if vendor.approved_by %}
+                <div class="field-row">
+                    <dt>Approved By</dt>
+                    <dd>{{ vendor.approved_by.get_full_name|default:vendor.approved_by.phone }}</dd>
+                </div>
+                {% endif %}
+            </dl>
+        </div>
+
+        <!-- Brand Colors Preview -->
+        <div class="fields-section">
+            <h4 class="fields-section-title">Brand Colors</h4>
+            <div class="color-preview-row">
+                <div class="color-swatch" style="background: {{ vendor.primary_color }};">
+                    <span class="color-label">Primary<br>{{ vendor.primary_color }}</span>
+                </div>
+                <div class="color-swatch" style="background: {{ vendor.secondary_color }};">
+                    <span class="color-label">Secondary<br>{{ vendor.secondary_color }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Staff & Platform Info -->
+        <div class="fields-section">
+            <h4 class="fields-section-title">Platform</h4>
+            <div class="platform-stats">
+                <div class="plat-stat">
+                    <span class="plat-stat-value">{{ staff_count }}</span>
+                    <span class="plat-stat-label">Staff Members</span>
+                </div>
+                <div class="plat-stat">
+                    <span class="plat-stat-value">{{ subscriptions|length }}</span>
+                    <span class="plat-stat-label">Subscriptions</span>
+                </div>
+            </div>
+
+            {% if vendor.status == 'suspended' and vendor.suspension_reason %}
+            <div class="suspension-box">
+                <p class="suspension-label">Suspension Reason:</p>
+                <p class="suspension-reason">{{ vendor.suspension_reason }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+<!-- ═══ TAB: CONTACT & ADDRESS ═══ -->
+<div class="tab-panel" id="tab-contact">
+    <div class="fields-grid">
+
+        <div class="fields-section">
+            <h4 class="fields-section-title">Contact Information</h4>
+            <dl class="field-list">
+                <div class="field-row">
+                    <dt>Phone</dt>
+                    <dd>{{ vendor.phone|default:"—" }}</dd>
+                </div>
+                <div class="field-row">
+                    <dt>WhatsApp Number</dt>
+                    <dd>{{ vendor.whatsapp_number|default:"—" }}</dd>
+                </div>
+                <div class="field-row">
+                    <dt>Email Address</dt>
+                    <dd>{{ vendor.email|default:"—" }}</dd>
+                </div>
+                <div class="field-row">
+                    <dt>Website</dt>
+                    <dd>
+                        {% if vendor.website %}
+                        <a href="{{ vendor.website }}" target="_blank" class="link-inline">{{ vendor.website }}</a>
+                        {% else %}—{% endif %}
+                    </dd>
+                </div>
+            </dl>
+        </div>
+
+        <div class="fields-section">
+            <h4 class="fields-section-title">Business Address</h4>
+            <dl class="field-list">
+                <div class="field-row">
+                    <dt>Address Line 1</dt>
+                    <dd>{{ vendor.address_line1|default:"—" }}</dd>
+                </div>
+                <div class="field-row">
+                    <dt>Address Line 2</dt>
+                    <dd>{{ vendor.address_line2|default:"—" }}</dd>
+                </div>
+                <div class="field-row">
+                    <dt>City</dt>
+                    <dd>{{ vendor.city|default:"—" }}</dd>
+                </div>
+                <div class="field-row">
+                    <dt>State</dt>
+                    <dd>{{ vendor.state|default:"—" }}</dd>
+                </div>
+                <div class="field-row">
+                    <dt>Pincode</dt>
+                    <dd>{{ vendor.pincode|default:"—" }}</dd>
+                </div>
+                <div class="field-row">
+                    <dt>Country</dt>
+                    <dd>{{ vendor.country }}</dd>
+                </div>
+            </dl>
+
+            {% if vendor.city or vendor.address_line1 %}
+            <div class="address-card">
+                <p>{{ vendor.address_line1 }}{% if vendor.address_line2 %}, {{ vendor.address_line2 }}{% endif %}</p>
+                <p>{{ vendor.city }}{% if vendor.state %}, {{ vendor.state }}{% endif %} {% if vendor.pincode %} - {{ vendor.pincode }}{% endif %}</p>
+                <p>{{ vendor.country }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+<!-- ═══ TAB: BRANDING & SOCIAL ═══ -->
+<div class="tab-panel" id="tab-branding">
+    <div class="fields-grid">
+
+        <div class="fields-section">
+            <h4 class="fields-section-title">Logo &amp; Images</h4>
+            <div class="media-previews">
+                <div class="media-preview-item">
+                    <span class="media-label">Logo</span>
+                    {% if vendor.logo %}
+                        <img src="{{ vendor.logo.url }}" alt="Logo" class="media-thumb">
+                    {% else %}
+                        <div class="media-empty">No logo uploaded</div>
+                    {% endif %}
+                </div>
+                <div class="media-preview-item">
+                    <span class="media-label">Banner</span>
+                    {% if vendor.banner %}
+                        <img src="{{ vendor.banner.url }}" alt="Banner" class="media-thumb banner-thumb">
+                    {% else %}
+                        <div class="media-empty">No banner uploaded</div>
+                    {% endif %}
+                </div>
+                <div class="media-preview-item">
+                    <span class="media-label">Favicon</span>
+                    {% if vendor.favicon %}
+                        <img src="{{ vendor.favicon.url }}" alt="Favicon" class="media-thumb favicon-thumb">
+                    {% else %}
+                        <div class="media-empty">No favicon uploaded</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="fields-section">
+            <h4 class="fields-section-title">Social Media Links</h4>
+            <dl class="field-list">
+                <div class="field-row">
+                    <dt>Facebook</dt>
+                    <dd>
+                        {% if vendor.facebook_url %}
+                        <a href="{{ vendor.facebook_url }}" target="_blank" class="social-link facebook-link">{{ vendor.facebook_url }}</a>
+                        {% else %}—{% endif %}
+                    </dd>
+                </div>
+                <div class="field-row">
+                    <dt>Instagram</dt>
+                    <dd>
+                        {% if vendor.instagram_url %}
+                        <a href="{{ vendor.instagram_url }}" target="_blank" class="social-link instagram-link">{{ vendor.instagram_url }}</a>
+                        {% else %}—{% endif %}
+                    </dd>
+                </div>
+                <div class="field-row">
+                    <dt>Twitter / X</dt>
+                    <dd>
+                        {% if vendor.twitter_url %}
+                        <a href="{{ vendor.twitter_url }}" target="_blank" class="social-link">{{ vendor.twitter_url }}</a>
+                        {% else %}—{% endif %}
+                    </dd>
+                </div>
+                <div class="field-row">
+                    <dt>YouTube</dt>
+                    <dd>
+                        {% if vendor.youtube_url %}
+                        <a href="{{ vendor.youtube_url }}" target="_blank" class="social-link youtube-link">{{ vendor.youtube_url }}</a>
+                        {% else %}—{% endif %}
+                    </dd>
+                </div>
+            </dl>
+        </div>
+
+        <div class="fields-section">
+            <h4 class="fields-section-title">White Label Settings</h4>
+            <dl class="field-list">
+
+                <div class="field-row">
+                    <dt>Primary Color</dt>
+                    <dd>
+                        <span class="color-dot" style="background:{{ vendor.primary_color }};"></span>
+                        {{ vendor.primary_color }}
+                    </dd>
+                </div>
+                <div class="field-row">
+                    <dt>Secondary Color</dt>
+                    <dd>
+                        <span class="color-dot" style="background:{{ vendor.secondary_color }};"></span>
+                        {{ vendor.secondary_color }}
+                    </dd>
+                </div>
+                <div class="field-row">
+                    <dt>Custom CSS</dt>
+                    <dd>{% if vendor.custom_css %}<span class="badge badge-info">{{ vendor.custom_css|length }} chars configured</span>{% else %}—{% endif %}</dd>
+                </div>
+            </dl>
+        </div>
+
+    </div>
+</div>
+
+<!-- ═══ TAB: STORE SETTINGS ═══ -->
+<div class="tab-panel" id="tab-settings">
+    <div class="fields-grid">
+
+        <div class="fields-section">
+            <h4 class="fields-section-title">Currency &amp; Locale</h4>
+            <dl class="field-list">
+                <div class="field-row">
+                    <dt>Currency Code</dt>
+                    <dd><strong>{{ vendor.currency }}</strong></dd>
+                </div>
+                <div class="field-row">
+                    <dt>Currency Symbol</dt>
+                    <dd><strong style="font-size:20px;">{{ vendor.currency_symbol }}</strong></dd>
+                </div>
+                <div class="field-row">
+                    <dt>Timezone</dt>
+                    <dd>{{ vendor.timezone }}</dd>
+                </div>
+            </dl>
+        </div>
+
+        <div class="fields-section">
+            <h4 class="fields-section-title">Checkout Workflow</h4>
+            <div class="workflow-visual">
+                {% if vendor.checkout_workflow == 'online_payment' %}
+                <div class="workflow-step">Cart</div>
+                <div class="workflow-arrow">&#8594;</div>
+                <div class="workflow-step active-step">Payment</div>
+                <div class="workflow-arrow">&#8594;</div>
+                <div class="workflow-step">Confirmed</div>
+                {% elif vendor.checkout_workflow == 'approval_payment' %}
+                <div class="workflow-step">Cart</div>
+                <div class="workflow-arrow">&#8594;</div>
+                <div class="workflow-step active-step">Approval</div>
+                <div class="workflow-arrow">&#8594;</div>
+                <div class="workflow-step">Payment Link</div>
+                <div class="workflow-arrow">&#8594;</div>
+                <div class="workflow-step">Confirmed</div>
+                {% elif vendor.checkout_workflow == 'whatsapp_enquiry' %}
+                <div class="workflow-step">Cart</div>
+                <div class="workflow-arrow">&#8594;</div>
+                <div class="workflow-step active-step">WhatsApp</div>
+                <div class="workflow-arrow">&#8594;</div>
+                <div class="workflow-step">Review</div>
+                <div class="workflow-arrow">&#8594;</div>
+                <div class="workflow-step">Payment</div>
+                <div class="workflow-arrow">&#8594;</div>
+                <div class="workflow-step">Confirmed</div>
+                {% else %}
+                <div class="workflow-step">Cart</div>
+                <div class="workflow-arrow">&#8594;</div>
+                <div class="workflow-step active-step">COD</div>
+                <div class="workflow-arrow">&#8594;</div>
+                <div class="workflow-step">Confirmed</div>
+                {% endif %}
+            </div>
+            <p class="text-muted" style="font-size:13px; margin-top:12px;">
+                Current: <strong>{{ vendor.get_checkout_workflow_display }}</strong>
+            </p>
+        </div>
+
+    </div>
+</div>
+
+<!-- ═══ TAB: SUBSCRIPTION ═══ -->
+<div class="tab-panel" id="tab-subscription">
+    {% with sub=vendor.active_subscription %}
+    {% if sub %}
+    <div class="fields-grid" style="margin-bottom:24px;">
+        <div class="fields-section">
+            <h4 class="fields-section-title">Active Subscription</h4>
+            <dl class="field-list">
+                <div class="field-row"><dt>Plan</dt><dd><strong>{{ sub.plan.name }}</strong></dd></div>
+                <div class="field-row"><dt>Type</dt><dd>{% if sub.is_trial %}<span class="badge badge-info">Trial</span>{% else %}<span class="badge badge-success">Paid</span>{% endif %}</dd></div>
+                <div class="field-row"><dt>Start Date</dt><dd>{{ sub.start_date|date:"d M Y" }}</dd></div>
+                <div class="field-row"><dt>End Date</dt><dd>{{ sub.end_date|date:"d M Y" }}</dd></div>
+                <div class="field-row"><dt>Days Remaining</dt><dd><strong class="{% if sub.days_remaining <= 5 %}text-danger{% elif sub.days_remaining <= 14 %}text-warning{% else %}text-success{% endif %}">{{ sub.days_remaining }} days</strong></dd></div>
+                <div class="field-row"><dt>Amount Paid</dt><dd>&#8377;{{ sub.amount_paid }}</dd></div>
+                {% if sub.payment_reference %}<div class="field-row"><dt>Payment Ref</dt><dd><code class="code-val">{{ sub.payment_reference }}</code></dd></div>{% endif %}
+            </dl>
+        </div>
+        <div class="fields-section">
+            <h4 class="fields-section-title">Plan Features</h4>
+            <ul class="plan-features-mini">
+                <li>Max Products: <strong>{% if sub.plan.max_products >= 999999 %}Unlimited{% else %}{{ sub.plan.max_products }}{% endif %}</strong></li>
+                <li>Max Branches: <strong>{% if sub.plan.max_branches >= 999 %}Unlimited{% else %}{{ sub.plan.max_branches }}{% endif %}</strong></li>
+                <li>Max Staff: <strong>{% if sub.plan.max_staff >= 999 %}Unlimited{% else %}{{ sub.plan.max_staff }}{% endif %}</strong></li>
+                <li>Orders/month: <strong>{% if sub.plan.max_monthly_orders >= 999999 %}Unlimited{% else %}{{ sub.plan.max_monthly_orders }}{% endif %}</strong></li>
+                <li>WhatsApp: <strong>{% if sub.plan.has_whatsapp %}Yes{% else %}No{% endif %}</strong></li>
+                <li>Loyalty: <strong>{% if sub.plan.has_loyalty %}Yes{% else %}No{% endif %}</strong></li>
+                <li>CRM: <strong>{% if sub.plan.has_crm %}Yes{% else %}No{% endif %}</strong></li>
+                <li>Marketing: <strong>{% if sub.plan.has_marketing %}Yes{% else %}No{% endif %}</strong></li>
+                <li>API Access: <strong>{% if sub.plan.has_api_access %}Yes{% else %}No{% endif %}</strong></li>
+                <li>White Label: <strong>{% if sub.plan.has_white_label %}Yes{% else %}No{% endif %}</strong></li>
+
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- Subscription History -->
+    <div class="data-card">
+        <div class="card-header">
+            <h3 class="card-title"><span class="card-title-dot primary"></span>Subscription History</h3>
+        </div>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Plan</th>
+                        <th>Type</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sub in subscriptions %}
+                    <tr>
+                        <td><strong>{{ sub.plan.name }}</strong></td>
+                        <td>{% if sub.is_trial %}<span class="badge badge-info">Trial</span>{% else %}<span class="badge badge-success">Paid</span>{% endif %}</td>
+                        <td>{{ sub.start_date|date:"d M Y" }}</td>
+                        <td>{{ sub.end_date|date:"d M Y" }}</td>
+                        <td>&#8377;{{ sub.amount_paid }}</td>
+                        <td>
+                            {% if sub.is_expired %}
+                                <span class="status-badge status-suspended">Expired</span>
+                            {% elif sub.is_active %}
+                                <span class="status-badge status-approved">Active</span>
+                            {% else %}
+                                <span class="status-badge status-cancelled">Inactive</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6"><div class="table-empty"><p>No subscription history.</p></div></td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ TAB: SEO ═══ -->
+<div class="tab-panel" id="tab-seo">
+    <div class="fields-grid">
+        <div class="fields-section">
+            <h4 class="fields-section-title">SEO Settings</h4>
+            <dl class="field-list">
+                <div class="field-row">
+                    <dt>Meta Title</dt>
+                    <dd>{{ vendor.meta_title|default:"—" }}</dd>
+                </div>
+                <div class="field-row">
+                    <dt>Meta Description</dt>
+                    <dd>{{ vendor.meta_description|default:"—" }}</dd>
+                </div>
+            </dl>
+            {% if vendor.meta_title %}
+            <div class="seo-preview">
+                <p class="seo-preview-label">Search Preview</p>
+                <div class="seo-result">
+                    <p class="seo-url">https://{{ vendor.slug }}.commercehub.in</p>
+                    <p class="seo-title">{{ vendor.meta_title }}</p>
+                    <p class="seo-desc">{{ vendor.meta_description|default:"No meta description set." }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- ── SUSPEND MODAL ── -->
+<div class="modal-overlay" id="suspendModal" style="display:none;">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Suspend Vendor</h3>
+            <button onclick="document.getElementById('suspendModal').style.display='none'" class="modal-close">&#215;</button>
+        </div>
+        <form method="post" action="{% url 'adminapp:vendor_suspend' vendor.pk %}">
+            {% csrf_token %}
+            <div class="modal-body">
+                <p>Are you sure you want to suspend <strong>{{ vendor.business_name }}</strong>? They will lose access to the platform immediately.</p>
+                <div class="form-group" style="margin-top:16px;">
+                    <label class="form-label">Reason for Suspension *</label>
+                    <textarea name="reason" class="form-textarea" rows="3"
+                              placeholder="Provide a reason..." required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" onclick="document.getElementById('suspendModal').style.display='none'">Cancel</button>
+                <button type="submit" class="btn btn-danger">Confirm Suspension</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Tab switching
+document.querySelectorAll('.detail-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+        const targetId = 'tab-' + this.dataset.tab;
+
+        document.querySelectorAll('.detail-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+
+        this.classList.add('active');
+        document.getElementById(targetId).classList.add('active');
+    });
+});
+</script>
+{% endblock %}

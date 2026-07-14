@@ -1,0 +1,536 @@
+{% extends 'base/vendor_base.html' %}
+{% load static %}
+
+{% block title %}{% if product %}Edit Product — {{ product.name }}{% else %}Add Product{% endif %} — CommerceHub{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{% url 'commercehub_app:dashboard' %}">Dashboard</a>
+    <span class="breadcrumb-sep">›</span>
+    <a href="{% url 'catalog:product_list' %}">Product Catalog</a>
+    <span class="breadcrumb-sep">›</span>
+    <span>{% if product %}Edit Product{% else %}New Product{% endif %}</span>
+</div>
+
+<div class="data-card" style="max-width: 1000px; padding: 28px;">
+    <form method="post" enctype="multipart/form-data" id="productForm">
+        {% csrf_token %}
+
+        <div class="form-section">
+            <h3 class="form-section-title">Basic Product Information</h3>
+            
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="name">Product Name <span class="req">*</span></label>
+                    <input type="text" id="name" name="name" class="form-input" placeholder="e.g. Cotton Polo Shirt" 
+                           value="{{ product.name|default:'' }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="slug">URL Slug</label>
+                    <input type="text" id="slug" name="slug" class="form-input" placeholder="e.g. cotton-polo-shirt" 
+                           value="{{ product.slug|default:'' }}">
+                    <p class="form-hint">Leave blank to automatically generate from name.</p>
+                </div>
+            </div>
+
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="category_id">Category</label>
+                    <select id="category_id" name="category_id" class="form-select">
+                        <option value="">-- Unassigned Category --</option>
+                        {% for cat in categories %}
+                            <option value="{{ cat.pk }}" {% if product.category_id == cat.pk %}selected{% endif %}>
+                                {{ cat.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="status">Status</label>
+                    <select id="status" name="status" class="form-select">
+                        <option value="draft" {% if product.status == 'draft' %}selected{% endif %}>Draft</option>
+                        <option value="published" {% if product.status == 'published' %}selected{% endif %}>Published</option>
+                        <option value="archived" {% if product.status == 'archived' %}selected{% endif %}>Archived</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="description">Description</label>
+                <textarea id="description" name="description" class="form-input" rows="4" placeholder="Describe this product...">{{ product.description|default:'' }}</textarea>
+            </div>
+        </div>
+
+        <!-- ═══ PRODUCT GALLERY (MULTIPLE IMAGES) ═══ -->
+        <div class="form-section">
+            <h3 class="form-section-title">Product Image Gallery</h3>
+            
+            <div class="form-group">
+                <label class="form-label" for="gallery_images">Upload Gallery Images</label>
+                <input type="file" id="gallery_images" name="gallery_images" class="form-input" accept="image/*" multiple style="padding: 8px;">
+                <p class="form-hint" style="margin-top: 4px;">Recommended: 900x1200px (3:4 ratio), Max 5MB per image.</p>
+                <p class="form-hint">Select multiple images to showcase in a slideshow/gallery on the public storefront product page.</p>
+            </div>
+            
+            {% if product and product.images.exists %}
+                <div style="margin-top: 18px;">
+                    <label class="form-label">Current Gallery Images</label>
+                    <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-top: 10px;">
+                        {% for img in product.images.all %}
+                            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 10px; text-align: center; position: relative;">
+                                <img src="{{ img.image.url }}" alt="gallery image" style="width: 85px; height: 85px; object-fit: cover; border-radius: 4px; display: block; margin-bottom: 8px;">
+                                <label style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--color-danger); cursor: pointer; user-select: none; margin-bottom: 0;">
+                                    <input type="checkbox" name="delete_images[]" value="{{ img.pk }}" style="accent-color: var(--color-danger); width: 14px; height: 14px;">
+                                    Delete
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- ═══ PRODUCT SPECIFICATIONS (General Attributes) ═══ -->
+        {% if general_attributes %}
+        <div class="form-section">
+            <h3 class="form-section-title">Product Specifications</h3>
+            <p class="form-hint" style="margin-bottom: 16px;">Fill out the general specifications that apply to this entire product.</p>
+            
+            <div class="form-grid-2">
+                {% for attr in general_attributes %}
+                <div class="form-group">
+                    {% if attr.type == 'boolean' %}
+                        <label class="form-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;">
+                            <input type="checkbox" name="attr_{{ attr.code }}" value="true" style="width: 16px; height: 16px; accent-color: var(--color-primary);"
+                                   {% for key, val in product.attributes_data.items %}{% if key == attr.code and val == 'true' %}checked{% endif %}{% endfor %}>
+                            <span>{{ attr.name }}</span>
+                            {% if attr.is_required %}<span class="req">*</span>{% endif %}
+                        </label>
+                    {% else %}
+                        <label class="form-label" for="attr_{{ attr.code }}">{{ attr.name }} {% if attr.is_required %}<span class="req">*</span>{% endif %}</label>
+                        {% if attr.type == 'number' %}
+                            <input type="number" id="attr_{{ attr.code }}" name="attr_{{ attr.code }}" class="form-input" 
+                                   {% if attr.is_required %}required{% endif %} step="any"
+                                   value="{% for key, val in product.attributes_data.items %}{% if key == attr.code %}{{ val }}{% endif %}{% endfor %}">
+                        {% else %}
+                            <input type="text" id="attr_{{ attr.code }}" name="attr_{{ attr.code }}" class="form-input" 
+                                   {% if attr.is_required %}required{% endif %}
+                                   value="{% for key, val in product.attributes_data.items %}{% if key == attr.code %}{{ val }}{% endif %}{% endfor %}">
+                        {% endif %}
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ═══ PRODUCT INFORMATION SECTIONS ═══ -->
+        <div class="form-section">
+            <h3 class="form-section-title">Dynamic Information Sections (Accordions)</h3>
+            <p class="form-hint" style="margin-bottom: 16px;">Add custom accordions (e.g., "Fabric Details", "Shipping") that will appear on the product page.</p>
+            
+            <div id="info-sections-container">
+                {% if product and product.info_sections.exists %}
+                    {% for section in product.info_sections.all %}
+                        <div class="info-section-item" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; position: relative;">
+                            <input type="hidden" name="info_id[]" value="{{ section.id }}">
+                            <button type="button" onclick="this.parentElement.remove()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--color-danger); cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                                <span class="material-symbols-outlined" style="font-size: 18px;">delete</span> Remove
+                            </button>
+                            <div class="form-group" style="margin-bottom: 12px; padding-right: 80px;">
+                                <label class="form-label">Heading</label>
+                                <input type="text" name="info_heading[]" class="form-input" value="{{ section.heading }}" placeholder="e.g. Fabric Details" required>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 12px;">
+                                <label class="form-label">Content</label>
+                                <textarea name="info_content[]" class="form-input" rows="3" placeholder="Enter the content for this section...">{{ section.content }}</textarea>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label">Image (Optional)</label>
+                                {% if section.image %}
+                                <div style="margin-bottom: 8px;">
+                                    <img src="{{ section.image.url }}" alt="Current image" style="max-height: 100px; border-radius: 4px;">
+                                </div>
+                                {% endif %}
+                                <input type="file" name="info_image_{{ section.id }}" class="form-input" accept="image/*">
+                                <p class="form-hint" style="margin-top: 4px; font-size: 0.85em;">Recommended: Max 2MB (e.g. 800x800px)</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            
+            <button type="button" onclick="addInfoSection()" class="btn btn-secondary" style="display: flex; align-items: center; gap: 6px;">
+                <span class="material-symbols-outlined">add</span> Add Information Section
+            </button>
+        </div>
+
+        <!-- ═══ VARIANT TOGGLE ═══ -->
+        <div class="form-section">
+            <div class="form-group">
+                <label class="form-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;">
+                    <input type="checkbox" id="has_variants" name="has_variants" value="true" {% if product.has_variants %}checked{% endif %} style="width: 18px; height: 18px; accent-color: var(--color-primary);">
+                    <span style="font-size: 15px; font-weight: 600;">This product has variants (multiple sizes, colors, etc.)</span>
+                </label>
+                <p class="form-hint" style="margin-left: 26px;">Check this if the product has different colors, sizes, or specification combinations.</p>
+            </div>
+        </div>
+
+        <!-- ═══ SINGLE PRODUCT FIELDS (Show/Hide) ═══ -->
+        <div class="form-section" id="single-product-fields" style="display: none;">
+            <h3 class="form-section-title">Pricing &amp; Inventory</h3>
+            
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="sku">SKU Code</label>
+                    <input type="text" id="sku" name="sku" class="form-input" placeholder="e.g. POLO-SHIRT-M" 
+                           value="{{ default_variant.sku|default:'' }}">
+                    <p class="form-hint">Leave blank to auto-generate a unique SKU.</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="price">Price (₹) <span class="req">*</span></label>
+                    <input type="number" id="price" name="price" class="form-input" placeholder="0.00" step="0.01" min="0.00" 
+                           value="{{ default_variant.price|default:'0.00' }}">
+                </div>
+            </div>
+
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="compare_at_price">Compare-at Price (₹)</label>
+                    <input type="number" id="compare_at_price" name="compare_at_price" class="form-input" placeholder="0.00" step="0.01" min="0.00" 
+                           value="{{ default_variant.compare_at_price|default:'' }}">
+                    <p class="form-hint">Original price before discount.</p>
+                </div>
+                {% if request.user.vendor.track_inventory %}
+                <div class="form-group">
+                    <label class="form-label" for="stock_qty">Stock Quantity</label>
+                    <input type="number" id="stock_qty" name="stock_qty" class="form-input" placeholder="0.00" step="0.01" min="0.00" 
+                           value="{{ default_variant.stock_qty|default:'0.00' }}">
+                </div>
+                {% else %}
+                <div class="form-group">
+                    <!-- empty block for layout balancing -->
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group" style="max-width: 350px;">
+                <label class="form-label" for="image">Product Image</label>
+                <input type="file" id="image" name="image" class="form-input" accept="image/*">
+                <p class="form-hint" style="margin-top: 4px;">Recommended: 900x1200px (3:4 ratio), Max 5MB.</p>
+                {% if default_variant.image %}
+                    <div style="margin-top: 10px; display: flex; align-items: center; gap: 8px;">
+                        <img src="{{ default_variant.image.url }}" alt="product" style="width: 48px; height: 48px; object-fit: cover; border-radius: 4px;">
+                        <span style="font-size: 12px; color: var(--text-secondary);">Current Image</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ═══ MULTI-VARIANT PRODUCT FIELDS (Show/Hide) ═══ -->
+        <div class="form-section" id="variant-product-fields" style="display: none;">
+            <h3 class="form-section-title">Configure Variant Attributes</h3>
+            
+            <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 18px; margin-bottom: 24px;">
+                <h4 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600;">Step 1: Select attributes to generate combinations</h4>
+                
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    {% for attr in attributes %}
+                    <div class="attribute-selection-row" style="border-bottom: 1px solid var(--border-color-light); padding-bottom: 12px; margin-bottom: 4px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; margin-bottom: 6px;">
+                            <input type="checkbox" class="attr-trigger" data-attr-code="{{ attr.code }}" style="accent-color: var(--color-primary);">
+                            <span>{{ attr.name }}</span>
+                        </label>
+                        <div class="attr-options-container" style="display: none; padding-left: 24px; gap: 12px; flex-wrap: wrap;">
+                            {% for option in attr.options.all %}
+                            <label style="display: flex; align-items: center; gap: 4px; font-size: 13px; cursor: pointer; user-select: none;">
+                                <input type="checkbox" class="attr-opt-checkbox" data-attr-code="{{ attr.code }}" value="{{ option.value }}">
+                                <span>{{ option.value }}</span>
+                            </label>
+                            {% empty %}
+                            <span class="text-muted" style="font-size: 12px; font-style: italic;">No options defined. Add them in the Attributes section.</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-muted" style="font-size: 13px; font-style: italic; text-align: center; padding: 10px;">
+                        No dropdown select attributes defined. Add attributes of type "Dropdown Select" to use them as variant options.
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% if attributes.exists %}
+                <div style="margin-top: 18px; display: flex; justify-content: flex-end;">
+                    <button type="button" class="btn btn-outline" id="generate-matrix-btn" style="font-size: 12px; padding: 6px 12px;">Generate Variants Matrix</button>
+                </div>
+                {% endif %}
+            </div>
+
+            <h3 class="form-section-title">Step 2: Edit Variants Inventory &amp; Pricing</h3>
+            
+            <div class="table-wrapper" style="border: 1px solid var(--border-color); border-radius: var(--radius);">
+                <table class="data-table" id="variants-table">
+                    <thead>
+                        <tr>
+                            <th>Variant</th>
+                            <th>SKU <span class="req">*</span></th>
+                            <th>Price (₹) <span class="req">*</span></th>
+                            <th>Compare-at (₹)</th>
+                            {% if request.user.vendor.track_inventory %}
+                            <th>Stock Qty</th>
+                            {% endif %}
+                            <th>Image</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="variants-tbody">
+                        {% if product.has_variants %}
+                            {% for variant in variants %}
+                            <tr data-existing="true">
+                                <td>
+                                    <strong>{{ variant.name }}</strong>
+                                    <input type="hidden" name="variant_id[]" value="{{ variant.pk }}">
+                                    <input type="hidden" name="variant_attributes_json[]" value='{{ variant.attributes_data|json_script:"v-data" }}' class="v-json-data">
+                                </td>
+                                <td>
+                                    <input type="text" name="variant_sku[]" class="form-input" style="padding: 6px; font-size: 13px;" value="{{ variant.sku }}" required>
+                                </td>
+                                <td>
+                                    <input type="number" name="variant_price[]" class="form-input" style="padding: 6px; font-size: 13px;" step="0.01" min="0.00" value="{{ variant.price }}" required>
+                                </td>
+                                <td>
+                                    <input type="number" name="variant_compare_at_price[]" class="form-input" style="padding: 6px; font-size: 13px;" step="0.01" min="0.00" value="{{ variant.compare_at_price|default:'' }}">
+                                </td>
+                                {% if request.user.vendor.track_inventory %}
+                                <td>
+                                    <input type="number" name="variant_stock_qty[]" class="form-input" style="padding: 6px; font-size: 13px;" step="0.01" min="0.00" value="{{ variant.stock_qty }}">
+                                </td>
+                                {% else %}
+                                <input type="hidden" name="variant_stock_qty[]" value="0.00">
+                                {% endif %}
+                                <td>
+                                    <input type="file" name="variant_image[]" class="form-input" style="padding: 6px; font-size: 11px; max-width: 160px;" accept="image/*">
+                                    <p class="form-hint" style="font-size: 10px; margin: 0;">Rec: 900x1200px (3:4)</p>
+                                    {% if variant.image %}
+                                        <div style="margin-top: 4px;"><img src="{{ variant.image.url }}" style="width: 32px; height: 32px; object-fit: cover; border-radius: 3px;"></div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-ghost text-danger delete-row-btn" style="padding: 4px;">Remove</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="form-actions" style="margin-top: 32px;">
+            <button type="submit" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                    <polyline points="17 21 17 13 7 13 7 21"/>
+                    <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                Save Product
+            </button>
+            <a href="{% url 'catalog:product_list' %}" class="btn btn-ghost">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<!-- Raw Json data for safety check -->
+<div style="display:none;" id="product-name-slug">{{ product.slug|default:'' }}</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const hasVariantsCheckbox = document.getElementById("has_variants");
+        const singleFields = document.getElementById("single-product-fields");
+        const variantFields = document.getElementById("variant-product-fields");
+        const singleSku = document.getElementById("sku");
+        const singlePrice = document.getElementById("price");
+
+        function toggleFields() {
+            if (hasVariantsCheckbox.checked) {
+                singleFields.style.display = "none";
+                variantFields.style.display = "block";
+                
+                singleSku.removeAttribute("required");
+                singlePrice.removeAttribute("required");
+            } else {
+                singleFields.style.display = "block";
+                variantFields.style.display = "none";
+                
+                singlePrice.setAttribute("required", "required");
+            }
+        }
+
+        hasVariantsCheckbox.addEventListener("change", toggleFields);
+        toggleFields(); // run once on load
+
+        // Attribute Triggers
+        const attrTriggers = document.querySelectorAll(".attr-trigger");
+        attrTriggers.forEach(trigger => {
+            trigger.addEventListener("change", function() {
+                const container = this.closest(".attribute-selection-row").querySelector(".attr-options-container");
+                if (this.checked) {
+                    container.style.display = "flex";
+                } else {
+                    container.style.display = "none";
+                    // uncheck sub options
+                    container.querySelectorAll(".attr-opt-checkbox").forEach(c => c.checked = false);
+                }
+            });
+        });
+
+        // Cartesian product builder
+        const generateBtn = document.getElementById("generate-matrix-btn");
+        if (generateBtn) {
+            generateBtn.addEventListener("click", function() {
+                const checkedAttrs = [];
+                const attrCodes = [];
+
+                attrTriggers.forEach(trigger => {
+                    if (trigger.checked) {
+                        const code = trigger.dataset.attrCode;
+                        const label = trigger.closest("label").innerText.trim();
+                        const optionCheckboxes = trigger.closest(".attribute-selection-row").querySelectorAll(".attr-opt-checkbox:checked");
+                        const options = Array.from(optionCheckboxes).map(cb => cb.value);
+                        
+                        if (options.length > 0) {
+                            checkedAttrs.push(options);
+                            attrCodes.push({ code: code, label: label });
+                        }
+                    }
+                });
+
+                if (checkedAttrs.length === 0) {
+                    alert("Please select at least one attribute and its options to generate variants.");
+                    return;
+                }
+
+                // Warn user
+                const tbody = document.getElementById("variants-tbody");
+                if (tbody.children.length > 0) {
+                    if (!confirm("Regenerating the matrix will clear all existing unsaved rows in the variants table. Do you wish to continue?")) {
+                        return;
+                    }
+                }
+
+                tbody.innerHTML = ""; // Clear table
+
+                // Cartesian Helper
+                function cartesian(args) {
+                    var r = [], max = args.length-1;
+                    function helper(arr, i) {
+                        for (var j=0, l=args[i].length; j<l; j++) {
+                            var a = arr.slice(0); // clone arr
+                            a.push(args[i][j]);
+                            if (i==max)
+                                r.push(a);
+                            else
+                                helper(a, i+1);
+                        }
+                    }
+                    helper([], 0);
+                    return r;
+                }
+
+                const combinations = cartesian(checkedAttrs);
+                const prodName = document.getElementById("name").value.trim() || "PRODUCT";
+                const baseSku = prodName.replace(/[^a-zA-Z0-9]/g, "-").toUpperCase().slice(0, 15);
+
+                combinations.forEach((combo, comboIdx) => {
+                    // combo is an array of values, e.g. ["Red", "L"]
+                    // Build representation name
+                    const varName = combo.join(", ");
+                    const varAttrsData = {};
+                    combo.forEach((val, idx) => {
+                        const code = attrCodes[idx].code;
+                        varAttrsData[code] = val;
+                    });
+
+                    // Build dynamic SKU code
+                    const skuSuffix = combo.map(v => v.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 3)).join("-");
+                    const generatedSku = `${baseSku}-${skuSuffix}`;
+
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>
+                            <strong>${varName}</strong>
+                            <input type="hidden" name="variant_id[]" value="">
+                            <input type="hidden" name="variant_attributes_json[]" value='${JSON.stringify(varAttrsData)}'>
+                        </td>
+                        <td>
+                            <input type="text" name="variant_sku[]" class="form-input" style="padding: 6px; font-size: 13px;" value="${generatedSku}" required>
+                        </td>
+                        <td>
+                            <input type="number" name="variant_price[]" class="form-input" style="padding: 6px; font-size: 13px;" step="0.01" min="0.00" value="0.00" required>
+                        </td>
+                        <td>
+                            <input type="number" name="variant_compare_at_price[]" class="form-input" style="padding: 6px; font-size: 13px;" step="0.01" min="0.00" value="">
+                        </td>
+                        {% if request.user.vendor.track_inventory %}
+                        <td>
+                            <input type="number" name="variant_stock_qty[]" class="form-input" style="padding: 6px; font-size: 13px;" step="0.01" min="0.00" value="0.00">
+                        </td>
+                        {% else %}
+                        <input type="hidden" name="variant_stock_qty[]" value="0.00">
+                        {% endif %}
+                        <td>
+                            <input type="file" name="variant_image[]" class="form-input" style="padding: 6px; font-size: 11px; max-width: 160px; margin-bottom: 4px;" accept="image/*">
+                            <p class="form-hint" style="font-size: 10px; margin: 0;">Rec: 900x1200px (3:4)</p>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-ghost text-danger delete-row-btn" style="padding: 4px;">Remove</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            });
+        }
+
+        // Delete Row functionality
+        document.getElementById("variants-table").addEventListener("click", function(e) {
+            if (e.target && e.target.classList.contains("delete-row-btn")) {
+                const row = e.target.closest("tr");
+                row.remove();
+            }
+        });
+    });
+
+    // Dynamic Info Sections functionality
+    let newInfoSectionCount = 0;
+    function addInfoSection() {
+        newInfoSectionCount++;
+        const sectionId = 'new_' + newInfoSectionCount;
+        const container = document.getElementById('info-sections-container');
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'info-section-item';
+        sectionDiv.style.cssText = 'background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; position: relative;';
+        
+        sectionDiv.innerHTML = `
+            <input type="hidden" name="info_id[]" value="${sectionId}">
+            <button type="button" onclick="this.parentElement.remove()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--color-danger); cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                <span class="material-symbols-outlined" style="font-size: 18px;">delete</span> Remove
+            </button>
+            <div class="form-group" style="margin-bottom: 12px; padding-right: 80px;">
+                <label class="form-label">Heading</label>
+                <input type="text" name="info_heading[]" class="form-input" placeholder="e.g. Fabric Details" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 12px;">
+                <label class="form-label">Content</label>
+                <textarea name="info_content[]" class="form-input" rows="3" placeholder="Enter the content for this section..."></textarea>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Image (Optional)</label>
+                <input type="file" name="info_image_${sectionId}" class="form-input" accept="image/*">
+                <p class="form-hint" style="margin-top: 4px; font-size: 0.85em;">Recommended: Max 2MB (e.g. 800x800px)</p>
+            </div>
+        `;
+        
+        container.appendChild(sectionDiv);
+    }
+</script>
+{% endblock %}

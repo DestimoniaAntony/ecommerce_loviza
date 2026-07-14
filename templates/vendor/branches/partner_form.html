@@ -1,0 +1,68 @@
+{% extends 'base/vendor_base.html' %}
+{% load static %}
+
+{% block title %}{% if partner %}Edit Partner — {{ partner.name }}{% else %}Add Business Partner{% endif %} — CommerceHub{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{% url 'commercehub_app:dashboard' %}">Dashboard</a>
+    <span class="breadcrumb-sep">›</span>
+    <a href="{% url 'branches:branch_list' %}">Branches &amp; Franchise</a>
+    <span class="breadcrumb-sep">›</span>
+    <span>{% if partner %}Edit Partner{% else %}Add Partner{% endif %}</span>
+</div>
+
+<div class="data-card" style="max-width: 600px; padding: 28px;">
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="form-section">
+            <h3 class="form-section-title">Partner Information</h3>
+            <div class="form-group">
+                <label class="form-label" for="partner_name">Full Name <span class="req">*</span></label>
+                <input type="text" id="partner_name" name="name" class="form-input" 
+                       placeholder="e.g. Jane Smith" required 
+                       value="{{ partner.name|default:'' }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="phone">Phone Number <span class="req">*</span></label>
+                <input type="tel" id="phone" name="phone" class="form-input" 
+                       placeholder="9876543210" required maxlength="15"
+                       value="{{ partner.phone|default:'' }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="email">Email Address</label>
+                <input type="email" id="email" name="email" class="form-input" 
+                       placeholder="jane.smith@example.com" 
+                       value="{{ partner.email|default:'' }}">
+            </div>
+        </div>
+
+        <div class="form-actions" style="margin-top: 32px; display: flex; gap: 12px; align-items: center;">
+            <button type="submit" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                    <polyline points="17 21 17 13 7 13 7 21"/>
+                    <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                {% if partner %}Save Changes{% else %}Add Partner{% endif %}
+            </button>
+            <a href="{% url 'branches:branch_list' %}" class="btn btn-ghost">Cancel</a>
+            
+            {% if partner %}
+            <div style="margin-left: auto;">
+                <button type="button" class="btn btn-outline text-danger" onclick="if(confirm('Are you sure you want to remove this partner?')) document.getElementById('delete-partner-form').submit();">
+                    Remove Partner
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </form>
+
+    {% if partner %}
+    <form id="delete-partner-form" method="post" action="{% url 'branches:partner_delete' partner.pk %}" style="display: none;">
+        {% csrf_token %}
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

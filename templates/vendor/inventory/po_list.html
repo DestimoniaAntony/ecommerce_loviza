@@ -1,0 +1,121 @@
+{% extends 'base/vendor_base.html' %}
+{% load static %}
+
+{% block title %}Purchase Orders — CommerceHub{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{% url 'commercehub_app:dashboard' %}">Dashboard</a>
+    <span class="breadcrumb-sep">›</span>
+    <span>Purchase Orders</span>
+</div>
+
+<div class="page-header-row" style="margin-bottom: 24px;">
+    <div class="page-header-info">
+        <p class="page-subtitle">Track orders sent to third-party suppliers, manage expected delivery timelines, and restock branches.</p>
+    </div>
+    <div class="page-header-actions">
+        <a href="{% url 'inventory:purchase_order_create' %}" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="vertical-align: middle; margin-right: 4px;">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+            Create Purchase Order
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="data-card" style="margin-bottom: 24px; padding: 20px 24px;">
+    <form method="get" style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+        <div>
+            <select name="supplier" class="form-input" style="min-width: 200px; height: 42px; padding: 0 12px; cursor: pointer;">
+                <option value="">All Suppliers</option>
+                {% for supplier in suppliers %}
+                    <option value="{{ supplier.id }}" {% if supplier_filter == supplier.id|stringformat:"i" %}selected{% endif %}>{{ supplier.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <select name="status" class="form-input" style="min-width: 160px; height: 42px; padding: 0 12px; cursor: pointer;">
+                <option value="">All Statuses</option>
+                <option value="draft" {% if status_filter == 'draft' %}selected{% endif %}>Draft</option>
+                <option value="sent" {% if status_filter == 'sent' %}selected{% endif %}>Sent / In-Transit</option>
+                <option value="received" {% if status_filter == 'received' %}selected{% endif %}>Received / Completed</option>
+                <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-ghost" style="border: 1px solid var(--border-color); background: rgba(255,255,255,0.02); height: 42px;">Filter</button>
+        {% if status_filter or supplier_filter %}
+            <a href="{% url 'inventory:purchase_order_list' %}" class="btn btn-ghost text-muted" style="height: 42px; display: inline-flex; align-items: center;">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- PO List Card -->
+<div class="data-card">
+    {% if purchase_orders %}
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.01);">
+                        <th style="padding: 16px 24px; font-weight: 600; font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">PO Number</th>
+                        <th style="padding: 16px 24px; font-weight: 600; font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Supplier</th>
+                        <th style="padding: 16px 24px; font-weight: 600; font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Destination Branch</th>
+                        <th style="padding: 16px 24px; font-weight: 600; font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; text-align: center;">Order Date</th>
+                        <th style="padding: 16px 24px; font-weight: 600; font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; text-align: right;">Total Amount</th>
+                        <th style="padding: 16px 24px; font-weight: 600; font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; text-align: center;">Status</th>
+                        <th style="padding: 16px 24px; font-weight: 600; font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for po in purchase_orders %}
+                        <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.01)'" onmouseout="this.style.background='transparent'">
+                            <td style="padding: 16px 24px;">
+                                <a href="{% url 'inventory:purchase_order_detail' po.pk %}" style="font-weight: 700; font-size: 15px; color: var(--color-primary-light); text-decoration: none;">
+                                    {{ po.po_number }}
+                                </a>
+                                <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Created: {{ po.created_at|date:"Y-m-d" }}</div>
+                            </td>
+                            <td style="padding: 16px 24px; font-size: 14px; font-weight: 600; color: var(--text-primary);">
+                                {{ po.supplier.name }}
+                            </td>
+                            <td style="padding: 16px 24px; font-size: 14px; color: var(--text-secondary);">
+                                {{ po.branch.name }}
+                            </td>
+                            <td style="padding: 16px 24px; font-size: 13px; text-align: center; color: var(--text-secondary);">
+                                {{ po.order_date }}
+                            </td>
+                            <td style="padding: 16px 24px; font-size: 14px; font-weight: 700; color: var(--text-primary); text-align: right;">
+                                ₹{{ po.total_amount|floatformat:2 }}
+                            </td>
+                            <td style="padding: 16px 24px; text-align: center;">
+                                <span style="padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; text-transform: uppercase;
+                                    {% if po.status == 'draft' %}background: rgba(255,255,255,0.05); color: var(--text-muted);
+                                    {% elif po.status == 'sent' %}background: rgba(245,158,11,0.12); color: var(--color-warning);
+                                    {% elif po.status == 'received' %}background: rgba(16,185,129,0.12); color: var(--color-success);
+                                    {% else %}background: rgba(239,68,68,0.12); color: var(--color-danger);{% endif %}">
+                                    {{ po.get_status_display }}
+                                </span>
+                            </td>
+                            <td style="padding: 16px 24px; text-align: right;">
+                                <a href="{% url 'inventory:purchase_order_detail' po.pk %}" class="btn btn-sm btn-outline" style="font-size: 12px; padding: 6px 12px; border-radius: 6px;">View Details</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="table-empty" style="padding: 60px 24px; text-align: center;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48" style="color: var(--text-muted); margin-bottom: 16px;">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+            </svg>
+            <p style="font-size: 16px; font-weight: 600; color: var(--text-secondary); margin: 0 0 8px 0;">No Purchase Orders found</p>
+            <p style="font-size: 13px; color: var(--text-muted); margin: 0 0 20px 0;">Create a purchase order to stock inventory from suppliers.</p>
+            <a href="{% url 'inventory:purchase_order_create' %}" class="btn btn-primary">Create Purchase Order</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

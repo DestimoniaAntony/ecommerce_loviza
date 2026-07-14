@@ -1,0 +1,366 @@
+{% extends 'storefront/base.html' %}
+{% load static %}
+{% load currency_tags %}
+
+{% block content %}
+  <main class="product-main">
+    <div class="product-layout">
+      
+      <!-- Left: Image Gallery -->
+      <div class="product-gallery">
+        <!-- Thumbnail Column -->
+        <div class="gallery-thumbnails">
+          {% if product.image %}
+          <div class="thumb-item active">
+            <img alt="{{ product.name }}" src="{{ product.image.url }}"/>
+          </div>
+          {% endif %}
+          
+          {% for img in product.images.all %}
+          <div class="thumb-item {% if not product.image and forloop.first %}active{% endif %}">
+            <img alt="{{ img.alt_text|default:product.name }}" src="{{ img.image.url }}"/>
+          </div>
+          {% endfor %}
+          
+          {% if not product.image and not product.images.all %}
+          <div class="thumb-item active">
+            <img alt="{{ product.name }}" src="{% static 'storefront/images/product_main.png' %}"/>
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="gallery-main-img" style="position: relative;">
+          {% if product.image %}
+          <img alt="{{ product.name }}" id="main-image" src="{{ product.image.url }}" style="cursor: zoom-in; width: 100%; object-fit: contain;" onclick="openLightbox()"/>
+          {% elif product.images.first %}
+          <img alt="{{ product.name }}" id="main-image" src="{{ product.images.first.image.url }}" style="cursor: zoom-in; width: 100%; object-fit: contain;" onclick="openLightbox()"/>
+          {% else %}
+          <img alt="{{ product.name }}" id="main-image" src="{% static 'storefront/images/product_main.png' %}" style="width: 100%; object-fit: contain;"/>
+          {% endif %}
+        </div>
+      </div>
+      <!-- Right: Purchase Panel (Sticky) -->
+      <div class="product-panel">
+        <div class="product-panel-sticky">
+          <!-- Header Info -->
+          <div class="product-title-section">
+            <span class="text-label-caps text-secondary">{{ product.category.name|default:"Uncategorized"|upper }}</span>
+            <h1 class="text-display-md">{{ product.name }}</h1>
+            <p class="text-headline-lg product-price">
+              <span id="display-price">{% format_price default_variant.price|default:"0.00" %}</span>
+              {% if default_variant.discount_percentage > 0 %}
+                <span id="display-compare-price" style="text-decoration: line-through; color: #777; font-size: 0.7em; margin-left: 10px;">{% format_price default_variant.compare_at_price %}</span>
+                <span id="display-discount" style="color: #d32f2f; font-weight: bold; font-size: 0.7em; margin-left: 10px;">{{ default_variant.discount_percentage }}% OFF</span>
+              {% else %}
+                <span id="display-compare-price" style="display: none; text-decoration: line-through; color: #777; font-size: 0.7em; margin-left: 10px;"></span>
+                <span id="display-discount" style="display: none; color: #d32f2f; font-weight: bold; font-size: 0.7em; margin-left: 10px;"></span>
+              {% endif %}
+            </p>
+          </div>
+          
+          <!-- Description -->
+          <p class="text-body-md product-description">{{ product.description }}</p>
+          
+          <!-- Selectors -->
+          <div class="product-options">
+            <form id="add-to-cart-form" method="post" action="{% url 'storefront:cart_add' %}">
+                {% csrf_token %}
+                {% if product.has_variants and variant_options %}
+                <div id="variant-options-container">
+                    {% for option in variant_options %}
+                    <div class="option-group" style="margin-bottom: 1.5rem;">
+                        <div class="size-header" style="margin-bottom: 0.5rem;">
+                            <span class="text-label-caps" style="font-size: 0.85rem; letter-spacing: 0.05em; color: #555;">Select {{ option.name }}</span>
+                        </div>
+                        <div class="size-grid" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            {% for value in option.values %}
+                            <label style="cursor: pointer;">
+                                <input type="radio" name="option_{{ option.code }}" value="{{ value }}" data-code="{{ option.code }}" class="variant-option-radio" {% if forloop.first %}checked{% endif %} style="display:none;" onchange="handleVariantSelectionChange()">
+                                <div class="size-btn text-label-caps {% if forloop.first %}active{% endif %}" onclick="this.parentNode.parentNode.querySelectorAll('.size-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active'); this.parentNode.querySelector('input').click();">
+                                    {{ value }}
+                                </div>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <input type="hidden" name="variant_id" id="selected-variant-id" value="{{ default_variant.id }}">
+                </div>
+                {% elif product.has_variants %}
+                <div class="option-group">
+                  <div class="size-header">
+                    <span class="text-label-caps">Select Variant</span>
+                  </div>
+                  <div class="size-grid" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                    {% for variant in variants %}
+                    <label style="cursor: pointer;">
+                        <input type="radio" name="variant_id" value="{{ variant.id }}" {% if forloop.first %}checked{% endif %} style="display:none;" onchange="updateVariantPrice('{% format_price variant.price %}', '{% if variant.compare_at_price %}{% format_price variant.compare_at_price %}{% endif %}', '{{ variant.discount_percentage }}', '{{ request.tenant.track_inventory|yesno:"true,false" }}', {{ variant.stock_qty|default:'0' }}, '{% if variant.image %}{{ variant.image.url }}{% elif product.image %}{{ product.image.url }}{% elif product.images.first %}{{ product.images.first.image.url }}{% else %}{% static 'storefront/images/product_main.png' %}{% endif %}')">
+                        <div class="size-btn text-label-caps {% if forloop.first %}active{% endif %}" onclick="this.parentNode.parentNode.querySelectorAll('.size-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active'); this.parentNode.querySelector('input').click();">
+                            {{ variant.name|default:"Standard" }}
+                        </div>
+                    </label>
+                    {% empty %}
+                        <p class="text-secondary text-caption">No active variants available.</p>
+                    {% endfor %}
+                  </div>
+                </div>
+                {% else %}
+                <input type="hidden" name="variant_id" id="selected-variant-id" value="{{ default_variant.id }}">
+                {% endif %}
+                <div class="option-group" style="margin-top: 1.5rem;">
+                  <span style="display:block; margin-bottom: 0.5rem; font-size: 0.9rem; color: #333;">Quantity</span>
+                  <div style="display: flex; gap: 1rem; align-items: stretch;">
+                    <div class="quantity-selector" style="display: inline-flex; border: 1px solid var(--border-color-light, #d0d0d0); border-radius: 4px; height: 48px; align-items: center; background: #fff;">
+                      <button type="button" onclick="let q=document.getElementById('qty'); q.value=Math.max(1, parseInt(q.value)-1);" style="background:none; border:none; padding: 0 1rem; height: 100%; cursor:pointer; font-size: 1.2rem; color: #555;">-</button>
+                      <input type="number" id="qty" name="quantity" value="1" min="1" style="width: 40px; text-align: center; border: none; background: transparent; pointer-events: none; font-size: 1rem; height: 100%; outline: none;">
+                      <button type="button" onclick="let q=document.getElementById('qty'); q.value=parseInt(q.value)+1;" style="background:none; border:none; padding: 0 1rem; height: 100%; cursor:pointer; font-size: 1.2rem; color: #555;">+</button>
+                    </div>
+                    
+                    <div style="flex-grow: 1;">
+                      {% if variants %}
+                          {% if request.tenant.track_inventory and default_variant.stock_qty <= 0 %}
+                          <button type="submit" id="add-to-cart-btn" class="primary-cta-btn" disabled style="width: 100%; height: 48px; border-radius: 4px; font-weight: 500; text-transform: none; font-size: 1rem; opacity: 0.5; display: flex; align-items: center; justify-content: center; letter-spacing: normal;">Out of stock</button>
+                          {% else %}
+                          <button type="submit" id="add-to-cart-btn" class="primary-cta-btn" style="width: 100%; height: 48px; border-radius: 4px; font-weight: 500; text-transform: none; font-size: 1rem; display: flex; align-items: center; justify-content: center; letter-spacing: normal;">Add to cart</button>
+                          {% endif %}
+                      {% else %}
+                      <button type="button" class="primary-cta-btn" disabled style="width: 100%; height: 48px; border-radius: 4px; font-weight: 500; text-transform: none; font-size: 1rem; opacity: 0.5; display: flex; align-items: center; justify-content: center; letter-spacing: normal;">Out of stock</button>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+
+        <div class="cta-actions" style="margin-top: 1rem; margin-bottom: 2rem;">
+            {% if variants %}
+                {% if request.tenant.track_inventory and default_variant.stock_qty <= 0 %}
+                <button type="button" id="buy-now-btn" class="secondary-cta-btn" disabled style="width: 100%; height: 48px; border-radius: 4px; font-weight: 500; text-transform: none; font-size: 1rem; opacity: 0.5; display: flex; align-items: center; justify-content: center; letter-spacing: normal;">Buy it now</button>
+                {% else %}
+                <button type="button" id="buy-now-btn" class="secondary-cta-btn" onclick="this.form.submit(); setTimeout(()=>location.href='{% url 'storefront:checkout' %}', 500);" style="width: 100%; height: 48px; border-radius: 4px; font-weight: 500; text-transform: none; font-size: 1rem; display: flex; align-items: center; justify-content: center; letter-spacing: normal;">Buy it now</button>
+                {% endif %}
+            {% endif %}
+        </div>
+      </form>
+    </div>
+        {% if general_attributes_display or product.info_sections.exists %}
+        <div class="accordion-wrapper">
+            {% if general_attributes_display %}
+            <div class="accordion-item">
+                <button type="button" class="accordion-trigger" onclick="toggleAccordion(this)">
+                    <span class="text-label-caps">Specifications</span>
+                    <span class="material-symbols-outlined chevron">expand_more</span>
+                </button>
+                <div class="accordion-content">
+                    <div class="accordion-inner-content">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                            <tbody>
+                                {% for attr in general_attributes_display %}
+                                <tr style="border-bottom: 1px solid var(--border-color-light);">
+                                    <td style="padding: 0.75rem 0; color: var(--text-secondary); width: 40%;">{{ attr.name }}</td>
+                                    <td style="padding: 0.75rem 0; font-weight: 500;">{{ attr.value }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if product.info_sections.exists %}
+            {% for section in product.info_sections.all %}
+            <div class="accordion-item">
+              <button type="button" class="accordion-trigger" onclick="toggleAccordion(this)">
+                <span class="text-label-caps">{{ section.heading }}</span>
+                <span class="material-symbols-outlined chevron">expand_more</span>
+              </button>
+              <div class="accordion-content">
+                <div class="accordion-inner-content">
+                  {% if section.content %}
+                  {{ section.content|linebreaks }}
+                  {% endif %}
+                  {% if section.image %}
+                  <img src="{{ section.image.url }}" alt="{{ section.heading }}" style="max-width: 100%; height: auto; display: block; margin-top: 10px; border-radius: 4px;">
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+        {% endif %}
+          
+        </div>
+      </div>
+    </div>
+    
+    <script>
+    {% if variants_data_json %}
+    const variantsData = {{ variants_data_json|safe }};
+    const currencySymbol = '{{ request.tenant.currency_symbol|default:"$" }}';
+    const trackInventory = '{{ request.tenant.track_inventory|yesno:"true,false" }}';
+
+    function handleVariantSelectionChange() {
+        const optionRadios = document.querySelectorAll('.variant-option-radio:checked');
+        const selectedValues = [];
+        optionRadios.forEach(radio => {
+            selectedValues.push(radio.value);
+        });
+        
+        const comboKey = selectedValues.join('|');
+        const variantData = variantsData[comboKey];
+        
+        const addBtn = document.getElementById('add-to-cart-btn');
+        const buyBtn = document.getElementById('buy-now-btn');
+        const variantInput = document.getElementById('selected-variant-id');
+        
+        if (variantData) {
+            if (variantInput) variantInput.value = variantData.id;
+            
+            document.getElementById('display-price').innerText = variantData.price;
+            const cp = document.getElementById('display-compare-price');
+            const d = document.getElementById('display-discount');
+            if (cp && d) {
+                if (variantData.discount_percentage && parseInt(variantData.discount_percentage) > 0) {
+                    cp.innerText = variantData.compare_at_price; 
+                    cp.style.display = 'inline';
+                    d.innerText = variantData.discount_percentage + '% OFF'; 
+                    d.style.display = 'inline';
+                } else {
+                    cp.style.display = 'none'; 
+                    d.style.display = 'none';
+                }
+            }
+            
+            const mainImage = document.getElementById('main-image');
+            if (mainImage && variantData.image_url) {
+                mainImage.src = variantData.image_url;
+            }
+            
+            if (addBtn && buyBtn) {
+                if (trackInventory === 'true' && parseFloat(variantData.stock_qty) <= 0) {
+                    addBtn.disabled = true;
+                    addBtn.style.opacity = '0.5';
+                    addBtn.innerText = 'Out of stock';
+                    buyBtn.disabled = true;
+                    buyBtn.style.opacity = '0.5';
+                } else {
+                    addBtn.disabled = false;
+                    addBtn.style.opacity = '1';
+                    addBtn.innerText = 'Add to cart';
+                    buyBtn.disabled = false;
+                    buyBtn.style.opacity = '1';
+                }
+            }
+        } else {
+            if (variantInput) variantInput.value = "";
+            if (addBtn && buyBtn) {
+                addBtn.disabled = true;
+                addBtn.style.opacity = '0.5';
+                addBtn.innerText = 'Unavailable';
+                buyBtn.disabled = true;
+                buyBtn.style.opacity = '0.5';
+            }
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        handleVariantSelectionChange();
+    });
+    {% endif %}
+
+    function updateVariantPrice(priceStr, comparePriceStr, discountStr, trackInventoryFlag, stockQty, imageUrl) {
+        document.getElementById('display-price').innerText = priceStr;
+        const cp = document.getElementById('display-compare-price');
+        const d = document.getElementById('display-discount');
+        if (cp && d) {
+            if (discountStr && parseInt(discountStr) > 0) {
+                cp.innerText = comparePriceStr; cp.style.display = 'inline';
+                d.innerText = discountStr + '% OFF'; d.style.display = 'inline';
+            } else {
+                cp.style.display = 'none'; d.style.display = 'none';
+            }
+        }
+        
+        const mainImage = document.getElementById('main-image');
+        if (mainImage && imageUrl) {
+            mainImage.src = imageUrl;
+        }
+        
+        const addBtn = document.getElementById('add-to-cart-btn');
+        const buyBtn = document.getElementById('buy-now-btn');
+        if (addBtn && buyBtn) {
+            if (trackInventoryFlag === 'true' && parseFloat(stockQty) <= 0) {
+                addBtn.disabled = true;
+                addBtn.style.opacity = '0.5';
+                addBtn.innerText = 'Out of stock';
+                buyBtn.disabled = true;
+                buyBtn.style.opacity = '0.5';
+            } else {
+                addBtn.disabled = false;
+                addBtn.style.opacity = '1';
+                addBtn.innerText = 'Add to cart';
+                buyBtn.disabled = false;
+                buyBtn.style.opacity = '1';
+            }
+        }
+    }
+    </script>
+
+    {% if related_products %}
+    <!-- Related Products -->
+    <section class="related-section">
+      <div class="section-header">
+        <div>
+          <span class="text-label-caps text-secondary">Curated For You</span>
+          <h2 class="text-headline-lg" style="margin-top: 0.5rem;">You May Also Like</h2>
+        </div>
+        <a class="text-label-caps" style="text-decoration: underline;" href="{% url 'storefront:catalog' %}">View All</a>
+      </div>
+      
+      <div class="related-grid scroll-snap-container">
+        {% for rel_product in related_products %}
+        <div class="product-card" onclick="location.href='{% url 'storefront:product_detail' rel_product.slug %}'" style="position: relative; cursor: pointer;">
+          <div class="product-card-img-wrapper">
+            <button class="product-wishlist-btn" onclick="event.stopPropagation(); toggleWishlist(this);" title="Add to Wishlist">
+              <span class="material-symbols-outlined">favorite_border</span>
+            </button>
+            {% if rel_product.image %}
+            <img alt="{{ rel_product.name }}" src="{{ rel_product.image.url }}"/>
+            {% else %}
+            <img alt="{{ rel_product.name }}" src="{% static 'storefront/images/product_main.png' %}"/>
+            {% endif %}
+            
+            {% if rel_product.variants.first %}
+            <form action="{% url 'storefront:cart_add' %}" method="post" onclick="event.stopPropagation();">
+                {% csrf_token %}
+                <input type="hidden" name="variant_id" value="{{ rel_product.variants.first.id }}">
+                <input type="hidden" name="quantity" value="1">
+                <button type="submit" class="product-quick-add text-label-caps">Quick Add</button>
+            </form>
+            {% else %}
+            <button class="product-quick-add text-label-caps" onclick="event.stopPropagation(); location.href='{% url 'storefront:product_detail' rel_product.slug %}'">View Details</button>
+            {% endif %}
+          </div>
+          <div class="product-card-details">
+            <h3 class="text-body-md">{{ rel_product.name }}</h3>
+            <p class="text-label-caps text-secondary">
+              {{ rel_product.price_range }}
+              {% if rel_product.max_discount_percentage > 0 %}
+                <span style="color: #d32f2f; font-weight: bold; margin-left: 8px;">{{ rel_product.max_discount_percentage }}% OFF</span>
+              {% endif %}
+            </p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- Lightbox Modal -->
+    <div id="image-lightbox" class="lightbox-overlay" onclick="closeLightbox()">
+      <span class="lightbox-close material-symbols-outlined">close</span>
+      <img id="lightbox-img" src="" alt="Enlarged product image" onclick="event.stopPropagation();"/>
+    </div>
+
+    </main>
+{% endblock %}

@@ -1,0 +1,162 @@
+{% extends 'base/vendor_base.html' %}
+{% load static %}
+
+{% block title %}Stock Transfer Details — {{ transfer.transfer_number }}{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{% url 'commercehub_app:dashboard' %}">Dashboard</a>
+    <span class="breadcrumb-sep">›</span>
+    <a href="{% url 'inventory:stock_transfer_list' %}">Stock Transfers</a>
+    <span class="breadcrumb-sep">›</span>
+    <span>{{ transfer.transfer_number }}</span>
+</div>
+
+<!-- Workflow visual progress -->
+<div class="data-card" style="padding: 20px; margin-bottom: 24px;">
+    <div class="workflow-visual" style="justify-content: center; padding: 10px 0;">
+        <div class="workflow-step {% if transfer.status == 'pending' or transfer.status == 'transit' or transfer.status == 'completed' %}active-step{% endif %}">
+            1. Requested
+        </div>
+        <div class="workflow-arrow">➔</div>
+        <div class="workflow-step {% if transfer.status == 'transit' or transfer.status == 'completed' %}active-step{% endif %}">
+            2. In-Transit (Dispatched)
+        </div>
+        <div class="workflow-arrow">➔</div>
+        <div class="workflow-step {% if transfer.status == 'completed' %}active-step{% endif %}">
+            3. Completed (Received)
+        </div>
+        {% if transfer.status == 'cancelled' %}
+            <div class="workflow-arrow">➔</div>
+            <div class="workflow-step" style="background: rgba(239,68,68,0.15); border-color: var(--color-danger); color: var(--color-danger);">
+                Cancelled
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: start; margin-bottom: 24px;">
+    
+    <!-- Main items list -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+        <div class="data-card" style="padding: 28px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px; flex-wrap: wrap; gap: 16px;">
+                <div>
+                    <h2 style="font-size: 24px; font-weight: 800; color: var(--text-primary); margin: 0;">{{ transfer.transfer_number }}</h2>
+                    <p style="font-size: 13px; color: var(--text-muted); margin: 6px 0 0 0;">Status: 
+                        <span style="font-weight: 700; text-transform: uppercase;
+                            {% if transfer.status == 'pending' %}color: var(--text-muted);
+                            {% elif transfer.status == 'transit' %}color: var(--color-warning);
+                            {% elif transfer.status == 'completed' %}color: var(--color-success);
+                            {% else %}color: var(--color-danger);{% endif %}">
+                            {{ transfer.get_status_display }}
+                        </span>
+                    </p>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 13px; color: var(--text-muted);">Request Date</div>
+                    <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-top: 4px;">{{ transfer.created_at|date:"Y-m-d H:i" }}</div>
+                </div>
+            </div>
+
+            <!-- Items Table -->
+            <h3 class="form-section-title" style="margin-bottom: 16px; font-size: 12px;">Items to Transfer</h3>
+            <table style="width: 100%; border-collapse: collapse; text-align: left; margin-bottom: 24px;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-size: 13px;">
+                        <th style="padding: 10px 12px; width: 60%;">Product Details</th>
+                        <th style="padding: 10px 12px; width: 40%; text-align: center;">Quantity to Transfer</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                        <tr style="border-bottom: 1px solid var(--border-color-light);">
+                            <td style="padding: 14px 12px;">
+                                <div style="font-weight: 600; font-size: 15px; color: var(--text-primary);">
+                                    {{ item.product_variant.product.name }}
+                                </div>
+                                <div style="font-family: monospace; font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+                                    SKU: {{ item.product_variant.sku }} {% if item.product_variant.name %}| Option: {{ item.product_variant.name }}{% endif %}
+                                </div>
+                            </td>
+                            <td style="padding: 14px 12px; text-align: center; font-size: 14px; font-weight: 700; color: var(--color-primary-light);">
+                                {{ item.quantity|floatformat:2 }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% if transfer.notes %}
+                <div style="margin-top: 28px; background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); padding: 16px; border-radius: 6px;">
+                    <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;">Transfer Remarks / Notes</div>
+                    <p style="font-size: 13px; color: var(--text-secondary); margin: 0; white-space: pre-line;">{{ transfer.notes }}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Sidebar actions & details -->
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        
+        <!-- Status Transitions Card -->
+        {% if transfer.status == 'pending' or transfer.status == 'transit' %}
+            <div class="data-card" style="padding: 24px; border-color: var(--color-primary);">
+                <h3 class="form-section-title" style="margin-bottom: 16px; font-size: 12px; color: var(--color-primary-light);">Workflow Transitions</h3>
+                
+                <form method="post" action="{% url 'inventory:stock_transfer_status_update' transfer.pk %}" style="display: flex; flex-direction: column; gap: 12px;">
+                    {% csrf_token %}
+                    
+                    {% if transfer.status == 'pending' %}
+                        <button type="submit" name="action" value="dispatch" class="btn btn-primary" style="width: 100%; justify-content: center; height: 42px;"
+                                onclick="return confirm('Confirm dispatch of stock? This will deduct the items quantity from the source branch ({{ transfer.from_branch.name }}).')">
+                            🚚 Dispatch / Ship Stock
+                        </button>
+                    {% endif %}
+                    
+                    <button type="submit" name="action" value="complete" class="btn btn-success" style="width: 100%; justify-content: center; height: 42px; background: var(--color-success); border-color: var(--color-success);"
+                            onclick="return confirm('Confirm completion of stock transfer? This will add the items quantity to the destination branch ({{ transfer.to_branch.name }}).')">
+                        ✅ Complete (Receive Stock)
+                    </button>
+                    
+                    <button type="submit" name="action" value="cancel" class="btn btn-ghost text-danger" style="width: 100%; justify-content: center; height: 42px;"
+                            onclick="return confirm('Are you sure you want to cancel this stock transfer? Deducted stock (if dispatched) will be restored to source.')">
+                        Cancel Transfer
+                    </button>
+                </form>
+            </div>
+        {% endif %}
+
+        <!-- Information Card -->
+        <div class="data-card" style="padding: 24px;">
+            <h3 class="form-section-title" style="margin-bottom: 16px; font-size: 11px;">Transfer Routing</h3>
+            
+            <div class="field-list" style="gap: 16px;">
+                <div class="field-row" style="flex-direction: column; gap: 4px; align-items: flex-start;">
+                    <dt style="font-size: 11px; text-transform: uppercase; color: var(--color-danger);">From (Source)</dt>
+                    <dd style="text-align: left; font-weight: 700; color: var(--text-primary); font-size: 14px;">{{ transfer.from_branch.name }}</dd>
+                </div>
+
+                <div class="field-row" style="flex-direction: column; gap: 4px; align-items: flex-start;">
+                    <dt style="font-size: 11px; text-transform: uppercase; color: var(--color-success);">To (Destination)</dt>
+                    <dd style="text-align: left; font-weight: 700; color: var(--text-primary); font-size: 14px;">{{ transfer.to_branch.name }}</dd>
+                </div>
+
+                {% if transfer.sent_date %}
+                    <div class="field-row" style="flex-direction: column; gap: 4px; align-items: flex-start;">
+                        <dt style="font-size: 11px; text-transform: uppercase;">Dispatched On</dt>
+                        <dd style="text-align: left; font-weight: 600; color: var(--color-warning);">{{ transfer.sent_date|date:"Y-m-d H:i" }}</dd>
+                    </div>
+                {% endif %}
+
+                {% if transfer.received_date %}
+                    <div class="field-row" style="flex-direction: column; gap: 4px; align-items: flex-start;">
+                        <dt style="font-size: 11px; text-transform: uppercase;">Completed On</dt>
+                        <dd style="text-align: left; font-weight: 600; color: var(--color-success);">{{ transfer.received_date|date:"Y-m-d H:i" }}</dd>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends 'base/vendor_base.html' %}
+{% load static %}
+
+{% block title %}CRM Customers — {{ request.user.vendor.business_name }}{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{% url 'commercehub_app:dashboard' %}">Dashboard</a>
+    <span class="breadcrumb-sep">›</span>
+    <span>Customer CRM</span>
+</div>
+
+<div class="page-header-row">
+    <div class="page-header-info">
+        <p class="page-subtitle">Inspect customer loyalty ledgers, view wallet balances, and manage manual credits/debits.</p>
+    </div>
+</div>
+
+<div class="data-card">
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Customer Name</th>
+                    <th>Contact Phone</th>
+                    <th>Email Address</th>
+                    <th>Wallet Balance</th>
+                    <th>Loyalty Balance</th>
+                    <th>Date Registered</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer in customers %}
+                <tr>
+                    <td>
+                        <div class="table-entity">
+                            <div class="entity-avatar" style="background: linear-gradient(135deg, {{ request.user.vendor.primary_color|default:'#6366f1' }}, {{ request.user.vendor.secondary_color|default:'#8b5cf6' }});">
+                                {{ customer.first_name|first|upper }}{{ customer.last_name|first|upper }}
+                            </div>
+                            <div class="entity-info">
+                                <strong>{{ customer.get_full_name|default:"Unnamed Customer" }}</strong>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span style="font-weight: 500; color: var(--text-primary);">{{ customer.phone }}</span>
+                    </td>
+                    <td>
+                        <span class="text-secondary">{{ customer.email|default:"—" }}</span>
+                    </td>
+                    <td>
+                        <strong style="color: var(--text-primary);">₹{{ customer.wallet_balance|default:"0.00" }}</strong>
+                    </td>
+                    <td>
+                        <span class="badge badge-info" style="background: rgba(7, 89, 133, 0.12); color: #38bdf8; font-size: 12px; padding: 4px 10px;">
+                            {{ customer.loyalty_points }} pts
+                        </span>
+                    </td>
+                    <td>
+                        <span class="text-muted">{{ customer.date_joined|date:"d M Y" }}</span>
+                    </td>
+                    <td>
+                        <div class="table-actions">
+                            <a href="{% url 'crm:customer_detail' customer.pk %}" class="btn btn-sm btn-outline">
+                                View Profile
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7">
+                        <div class="table-empty">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                            </svg>
+                            <p>No customer profiles found registered under this vendor.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

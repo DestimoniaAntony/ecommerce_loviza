@@ -1,0 +1,141 @@
+{% extends 'base/vendor_base.html' %}
+{% load static %}
+
+{% block title %}{% if branch %}Edit Branch — {{ branch.name }}{% else %}Add New Branch{% endif %} — CommerceHub{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{% url 'commercehub_app:dashboard' %}">Dashboard</a>
+    <span class="breadcrumb-sep">›</span>
+    <a href="{% url 'branches:branch_list' %}">Branches &amp; Franchise</a>
+    <span class="breadcrumb-sep">›</span>
+    <span>{% if branch %}Edit Branch{% else %}Add New Branch{% endif %}</span>
+</div>
+
+<div class="data-card" style="max-width: 800px; padding: 28px;">
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="form-section">
+            <h3 class="form-section-title">Branch Identity &amp; Contact</h3>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="branch_name">Branch Name <span class="req">*</span></label>
+                    <input type="text" id="branch_name" name="name" class="form-input" 
+                           placeholder="e.g. Pune Central Outlet" required 
+                           value="{{ branch.name|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="branch_code">Branch Code <span class="req">*</span></label>
+                    <input type="text" id="branch_code" name="code" class="form-input" 
+                           placeholder="e.g. PUNE01" required maxlength="20"
+                           value="{{ branch.code|default:'' }}"
+                           {% if branch %}readonly{% endif %}>
+                    <p class="form-hint">Unique identifier for branch. Cannot be changed once created.</p>
+                </div>
+            </div>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="phone">Phone Number <span class="req">*</span></label>
+                    <input type="tel" id="phone" name="phone" class="form-input" 
+                           placeholder="9876543210" required maxlength="15"
+                           value="{{ branch.phone|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="email">Email Address</label>
+                    <input type="email" id="email" name="email" class="form-input" 
+                           placeholder="branch@example.com" 
+                           value="{{ branch.email|default:'' }}">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3 class="form-section-title">Location Address</h3>
+            <div class="form-group">
+                <label class="form-label" for="address_line1">Address Line 1</label>
+                <input type="text" id="address_line1" name="address_line1" class="form-input" 
+                       placeholder="Shop No. / Street Address" 
+                       value="{{ branch.address_line1|default:'' }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="address_line2">Address Line 2</label>
+                <input type="text" id="address_line2" name="address_line2" class="form-input" 
+                       placeholder="Locality / Landmark" 
+                       value="{{ branch.address_line2|default:'' }}">
+            </div>
+            <div class="form-grid-3">
+                <div class="form-group">
+                    <label class="form-label" for="city">City</label>
+                    <input type="text" id="city" name="city" class="form-input" 
+                           placeholder="Pune" 
+                           value="{{ branch.city|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="state">State</label>
+                    <input type="text" id="state" name="state" class="form-input" 
+                           placeholder="Maharashtra" 
+                           value="{{ branch.state|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="pincode">Pincode</label>
+                    <input type="text" id="pincode" name="pincode" class="form-input" 
+                           placeholder="411001" 
+                           value="{{ branch.pincode|default:'' }}">
+                </div>
+            </div>
+            <div class="form-group" style="max-width: 300px;">
+                <label class="form-label" for="country">Country</label>
+                <input type="text" id="country" name="country" class="form-input" 
+                       value="{{ branch.country|default:'India' }}">
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3 class="form-section-title">Branch Options</h3>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label">Primary / Main Branch</label>
+                    <div style="display: flex; gap: 16px; margin-top: 10px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-primary);">
+                            <input type="radio" name="is_main_branch" value="true" {% if branch.is_main_branch %}checked{% endif %}>
+                            <span>Yes, this is the main branch</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-primary);">
+                            <input type="radio" name="is_main_branch" value="false" {% if not branch.is_main_branch %}checked{% endif %}>
+                            <span>No</span>
+                        </label>
+                    </div>
+                </div>
+                {% if branch %}
+                <div class="form-group">
+                    <label class="form-label">Branch Status</label>
+                    <div style="display: flex; gap: 16px; margin-top: 10px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-primary);">
+                            <input type="radio" name="is_active" value="true" {% if branch.is_active %}checked{% endif %}>
+                            <span>Active / Operating</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-primary);">
+                            <input type="radio" name="is_active" value="false" {% if not branch.is_active %}checked{% endif %}>
+                            <span>Deactivated / Closed</span>
+                        </label>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="form-actions" style="margin-top: 32px;">
+            <button type="submit" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                    <polyline points="17 21 17 13 7 13 7 21"/>
+                    <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                {% if branch %}Save Changes{% else %}Create Branch{% endif %}
+            </button>
+            <a href="{% url 'branches:branch_list' %}" class="btn btn-ghost">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

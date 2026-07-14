@@ -1,0 +1,133 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Verify OTP — CommerceHub{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+
+{% block body %}
+<div class="auth-container auth-center">
+    <div class="auth-card">
+        <div class="otp-icon">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                <rect width="48" height="48" rx="14" fill="url(#otpGrad)"/>
+                <path d="M14 20h20M14 24h12M18 30h8" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                <defs>
+                    <linearGradient id="otpGrad" x1="0" y1="0" x2="48" y2="48">
+                        <stop offset="0%" stop-color="#10b981"/>
+                        <stop offset="100%" stop-color="#0ea5e9"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+        </div>
+
+        <div class="auth-form-header center">
+            <h2>Verify Your Phone</h2>
+            <p>Enter the 6-digit OTP sent to <strong>{{ masked_phone }}</strong></p>
+        </div>
+
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+
+        <form method="post" action="{% url 'accounts:otp_verify' %}" class="auth-form" id="otpForm">
+            {% csrf_token %}
+
+            <div class="otp-input-group" id="otpInputGroup">
+                <input type="text" maxlength="1" class="otp-box" id="otp1" data-next="otp2" autofocus inputmode="numeric">
+                <input type="text" maxlength="1" class="otp-box" id="otp2" data-next="otp3" data-prev="otp1" inputmode="numeric">
+                <input type="text" maxlength="1" class="otp-box" id="otp3" data-next="otp4" data-prev="otp2" inputmode="numeric">
+                <input type="text" maxlength="1" class="otp-box" id="otp4" data-next="otp5" data-prev="otp3" inputmode="numeric">
+                <input type="text" maxlength="1" class="otp-box" id="otp5" data-next="otp6" data-prev="otp4" inputmode="numeric">
+                <input type="text" maxlength="1" class="otp-box" id="otp6" data-prev="otp5" inputmode="numeric">
+            </div>
+
+            <!-- Hidden field for combined OTP -->
+            <input type="hidden" name="otp" id="hiddenOtp">
+
+            <button type="submit" class="btn btn-primary btn-full" id="verifyBtn" disabled>
+                <span class="btn-text">Verify OTP</span>
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+            </button>
+        </form>
+
+        <div class="otp-footer">
+            <p class="otp-timer">OTP expires in <span id="countdown">10:00</span></p>
+            <form method="post" action="{% url 'accounts:resend_otp' %}" id="resendForm">
+                {% csrf_token %}
+                <button type="submit" class="btn-link" id="resendBtn" disabled>Resend OTP</button>
+            </form>
+            <a href="{% url 'accounts:vendor_login' %}" class="btn-link">Change phone number</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// OTP Input Auto-advance
+const otpBoxes = document.querySelectorAll('.otp-box');
+const hiddenOtp = document.getElementById('hiddenOtp');
+const verifyBtn = document.getElementById('verifyBtn');
+
+otpBoxes.forEach((box, i) => {
+    box.addEventListener('input', function(e) {
+        const val = e.target.value.replace(/\D/g, '');
+        e.target.value = val;
+        if (val && box.dataset.next) {
+            document.getElementById(box.dataset.next).focus();
+        }
+        updateHiddenOtp();
+    });
+
+    box.addEventListener('keydown', function(e) {
+        if (e.key === 'Backspace' && !e.target.value && box.dataset.prev) {
+            document.getElementById(box.dataset.prev).focus();
+        }
+    });
+
+    box.addEventListener('paste', function(e) {
+        const paste = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+        if (paste.length === 6) {
+            otpBoxes.forEach((b, idx) => b.value = paste[idx] || '');
+            updateHiddenOtp();
+            e.preventDefault();
+        }
+    });
+});
+
+function updateHiddenOtp() {
+    const otp = Array.from(otpBoxes).map(b => b.value).join('');
+    hiddenOtp.value = otp;
+    verifyBtn.disabled = otp.length < 6;
+    if (otp.length === 6) verifyBtn.classList.add('ready');
+    else verifyBtn.classList.remove('ready');
+}
+
+// Countdown Timer
+let totalSeconds = 600; // 10 minutes
+const countdownEl = document.getElementById('countdown');
+const resendBtn = document.getElementById('resendBtn');
+
+const timer = setInterval(() => {
+    totalSeconds--;
+    const mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+    const secs = (totalSeconds % 60).toString().padStart(2, '0');
+    countdownEl.textContent = `${mins}:${secs}`;
+    if (totalSeconds <= 0) {
+        clearInterval(timer);
+        countdownEl.textContent = 'Expired';
+        countdownEl.style.color = 'var(--color-error)';
+        resendBtn.disabled = false;
+    }
+}, 1000);
+
+document.getElementById('otpForm').addEventListener('submit', function() {
+    verifyBtn.disabled = true;
+    verifyBtn.querySelector('.btn-text').textContent = 'Verifying...';
+});
+</script>
+{% endblock %}

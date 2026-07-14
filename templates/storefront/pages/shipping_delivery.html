@@ -1,0 +1,28 @@
+{% extends 'storefront/base.html' %}
+{% block content %}
+<main style="padding: 4rem var(--margin-desktop); max-width: 8000px; margin: 0 auto; min-height: 60vh;">
+  <h1 class="font-serif" style="font-size: 2.5rem; margin-bottom: 1rem; text-align: center;">Shipping & Delivery</h1>
+  <div style="text-align: center; margin-bottom: 3rem; color: var(--text-secondary); font-size: 0.9rem;">
+    <a href="{% url 'storefront:home' %}" style="color: var(--text-primary); text-decoration: none;">Home</a> 
+    <span style="margin: 0 0.5rem;">&gt;</span> 
+    <span>Shipping & Delivery</span>
+  </div>
+  <div class="prose" style="line-height: 1.8; color: var(--text-secondary); text-align: justify;">
+    
+    <h3 style="font-size: 1.5rem; margin-top: 2rem; margin-bottom: 1rem; color: var(--text-color);">SHIPPING TIME</h3>
+    <p>Shipping time varies by location, kindly select your country at checkout page and the shipping time will appear.</p>
+    <ul style="list-style-type: none; margin-left: 0; margin-bottom: 1.5rem; padding-left: 0;">
+      <li style="margin-bottom: 0.5rem;">* All shipping times exclude clearance/customs and wrong address delays as well as weekends and holidays</li>
+      <li style="margin-bottom: 0.5rem;">* For custom size orders add 5-10 working days on each shipping time stated above. This includes abayas with customized lengths.</li>
+    </ul>
+
+    <h3 style="font-size: 1.5rem; margin-top: 2rem; margin-bottom: 1rem; color: var(--text-color);">LOST/MISSING PACKAGES</h3>
+    <p>LAHA is not liable if an incorrect address is placed during the checkout process. Please make sure that your billing and shipping address is correct before processing your order. If we have made an error during fulfillment we will fully take responsibility of the original order that was made for you at no charge.</p>
+
+    <h3 style="font-size: 1.5rem; margin-top: 2rem; margin-bottom: 1rem; color: var(--text-color);">CUSTOMS</h3>
+    <p>LAHA is not responsible for any import tax fees, customs fees, or other charges that may be incurred once the items have been shipped. By purchasing our products, you consent that one or more packages may be shipped to you and may get custom fees when they arrive in your destination.</p>
+    <p>We are also not responsible for any delays in delivery caused by customs clearance procedures. We highly recommend that you familiarize yourself with your country's customs policies and regulations to avoid any unexpected fees or delays in receiving your order. Please note that customs policies vary widely from country to country and are subject to change at any time, so we encourage you to stay informed.</p>
+
+  </div>
+</main>
+{% endblock %}

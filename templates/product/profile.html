@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>My Account | MAISON</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link href="css/style.css" rel="stylesheet"/>
+  <script src="js/main.js" defer></script>
+</head>
+<body>
+
+  <!-- Header Navigation -->
+  <header>
+    <nav class="nav-container">
+      <div class="hamburger-menu" onclick="toggleMobileMenu()">
+        <span class="material-symbols-outlined" id="mobile-menu-toggle-icon">menu</span>
+      </div>
+      
+      <div class="nav-links">
+        <a class="text-label-caps" href="index.html">Home</a>
+        <a class="text-label-caps" href="collection.html">Collections</a>
+        <!-- <a class="text-label-caps" href="collection.html">Collections</a> -->
+      </div>
+      
+      <div class="nav-brand">
+        <a href="index.html"><h1>MAISON</h1></a>
+      </div>
+      
+      <div class="nav-icons">
+        <span class="material-symbols-outlined" onclick="toggleSearch()">search</span>
+        <span class="material-symbols-outlined active" onclick="location.href='profile.html'" style="cursor: pointer; color: var(--primary-color);">person</span>
+        <span class="material-symbols-outlined" onclick="location.href='wishlist.html'" style="cursor: pointer;">favorite</span>
+        <div class="cart-icon-wrapper" onclick="toggleCart()">
+          <span class="material-symbols-outlined">shopping_bag</span>
+          <span class="cart-badge">2</span>
+        </div>
+      </div>
+    </nav>
+    
+    <!-- Secondary Editorial Nav (Hidden on Mobile) -->
+    <div class="secondary-nav">
+      <a class="text-label-caps" href="collection.html">Abayas</a>
+      <a class="text-label-caps" href="collection.html">Travel Wear</a>
+      <a class="text-label-caps" href="collection.html">Accessories</a>
+      <a class="text-label-caps sale" href="collection.html">Sale</a>
+      <a class="text-label-caps" href="#">Contact</a>
+    </div>
+  </header>
+
+  <!-- Mobile Menu Drawer Overlay -->
+  <div class="mobile-nav-overlay" id="mobile-nav-overlay">
+    <a class="font-serif" href="index.html" onclick="toggleMobileMenu()">Home</a>
+    <a class="font-serif" href="collection.html" onclick="toggleMobileMenu()">Abayas</a>
+    <a class="font-serif" href="collection.html" onclick="toggleMobileMenu()">Collections</a>
+    <a class="font-serif" href="collection.html" onclick="toggleMobileMenu()">Travel Wear</a>
+    <a class="font-serif" href="collection.html" onclick="toggleMobileMenu()">Accessories</a>
+    <a class="font-serif text-accent" href="collection.html" onclick="toggleMobileMenu()" style="color: var(--accent-color)">Sale</a>
+  </div>
+
+  <main style="padding: 3rem var(--margin-desktop); max-width: var(--max-width-desktop); margin: 0 auto; width: 100%; min-height: 60vh;">
+    <!-- Account Title -->
+    <header style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem;">
+      <h1 class="text-display-lg" style="margin-bottom: 0.25rem;">My Account</h1>
+      <p class="text-caption text-secondary">Welcome back, Fatima</p>
+    </header>
+
+    <!-- Account Structure Container -->
+    <div class="profile-container">
+      
+      <!-- Left Sidebar Navigation -->
+      <aside class="profile-sidebar">
+        <button class="profile-sidebar-item active" onclick="switchTab(this, 'dashboard')">Dashboard</button>
+        <button class="profile-sidebar-item" onclick="switchTab(this, 'orders')">Order History</button>
+        <button class="profile-sidebar-item" onclick="switchTab(this, 'details')">Profile Details</button>
+        <button class="profile-sidebar-item" onclick="switchTab(this, 'addresses')">Address Book</button>
+        <button class="profile-sidebar-item" onclick="location.href='index.html'" style="margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">Logout</button>
+      </aside>
+
+      <!-- Right Tab Content Pane -->
+      <section class="profile-content">
+        
+        <!-- Dashboard Pane -->
+        <div class="profile-content-pane active" id="pane-dashboard">
+          <h2 class="font-serif text-display-md" style="margin-bottom: 1rem; font-weight: 400;">Dashboard Overview</h2>
+          <p class="text-body-md text-secondary" style="line-height: 1.6;">From your account dashboard, you can view your order summaries, manage billing and shipping details, and edit your profile settings.</p>
+          
+          <div class="dashboard-summary-cards">
+            <div class="summary-card">
+              <h4>Recent Order</h4>
+              <p class="font-serif" style="font-size: 1.25rem; margin-bottom: 0.5rem;">Order #1042</p>
+              <span class="badge-status fulfilled">Fulfilled</span>
+            </div>
+            <div class="summary-card">
+              <h4>Total Orders</h4>
+              <p class="font-serif" style="font-size: 1.25rem; margin-bottom: 0.5rem;">12 Placed</p>
+              <span class="text-caption text-secondary">Since Oct 2024</span>
+            </div>
+            <div class="summary-card">
+              <h4>Default Address</h4>
+              <p class="text-caption text-secondary" style="margin-bottom: 0.5rem; line-height: 1.4;">Fatima Al-Farsi<br>Sheikh Zayed Rd, Apt 14<br>Dubai, UAE</p>
+              <a href="#" onclick="switchTab(document.querySelectorAll('.profile-sidebar-item')[3], 'addresses'); return false;" class="text-label-caps" style="font-size: 10px; font-weight: 600; text-decoration: underline;">View All</a>
+            </div>
+          </div>
+
+          <h3 class="text-label-caps" style="margin-bottom: 1rem; font-size: 11px;">Recent Activity</h3>
+          <div style="border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 6px; background-color: var(--surface-container-lowest);">
+            <p class="text-body-md text-secondary" style="font-size: 13px;">Your last order <strong>#1042</strong> was successfully shipped and delivered on June 28, 2026. A shipping notification email was sent to <code>fatima.alfarsi@gmail.com</code>.</p>
+          </div>
+        </div>
+
+        <!-- Orders Pane -->
+        <div class="profile-content-pane" id="pane-orders">
+          <h2 class="font-serif text-display-md" style="margin-bottom: 0.5rem; font-weight: 400;">Order History</h2>
+          <p class="text-caption text-secondary">Track and view invoices for all purchases.</p>
+          
+          <table class="orders-table">
+            <thead>
+              <tr>
+                <th class="text-label-caps">Order</th>
+                <th class="text-label-caps">Date</th>
+                <th class="text-label-caps">Payment</th>
+                <th class="text-label-caps">Fulfillment</th>
+                <th class="text-label-caps" style="text-align: right;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>#1042</strong></td>
+                <td class="text-secondary">July 1, 2026</td>
+                <td><span class="badge-status paid">Paid</span></td>
+                <td><span class="badge-status fulfilled">Fulfilled</span></td>
+                <td style="text-align: right; font-weight: 600;">AED 1,250</td>
+              </tr>
+              <tr>
+                <td><strong>#1039</strong></td>
+                <td class="text-secondary">June 15, 2026</td>
+                <td><span class="badge-status paid">Paid</span></td>
+                <td><span class="badge-status fulfilled">Fulfilled</span></td>
+                <td style="text-align: right; font-weight: 600;">AED 890</td>
+              </tr>
+              <tr>
+                <td><strong>#1021</strong></td>
+                <td class="text-secondary">May 2, 2026</td>
+                <td><span class="badge-status paid">Paid</span></td>
+                <td><span class="badge-status fulfilled">Fulfilled</span></td>
+                <td style="text-align: right; font-weight: 600;">AED 2,300</td>
+              </tr>
+              <tr>
+                <td><strong>#1005</strong></td>
+                <td class="text-secondary">April 12, 2026</td>
+                <td><span class="badge-status paid">Paid</span></td>
+                <td><span class="badge-status fulfilled">Fulfilled</span></td>
+                <td style="text-align: right; font-weight: 600;">AED 950</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Details Pane -->
+        <div class="profile-content-pane" id="pane-details">
+          <h2 class="font-serif text-display-md" style="margin-bottom: 0.5rem; font-weight: 400;">Profile Details</h2>
+          <p class="text-caption text-secondary">Update your contact details and security passwords.</p>
+          
+          <form onsubmit="event.preventDefault(); alert('Profile details updated successfully!');">
+            <div class="profile-form-grid">
+              <div class="form-group">
+                <label class="text-label-caps" style="font-size: 10px; margin-bottom: 0.5rem; display: block;" for="first-name">First Name</label>
+                <input id="first-name" type="text" value="Fatima" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 13px;"/>
+              </div>
+              <div class="form-group">
+                <label class="text-label-caps" style="font-size: 10px; margin-bottom: 0.5rem; display: block;" for="last-name">Last Name</label>
+                <input id="last-name" type="text" value="Al-Farsi" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 13px;"/>
+              </div>
+              <div class="form-group full-width">
+                <label class="text-label-caps" style="font-size: 10px; margin-bottom: 0.5rem; display: block;" for="email">Email Address</label>
+                <input id="email" type="email" value="fatima.alfarsi@gmail.com" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 13px;"/>
+              </div>
+              <div class="form-group full-width">
+                <label class="text-label-caps" style="font-size: 10px; margin-bottom: 0.5rem; display: block;" for="phone">Phone Number</label>
+                <input id="phone" type="tel" value="+971 50 123 4567" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 13px;"/>
+              </div>
+              <div class="form-group">
+                <label class="text-label-caps" style="font-size: 10px; margin-bottom: 0.5rem; display: block;" for="current-pass">Current Password</label>
+                <input id="current-pass" type="password" placeholder="••••••••" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 13px;"/>
+              </div>
+              <div class="form-group">
+                <label class="text-label-caps" style="font-size: 10px; margin-bottom: 0.5rem; display: block;" for="new-pass">New Password</label>
+                <input id="new-pass" type="password" placeholder="Leave blank to keep same" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 13px;"/>
+              </div>
+            </div>
+            <button class="checkout-btn text-label-caps" type="submit" style="margin-top: 2rem; width: auto; padding: 1rem 3rem;">Save Profile Settings</button>
+          </form>
+        </div>
+
+        <!-- Addresses Pane -->
+        <div class="profile-content-pane" id="pane-addresses">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <h2 class="font-serif text-display-md" style="margin: 0; font-weight: 400;">Address Book</h2>
+            <button class="hero-btn text-label-caps" onclick="alert('Add address form opening...');" style="border: 1px solid var(--primary-color); padding: 0.5rem 1.5rem; font-size: 10px;">Add New</button>
+          </div>
+          <p class="text-caption text-secondary">Manage your delivery and billing coordinates.</p>
+          
+          <div class="addresses-grid">
+            <div class="address-card">
+              <span class="badge-status fulfilled" style="align-self: flex-start; margin-bottom: 0.5rem; font-size: 9px;">Primary Billing</span>
+              <h3 class="text-body-md" style="font-weight: 600; margin: 0;">Fatima Al-Farsi</h3>
+              <p class="text-caption text-secondary" style="line-height: 1.5; margin: 0.25rem 0 1rem 0;">
+                Sheikh Zayed Rd, Apt 14<br>
+                Dubai, 00000<br>
+                United Arab Emirates<br>
+                Phone: +971 50 123 4567
+              </p>
+              <div class="address-card-actions">
+                <button onclick="alert('Editing primary address...');">Edit</button>
+                <button onclick="alert('Primary address cannot be deleted.');" style="color: var(--accent-color);">Delete</button>
+              </div>
+            </div>
+
+            <div class="address-card">
+              <span class="badge-status pending" style="align-self: flex-start; margin-bottom: 0.5rem; font-size: 9px;">Shipping Location</span>
+              <h3 class="text-body-md" style="font-weight: 600; margin: 0;">Fatima Al-Farsi</h3>
+              <p class="text-caption text-secondary" style="line-height: 1.5; margin: 0.25rem 0 1rem 0;">
+                Al Washl Rd, Villa 82B<br>
+                Jumeirah, Dubai 00000<br>
+                United Arab Emirates<br>
+                Phone: +971 50 123 4567
+              </p>
+              <div class="address-card-actions">
+                <button onclick="alert('Editing shipping address...');">Edit</button>
+                <button onclick="if(confirm('Delete address?')) this.closest('.address-card').remove();" style="color: var(--accent-color);">Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h2 class="font-serif" style="font-size: 2.25rem; font-weight: 400;">MAISON</h2>
+        <p class="text-caption text-secondary" style="max-width: 20rem;">Elevating the everyday through architectural design and uncompromising quality since 2018.</p>
+      </div>
+      <div class="footer-col">
+        <span class="text-label-caps">Company</span>
+        <ul>
+          <li><a class="text-body-md" href="#">About Us</a></li>
+          <li><a class="text-body-md" href="#">Privacy Policy</a></li>
+          <li><a class="text-body-md" href="#">Newsletter</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <span class="text-label-caps">Service</span>
+        <ul>
+          <li><a class="text-body-md" href="#">Customer Service</a></li>
+          <li><a class="text-body-md" href="#">Shipping & Returns</a></li>
+          <li><a class="text-body-md" href="#">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <span class="text-label-caps">Social</span>
+        <ul>
+          <li><a class="text-body-md" href="#">Instagram</a></li>
+          <li><a class="text-body-md" href="#">Pinterest</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span class="text-label-caps">© 2024 MAISON. ALL RIGHTS RESERVED.</span>
+    </div>
+  </footer>
+
+  <!-- Fullscreen Search Overlay -->
+  <div class="search-overlay" id="search-overlay">
+    <div class="search-header">
+      <div class="font-serif" style="font-size: 2rem; font-weight: 400;">MAISON</div>
+      <button onclick="toggleSearch()">
+        <span class="material-symbols-outlined" style="font-size: 2rem;">close</span>
+      </button>
+    </div>
+    <div class="search-body">
+      <div class="search-input-section">
+        <input class="large-search-input" placeholder="Search for products, collections..." type="text"/>
+      </div>
+      <div class="search-suggestions">
+        <div class="recent-searches">
+          <h3 class="text-label-caps text-secondary">Recent Searches</h3>
+          <ul>
+            <li><a class="text-body-md" href="collection.html">Silk Abaya Black</a></li>
+            <li><a class="text-body-md" href="collection.html">Velvet Collection</a></li>
+            <li><a class="text-body-md" href="collection.html">Minimalist Scarf</a></li>
+          </ul>
+        </div>
+        <div class="trending-products">
+          <h3 class="text-label-caps text-secondary">Trending Products</h3>
+          <div class="trending-grid">
+            <div class="trending-item" onclick="location.href='product.html'">
+              <div class="trending-item-img">
+                <div style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAItd2pd6kexQUgyrprMFqoT9J30MuhDZbC8k2quVaVkdsCtYQJM9xwBUyEgmEpRCWBhQEjWh8hDYl81iEe_cWuNnbaPkpYfGUaXrk-8ApYR0pzWzaCMLh5n_88YHdHP6yK9kskkDfbs1ho4BIMDStHU_2aSohKC1tUl0_e_7HHg0cSfvRR6Hq3vtTblvLtsPE1pnZEMiOGPBdbL38nVy6IG_ObdIBiJ0kF3Xl3yrxLznByoiUGb3AUTDv3NkYUz-eW7azuF2CIXHY6')"></div>
+              </div>
+              <p class="text-body-md">Minimalist Linen Abaya</p>
+              <span class="text-label-caps text-secondary">$450</span>
+            </div>
+            <div class="trending-item" onclick="location.href='product.html'">
+              <div class="trending-item-img">
+                <div style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBhNxin_E341hsLphzTy6VqaaTVD5JUUWLSfRpcuwaMd-nfUc4VLel5NmLRUHEYeWtW1u8tGEE_HGClxjn4u2ub2dOlTOK9UhCoKsw-4DYC6CGYHmuNT_1VEH9XAFvR-GM5_sMgwPTIaXnFKo434aHEH-UHDE8bcIso9V3PIzT7Ot2JnzpiHrNR8zSkAiYiznysL-A2NR2FasSOKP7aPJnAWxA_jTV_Q8-GmUhUejYYESB8RdWr_miqUvk0J5cx9DVSYxy-e9KLXc3E')"></div>
+              </div>
+              <p class="text-body-md">Silk Monogram Scarf</p>
+              <span class="text-label-caps text-secondary">$120</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cart Drawer Overlay -->
+  <div class="drawer-overlay" id="cart-drawer-overlay" onclick="toggleCart()">
+    <div class="cart-drawer" id="cart-drawer" onclick="event.stopPropagation()">
+      <div class="drawer-header">
+        <h2 class="text-label-caps" style="font-size: 0.875rem;">Your Cart (2)</h2>
+        <button onclick="toggleCart()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="drawer-body">
+        <div class="cart-item-list">
+          <div class="cart-item">
+            <div class="cart-item-img" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB_bB1WWCbN_HjW5dazpfha4FakqPvyfPxrDQx1s6cZIR1G4ieEKyUPklH44H7JGG7Izwv0Q-ZTmmqNSRpo-97G_Q1FaV9u29ZEFQg3PwdjpSyI2xMl70Zqqnv8vkHeugu4LMs6qOeeOM5hs2xZ9FANM5xnBZ9mOjmE8YULehXCxYDVG34tJFUdMxcZy3MZPtZuEZooy0Q8GlsLKSkIEi-MDF-UWGn8w1xlgVTpn4K8I_i6OwLPntKXQUkl3R49y1nEhaprPYyDD724')"></div>
+            <div class="cart-item-details">
+              <div>
+                <div class="cart-item-header">
+                  <h4>Silk Overlay Abaya</h4>
+                  <p class="text-label-caps">$450</p>
+                </div>
+                <p class="cart-item-options">Color: Midnight Black</p>
+                <p class="cart-item-options">Size: Medium</p>
+              </div>
+              <div class="cart-item-footer">
+                <div class="quantity-selector">
+                  <button onclick="adjustQuantity(this, -1)">-</button>
+                  <span>1</span>
+                  <button onclick="adjustQuantity(this, 1)">+</button>
+                </div>
+                <button class="cart-item-remove">Remove</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="drawer-footer">
+        <div class="subtotal-row">
+          <span class="text-label-caps" style="color: var(--text-muted)">Subtotal</span>
+          <span class="font-serif" style="font-size: 1.5rem;">$630</span>
+        </div>
+        <p>Shipping and taxes calculated at checkout.</p>
+        <button class="checkout-btn text-label-caps" onclick="location.href='checkout.html'">Proceed to Checkout</button>
+        <button class="continue-btn text-label-caps" onclick="toggleCart()">Continue Shopping</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Dashboard Tab Switcher Script -->
+  <script>
+    function switchTab(button, tabName) {
+      // Remove active class from all sidebar buttons
+      document.querySelectorAll('.profile-sidebar-item').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      
+      // Add active class to clicked button
+      button.classList.add('active');
+      
+      // Hide all content panes
+      document.querySelectorAll('.profile-content-pane').forEach(pane => {
+        pane.classList.remove('active');
+      });
+      
+      // Show clicked content pane
+      const targetPane = document.getElementById(`pane-${tabName}`);
+      if (targetPane) {
+        targetPane.classList.add('active');
+      }
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,274 @@
+{% extends 'base/admin_base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }} — CommerceHub{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{% url 'adminapp:plan_list' %}">Plans</a>
+    <span class="breadcrumb-sep">›</span>
+    <span>{{ page_title }}</span>
+</div>
+
+{% if messages %}
+{% for message in messages %}
+<div class="alert alert-{{ message.tags }}">{{ message }}</div>
+{% endfor %}
+{% endif %}
+
+<form method="POST" action="" class="vendor-create-form">
+    {% csrf_token %}
+    
+    <div class="create-form-layout">
+        
+        <!-- ═══ LEFT: MAIN FORM ═══ -->
+        <div class="create-form-main">
+            
+            <!-- ── 1. GENERAL SETTINGS ── -->
+            <div class="create-section">
+                <div class="create-section-header">
+                    <div class="create-section-num">1</div>
+                    <div>
+                        <h3 class="create-section-title">General Settings</h3>
+                        <p class="create-section-sub">Core details for the subscription plan</p>
+                    </div>
+                </div>
+                <div class="create-section-body">
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Plan Name <span class="req">*</span></label>
+                            <input type="text" name="name" class="form-input" value="{{ plan.name }}" placeholder="e.g. Starter Plan" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Plan Type <span class="req">*</span></label>
+                            <select name="plan_type" class="form-select" required {% if plan %}disabled{% endif %}>
+                                {% for key, val in plan_choices %}
+                                <option value="{{ key }}" {% if plan.plan_type == key %}selected{% endif %}>{{ val }}</option>
+                                {% endfor %}
+                            </select>
+                            {% if plan %}
+                            <input type="hidden" name="plan_type" value="{{ plan.plan_type }}">
+                            <small class="text-muted" style="display:block; margin-top:4px;">Plan type cannot be changed once created.</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 16px;">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-textarea" rows="2" placeholder="Brief description of who this plan is for...">{{ plan.description }}</textarea>
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 16px; max-width: 300px;">
+                        <label class="form-label">Sort Order</label>
+                        <input type="number" name="sort_order" class="form-input" value="{{ plan.sort_order|default:0 }}">
+                        <p class="form-hint">Lower numbers appear first in the pricing table.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── 2. PRICING ── -->
+            <div class="create-section">
+                <div class="create-section-header">
+                    <div class="create-section-num">2</div>
+                    <div>
+                        <h3 class="create-section-title">Pricing</h3>
+                        <p class="create-section-sub">Monthly and annual billing rates</p>
+                    </div>
+                </div>
+                <div class="create-section-body">
+                    <div class="form-grid-3">
+                        <div class="form-group">
+                            <label class="form-label">Monthly Price (₹)</label>
+                            <input type="number" step="0.01" name="price" class="form-input" value="{{ plan.price|default:0 }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Annual Price (₹)</label>
+                            <input type="number" step="0.01" name="annual_price" class="form-input" value="{{ plan.annual_price|default:0 }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Trial Days</label>
+                            <input type="number" name="trial_days" class="form-input" value="{{ plan.trial_days|default:14 }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── 3. FEATURE LIMITS ── -->
+            <div class="create-section">
+                <div class="create-section-header">
+                    <div class="create-section-num">3</div>
+                    <div>
+                        <h3 class="create-section-title">Feature Limits</h3>
+                        <p class="create-section-sub">Usage caps and constraints for this plan</p>
+                    </div>
+                </div>
+                <div class="create-section-body">
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Max Products</label>
+                            <input type="number" name="max_products" class="form-input" value="{{ plan.max_products|default:100 }}">
+                            <p class="form-hint">Set to a high number like 999999 for unlimited.</p>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Max Branches</label>
+                            <input type="number" name="max_branches" class="form-input" value="{{ plan.max_branches|default:1 }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Max Staff</label>
+                            <input type="number" name="max_staff" class="form-input" value="{{ plan.max_staff|default:3 }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Orders / month</label>
+                            <input type="number" name="max_monthly_orders" class="form-input" value="{{ plan.max_monthly_orders|default:500 }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── 4. INCLUDED FEATURES ── -->
+            <div class="create-section">
+                <div class="create-section-header">
+                    <div class="create-section-num">4</div>
+                    <div>
+                        <h3 class="create-section-title">Included Features</h3>
+                        <p class="create-section-sub">Select the system modules included in this plan</p>
+                    </div>
+                </div>
+                <div class="create-section-body">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px;">
+                        
+                        <label style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: var(--transition);">
+                            <input type="checkbox" name="has_whatsapp" style="margin-top: 4px; scale: 1.1;" {% if plan.has_whatsapp %}checked{% endif %}>
+                            <div>
+                                <strong style="display: block; font-size: 14px; color: var(--text-primary);">WhatsApp Integration</strong>
+                                <span style="display: block; font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">
+                                    &bull; Automated order updates<br>
+                                    &bull; WhatsApp catalog sharing<br>
+                                    &bull; Direct customer chat<br>
+                                    &bull; Abandoned cart recovery
+                                </span>
+                            </div>
+                        </label>
+                        
+                        <label style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: var(--transition);">
+                            <input type="checkbox" name="has_loyalty" style="margin-top: 4px; scale: 1.1;" {% if plan.has_loyalty %}checked{% endif %}>
+                            <div>
+                                <strong style="display: block; font-size: 14px; color: var(--text-primary);">Loyalty &amp; Wallet</strong>
+                                <span style="display: block; font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">
+                                    &bull; Points on purchase<br>
+                                    &bull; Redeem points for discounts<br>
+                                    &bull; Store wallet balance<br>
+                                    &bull; Referral bonuses
+                                </span>
+                            </div>
+                        </label>
+
+                        <label style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: var(--transition);">
+                            <input type="checkbox" name="has_crm" style="margin-top: 4px; scale: 1.1;" {% if plan.has_crm %}checked{% endif %}>
+                            <div>
+                                <strong style="display: block; font-size: 14px; color: var(--text-primary);">CRM Module</strong>
+                                <span style="display: block; font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">
+                                    &bull; Customer segmentation<br>
+                                    &bull; Purchase history tracking<br>
+                                    &bull; Lead &amp; inquiry tracking<br>
+                                    &bull; Customer follow-up alerts
+                                </span>
+                            </div>
+                        </label>
+
+                        <label style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: var(--transition);">
+                            <input type="checkbox" name="has_marketing" style="margin-top: 4px; scale: 1.1;" {% if plan.has_marketing %}checked{% endif %}>
+                            <div>
+                                <strong style="display: block; font-size: 14px; color: var(--text-primary);">Marketing Campaigns</strong>
+                                <span style="display: block; font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">
+                                    &bull; Email blasts &amp; newsletters<br>
+                                    &bull; SMS marketing<br>
+                                    &bull; Promotional banners<br>
+                                    &bull; Coupon &amp; voucher generation
+                                </span>
+                            </div>
+                        </label>
+                        
+                        <label style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: var(--transition);">
+                            <input type="checkbox" name="has_api_access" style="margin-top: 4px; scale: 1.1;" {% if plan.has_api_access %}checked{% endif %}>
+                            <div>
+                                <strong style="display: block; font-size: 14px; color: var(--text-primary);">API Access</strong>
+                                <span style="display: block; font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">
+                                    &bull; REST API endpoints<br>
+                                    &bull; Webhooks support<br>
+                                    &bull; Custom POS integrations<br>
+                                    &bull; Developer documentation
+                                </span>
+                            </div>
+                        </label>
+                        
+                        <label style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: var(--transition);">
+                            <input type="checkbox" name="has_white_label" style="margin-top: 4px; scale: 1.1;" {% if plan.has_white_label %}checked{% endif %}>
+                            <div>
+                                <strong style="display: block; font-size: 14px; color: var(--text-primary);">White Label Branding</strong>
+                                <span style="display: block; font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">
+                                    &bull; Custom domain support<br>
+                                    &bull; Remove CommerceHub logos<br>
+                                    &bull; Custom email sender identity<br>
+                                    &bull; Fully branded invoices
+                                </span>
+                            </div>
+                        </label>
+                        
+                        <label style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: var(--transition);">
+                            <input type="checkbox" name="has_advanced_reports" style="margin-top: 4px; scale: 1.1;" {% if plan.has_advanced_reports %}checked{% endif %}>
+                            <div>
+                                <strong style="display: block; font-size: 14px; color: var(--text-primary);">Advanced Reports</strong>
+                                <span style="display: block; font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">
+                                    &bull; Sales forecasting<br>
+                                    &bull; Tax &amp; compliance reports<br>
+                                    &bull; Custom date ranges<br>
+                                    &bull; Export to CSV/PDF
+                                </span>
+                            </div>
+                        </label>
+
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- end create-form-main -->
+
+        <!-- ═══ RIGHT: STICKY SIDEBAR ═══ -->
+        <div class="create-form-sidebar">
+
+            <!-- Initial Status -->
+            <div class="create-sidebar-card">
+                <h4 class="create-sidebar-title">Status</h4>
+                <div class="status-radio-group">
+                    <label class="status-radio-item">
+                        <input type="radio" name="is_active" value="true" {% if plan is None or plan.is_active %}checked{% endif %}>
+                        <span class="status-badge status-approved">Active</span>
+                        <span class="status-radio-desc">Plan is visible and assignable</span>
+                    </label>
+                    <label class="status-radio-item">
+                        <input type="radio" name="is_active" value="false" {% if plan and not plan.is_active %}checked{% endif %}>
+                        <span class="status-badge status-suspended">Inactive</span>
+                        <span class="status-radio-desc">Plan is hidden from new vendors</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="create-form-actions">
+                <button type="submit" class="btn btn-primary btn-full">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                        <polyline points="17 21 17 13 7 13 7 21"/>
+                        <polyline points="7 3 7 8 15 8"/>
+                    </svg>
+                    {% if plan %}Save Changes{% else %}Create Plan{% endif %}
+                </button>
+                <a href="{% url 'adminapp:plan_list' %}" class="btn btn-ghost btn-full">Cancel</a>
+            </div>
+
+        </div><!-- end create-form-sidebar -->
+
+    </div><!-- end create-form-layout -->
+</form>
+{% endblock %}

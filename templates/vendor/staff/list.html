@@ -1,0 +1,102 @@
+{% extends 'base/vendor_base.html' %}
+{% load static %}
+
+{% block title %}Staff Management — {{ request.user.vendor.business_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header-row">
+    <div class="page-header-info">
+        <p class="page-subtitle">Invite, scope, and control platform access for your employee accounts.</p>
+    </div>
+    <div class="page-header-actions">
+        <a href="{% url 'accounts:staff_create' %}" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/>
+                <line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+            Add Staff Member
+        </a>
+    </div>
+</div>
+
+<div class="data-card">
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Contact</th>
+                    <th>Role</th>
+                    <th>Branch Scope</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for member in staff_users %}
+                <tr>
+                    <td>
+                        <div class="table-entity">
+                            <div class="entity-avatar">{{ member.first_name|first|upper }}{{ member.last_name|first|upper }}</div>
+                            <div class="entity-info">
+                                <strong>{{ member.get_full_name }}</strong>
+                                <span class="text-muted">Joined {{ member.date_joined|date:"d M Y" }}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="contact-info">
+                            <span>{{ member.phone }}</span>
+                            {% if member.email %}<span class="text-muted">{{ member.email }}</span>{% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        {% if member.role.is_custom %}
+                            <span class="badge badge-info" style="background: rgba(99,102,241,0.1); color: var(--color-primary-light);">{{ member.role.name }}</span>
+                        {% elif member.role %}
+                            <span class="badge badge-success" style="background: rgba(16,185,129,0.1); color: var(--color-success);">{{ member.role.name }}</span>
+                        {% else %}
+                            <span class="badge badge-warning">No Role</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if member.branch %}
+                            <span class="text-secondary">{{ member.branch.name }}</span>
+                        {% else %}
+                            <span class="text-muted" style="font-style: italic;">All Branches</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if member.is_active %}
+                            <span class="status-badge status-active">Active</span>
+                        {% else %}
+                            <span class="status-badge status-suspended">Disabled</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="table-actions">
+                            <a href="{% url 'accounts:staff_edit' member.pk %}" class="btn btn-sm btn-outline">
+                                Edit
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">
+                        <div class="table-empty">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                            </svg>
+                            <p>No staff members found.</p>
+                            <a href="{% url 'accounts:staff_create' %}" class="btn btn-primary">Add First Staff</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

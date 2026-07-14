@@ -1,0 +1,64 @@
+{% extends 'base/vendor_base.html' %}
+
+{% block content %}
+<div class="content-header">
+    <div class="header-titles">
+        <h2 class="page-title">Newsletter Subscribers</h2>
+        <p class="text-muted">Manage users who have subscribed to your newsletter.</p>
+    </div>
+</div>
+
+<div class="data-card">
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Email Address</th>
+                    <th>First Name</th>
+                    <th>Coupon Assigned</th>
+                    <th>Coupon Status</th>
+                    <th>Subscribed On</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sub in subscribers %}
+                <tr>
+                    <td><strong>{{ sub.email }}</strong></td>
+                    <td>{{ sub.first_name|default:"-" }}</td>
+                    <td>
+                        {% if sub.coupon %}
+                            <span class="badge" style="background: var(--bg-secondary); color: var(--text-primary); font-family: monospace;">{{ sub.coupon.code }}</span>
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if sub.coupon %}
+                            {% if sub.coupon.used_count > 0 %}
+                                <span class="badge" style="background-color: #d4edda; color: #155724;">Used</span>
+                            {% else %}
+                                <span class="badge" style="background-color: #fff3cd; color: #856404;">Unused</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ sub.created_at|date:"d M Y, h:i A" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 40px 0;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 48px; height: 48px; color: var(--text-muted); margin-bottom: 16px;">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                            <polyline points="22,6 12,13 2,6"></polyline>
+                        </svg>
+                        <h3 style="margin-bottom: 8px; color: var(--text-primary);">No Subscribers Yet</h3>
+                        <p class="text-muted" style="margin-bottom: 24px;">Your newsletter subscribers will appear here.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

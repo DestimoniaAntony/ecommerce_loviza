@@ -1,0 +1,158 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Vendor Login — CommerceHub{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+
+{% block body %}
+<div class="auth-container">
+    <!-- Left Branding Panel -->
+    <div class="auth-branding vendor-branding">
+        <div class="auth-branding-content">
+            <div class="auth-logo">
+                <div class="logo-icon lg">
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                        <rect width="48" height="48" rx="14" fill="url(#vBrandGrad)"/>
+                        <path d="M12 18h24M12 24h18M12 30h12" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        <defs>
+                            <linearGradient id="vBrandGrad" x1="0" y1="0" x2="48" y2="48">
+                                <stop offset="0%" stop-color="#0ea5e9"/>
+                                <stop offset="100%" stop-color="#6366f1"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="brand-name">CommerceHub</h1>
+                    <p class="brand-tagline">Vendor Portal</p>
+                </div>
+            </div>
+
+            <div class="auth-hero">
+                <h2>Manage your<br><span class="text-gradient-cyan">business online</span></h2>
+                <p>Access your store dashboard, manage orders, inventory, customers and more — all in one place.</p>
+            </div>
+
+            <div class="auth-features">
+                <div class="auth-feature">
+                    <div class="feature-dot"></div>
+                    <span>Real-time order management</span>
+                </div>
+                <div class="auth-feature">
+                    <div class="feature-dot"></div>
+                    <span>Inventory & stock tracking</span>
+                </div>
+                <div class="auth-feature">
+                    <div class="feature-dot"></div>
+                    <span>Customer CRM & loyalty</span>
+                </div>
+                <div class="auth-feature">
+                    <div class="feature-dot"></div>
+                    <span>Sales reports & analytics</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Form Panel -->
+    <div class="auth-form-panel">
+        <div class="auth-form-wrapper">
+            <div class="auth-form-header">
+                <h2>Vendor Login</h2>
+                <p>Enter your phone number to receive an OTP</p>
+            </div>
+
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+
+            <form method="post" class="auth-form" id="vendorLoginForm" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="login_method" id="loginMethod" value="otp">
+
+                <div class="form-group">
+                    <label for="id_phone" class="form-label">Phone Number</label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+                        </svg>
+                        <input type="tel" id="id_phone" name="phone" class="form-input"
+                               placeholder="+91 98765 43210" required autocomplete="tel"
+                               value="{{ request.POST.phone }}">
+                    </div>
+                    <p class="form-hint" id="phoneHint">We'll send a 6-digit OTP to this number</p>
+                </div>
+
+                <div class="form-group" id="passwordGroup" style="display: none;">
+                    <label for="id_password" class="form-label">Password</label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                        <input type="password" id="id_password" name="password" class="form-input"
+                               placeholder="••••••••" autocomplete="current-password">
+                    </div>
+                </div>
+
+                <div class="form-group" style="text-align: right; margin-top: -10px; margin-bottom: 20px;">
+                    <button type="button" id="toggleLoginMethod" class="btn-link" style="font-size: 13px;">Login with Password instead</button>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full" id="otpBtn">
+                    <span class="btn-text">Send OTP</span>
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </button>
+            </form>
+
+            <div class="auth-form-footer">
+                <p>Platform Admin? <a href="{% url 'accounts:admin_login' %}">Admin Login</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const toggleBtn = document.getElementById('toggleLoginMethod');
+const passwordGroup = document.getElementById('passwordGroup');
+const passwordInput = document.getElementById('id_password');
+const loginMethodInput = document.getElementById('loginMethod');
+const phoneHint = document.getElementById('phoneHint');
+const submitBtn = document.getElementById('otpBtn');
+const btnText = submitBtn.querySelector('.btn-text');
+
+toggleBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    if (loginMethodInput.value === 'otp') {
+        loginMethodInput.value = 'password';
+        passwordGroup.style.display = 'block';
+        passwordInput.required = true;
+        phoneHint.style.display = 'none';
+        btnText.textContent = 'Log In';
+        toggleBtn.textContent = 'Login with OTP instead';
+    } else {
+        loginMethodInput.value = 'otp';
+        passwordGroup.style.display = 'none';
+        passwordInput.required = false;
+        phoneHint.style.display = 'block';
+        btnText.textContent = 'Send OTP';
+        toggleBtn.textContent = 'Login with Password instead';
+    }
+});
+
+document.getElementById('vendorLoginForm').addEventListener('submit', function() {
+    submitBtn.disabled = true;
+    if (loginMethodInput.value === 'otp') {
+        btnText.textContent = 'Sending OTP...';
+    } else {
+        btnText.textContent = 'Logging in...';
+    }
+});
+</script>
+{% endblock %}
