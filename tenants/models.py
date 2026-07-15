@@ -98,7 +98,8 @@ class Vendor(TimestampModel):
     ]
 
     CHECKOUT_WORKFLOW_CHOICES = [
-        ('online_payment', 'Online Payment'),
+        ('online_payment', 'Online Payment (Razorpay)'),
+        ('online_payment_stripe', 'Online Payment (Stripe)'),
         ('approval_payment', 'Approval then Payment'),
         ('whatsapp_enquiry', 'WhatsApp Enquiry'),
         ('cod_only', 'Cash on Delivery Only'),
@@ -164,6 +165,9 @@ class Vendor(TimestampModel):
     # ── Payment & Integration Settings ──
     razorpay_key_id = models.CharField(max_length=150, blank=True)
     razorpay_key_secret = models.CharField(max_length=150, blank=True)
+    stripe_public_key = models.CharField(max_length=150, blank=True)
+    stripe_secret_key = models.CharField(max_length=150, blank=True)
+    stripe_webhook_secret = models.CharField(max_length=150, blank=True)
     whatsapp_order_format = models.TextField(blank=True)
 
     # ── Status ──

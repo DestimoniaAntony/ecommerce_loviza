@@ -82,6 +82,15 @@
                         {% endif %}
                     </td>
                     <td>
+                        <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px; font-weight: 500;">
+                            {% if order.payment_method == 'online' %}
+                                Online Payment
+                            {% elif order.payment_method == 'wallet' %}
+                                Wallet
+                            {% else %}
+                                Cash on Delivery
+                            {% endif %}
+                        </div>
                         {% if order.payment_status == 'paid' %}
                             <span class="badge badge-success" style="background: rgba(16, 185, 129, 0.12); color: #34d399;">Paid</span>
                         {% elif order.payment_status == 'failed' %}

@@ -398,6 +398,11 @@ class VendorEditView(SuperAdminRequiredMixin, View):
         vendor.meta_title = request.POST.get('meta_title', '').strip()
         vendor.meta_description = request.POST.get('meta_description', '').strip()
 
+        if vendor.checkout_workflow in ['online_payment', 'approval_payment']:
+            vendor.stripe_public_key = request.POST.get('stripe_public_key', vendor.stripe_public_key).strip()
+            vendor.stripe_secret_key = request.POST.get('stripe_secret_key', vendor.stripe_secret_key).strip()
+            vendor.stripe_webhook_secret = request.POST.get('stripe_webhook_secret', vendor.stripe_webhook_secret).strip()
+
 
 
         # Handle files

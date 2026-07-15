@@ -219,7 +219,16 @@
                                    {% if request.POST.checkout_workflow == 'online_payment' or not request.POST.checkout_workflow %}checked{% endif %}>
                             <div class="workflow-radio-content">
                                 <span class="wf-icon">&#128179;</span>
-                                <span class="wf-name">Online Payment</span>
+                                <span class="wf-name">Online Payment (Razorpay)</span>
+                                <span class="wf-desc">Customer pays directly at checkout</span>
+                            </div>
+                        </label>
+                        <label class="workflow-radio-card">
+                            <input type="radio" name="checkout_workflow" value="online_payment_stripe"
+                                   {% if request.POST.checkout_workflow == 'online_payment_stripe' %}checked{% endif %}>
+                            <div class="workflow-radio-content">
+                                <span class="wf-icon">&#128179;</span>
+                                <span class="wf-name">Online Payment (Stripe)</span>
                                 <span class="wf-desc">Customer pays directly at checkout</span>
                             </div>
                         </label>

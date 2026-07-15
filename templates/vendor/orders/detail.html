@@ -148,8 +148,28 @@
                 </form>
             </div>
             {% else %}
+            <!-- Payment status change form -->
+            <form action="{% url 'commercehub_app:order_action' order.pk %}" method="post" style="margin-top: 16px; margin-bottom: 24px;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_payment_status">
+                
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label" for="payment_status_select">Update Payment Status</label>
+                    <select name="payment_status" id="payment_status_select" class="form-input" style="background: var(--bg-surface, #1e1e2e); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 8px 12px; width: 100%;">
+                        <option value="pending" {% if order.payment_status == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="paid" {% if order.payment_status == 'paid' %}selected{% endif %}>Paid</option>
+                        <option value="failed" {% if order.payment_status == 'failed' %}selected{% endif %}>Failed</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">
+                    Update Payment Status
+                </button>
+            </form>
+
+            <hr style="border-color: rgba(255,255,255,0.1); margin: 24px 0;">
+
             <!-- General status change form -->
-            <form action="{% url 'commercehub_app:order_action' order.pk %}" method="post" style="margin-top: 16px;">
+            <form action="{% url 'commercehub_app:order_action' order.pk %}" method="post">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="update_status">
                 

@@ -62,6 +62,8 @@
                         <strong style="color: var(--text-primary); font-size: 1rem; display: block;">
                             {% if vendor.checkout_workflow == 'online_payment' %}
                                 Online Payment (Razorpay)
+                            {% elif vendor.checkout_workflow == 'online_payment_stripe' %}
+                                Online Payment (Stripe)
                             {% elif vendor.checkout_workflow == 'approval_payment' %}
                                 Approval then Payment
                             {% elif vendor.checkout_workflow == 'whatsapp_enquiry' %}
@@ -73,6 +75,8 @@
                         <span style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-top: 4px;">
                             {% if vendor.checkout_workflow == 'online_payment' %}
                                 Customers pay securely online at checkout. Requires your Razorpay Keys.
+                            {% elif vendor.checkout_workflow == 'online_payment_stripe' %}
+                                Customers pay securely online at checkout. Requires your Stripe Keys.
                             {% elif vendor.checkout_workflow == 'approval_payment' %}
                                 Customers submit orders for your approval before receiving a payment link.
                             {% elif vendor.checkout_workflow == 'whatsapp_enquiry' %}
@@ -113,6 +117,41 @@
             </div>
             {% endif %}
 
+            <!-- Stripe Config Section -->
+            {% if vendor.checkout_workflow == 'online_payment_stripe' %}
+            <div id="stripe-config-section" style="background: rgba(99, 102, 241, 0.04); border: 1px solid rgba(99, 102, 241, 0.15); padding: 20px; border-radius: var(--radius-md, 8px); margin-bottom: 24px;">
+                <h4 style="margin-top: 0; color: var(--text-primary); font-size: 0.95rem; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="color: #6366f1;">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    Stripe Gateway Credentials
+                </h4>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
+                    Provide your Stripe API keys. Money paid by storefront customers will settle directly into your linked bank account.
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                    <div class="form-grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label class="form-label" for="stripe_public_key" style="font-weight: 500; display: block; margin-bottom: 6px; color: var(--text-primary);">Stripe Publishable Key</label>
+                            <input type="text" id="stripe_public_key" name="stripe_public_key" class="form-input" 
+                                   placeholder="pk_test_..." value="{{ vendor.stripe_public_key }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="stripe_secret_key" style="font-weight: 500; display: block; margin-bottom: 6px; color: var(--text-primary);">Stripe Secret Key</label>
+                            <input type="password" id="stripe_secret_key" name="stripe_secret_key" class="form-input" 
+                                   placeholder="sk_test_..." value="{{ vendor.stripe_secret_key }}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="stripe_webhook_secret" style="font-weight: 500; display: block; margin-bottom: 6px; color: var(--text-primary);">Stripe Webhook Secret</label>
+                        <input type="password" id="stripe_webhook_secret" name="stripe_webhook_secret" class="form-input" 
+                               placeholder="whsec_..." value="{{ vendor.stripe_webhook_secret|default:'' }}">
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 6px;">Found in your Stripe Dashboard -> Webhooks settings. Used to verify payment confirmations.</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
             <!-- WhatsApp Config Section -->
             {% if vendor.checkout_workflow == 'whatsapp_enquiry' %}
             <div id="whatsapp-config-section" style="background: rgba(34, 197, 94, 0.04); border: 1px solid rgba(34, 197, 94, 0.15); padding: 20px; border-radius: var(--radius-md, 8px); margin-bottom: 24px;">
@@ -135,6 +174,37 @@
                     <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 6px;">
                         Customise the message redirected to WhatsApp. Use placeholders: <code>{order_number}</code>, <code>{customer_name}</code>, <code>{items}</code>, <code>{total_amount}</code>, and <code>{store_name}</code>.
                     </p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Stripe Config Section -->
+            {% if vendor.checkout_workflow == 'online_payment' or vendor.checkout_workflow == 'approval_payment' %}
+            <div id="stripe-config-section" style="background: rgba(99, 102, 241, 0.04); border: 1px solid rgba(99, 102, 241, 0.15); padding: 20px; border-radius: var(--radius-md, 8px); margin-bottom: 24px;">
+                <h4 style="margin-top: 0; color: var(--text-primary); font-size: 0.95rem; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="color: #6366f1;">
+                        <rect x="2" y="5" width="20" height="14" rx="2" ry="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line>
+                    </svg>
+                    Stripe Integration Details
+                </h4>
+                
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label" for="stripe_public_key" style="font-weight: 500; display: block; margin-bottom: 6px; color: var(--text-primary);">Stripe Publishable Key</label>
+                    <input type="text" id="stripe_public_key" name="stripe_public_key" class="form-input" 
+                           placeholder="pk_test_..." value="{{ vendor.stripe_public_key }}">
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label" for="stripe_secret_key" style="font-weight: 500; display: block; margin-bottom: 6px; color: var(--text-primary);">Stripe Secret Key</label>
+                    <input type="password" id="stripe_secret_key" name="stripe_secret_key" class="form-input" 
+                           placeholder="sk_test_..." value="{{ vendor.stripe_secret_key }}">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label" for="stripe_webhook_secret" style="font-weight: 500; display: block; margin-bottom: 6px; color: var(--text-primary);">Stripe Webhook Secret</label>
+                    <input type="password" id="stripe_webhook_secret" name="stripe_webhook_secret" class="form-input" 
+                           placeholder="whsec_..." value="{{ vendor.stripe_webhook_secret }}">
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Run `stripe listen --forward-to localhost:8000/checkout/stripe/webhook/` locally to get this.</p>
                 </div>
             </div>
             {% endif %}

@@ -101,7 +101,7 @@
                   <span class="material-symbols-outlined">forum</span>
                 </div>
               </div>
-              {% elif request.tenant.checkout_workflow == 'online_payment' %}
+              {% elif request.tenant.checkout_workflow in 'online_payment,online_payment_stripe' %}
               <div class="payment-method-option active" id="pay-online" onclick="selectPayment('online'); document.getElementById('pm-online').checked=true;" style="margin-bottom: 0.5rem;">
                 <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                   <label style="cursor: pointer; display: flex; align-items: center; width: 100%;">
@@ -141,7 +141,7 @@
             <button type="submit" class="checkout-btn text-label-caps" style="font-size: 0.9375rem; width: 100%; background: #25D366; border-color: #25D366; color: white;">SEND VIA WHATSAPP</button>
             {% elif request.tenant.checkout_workflow == 'approval_payment' %}
             <button type="submit" class="checkout-btn text-label-caps" style="font-size: 0.9375rem; width: 100%;">SUBMIT FOR APPROVAL</button>
-            {% elif request.tenant.checkout_workflow == 'online_payment' %}
+            {% elif request.tenant.checkout_workflow in 'online_payment,online_payment_stripe' %}
             <button type="submit" class="checkout-btn text-label-caps" style="font-size: 0.9375rem; width: 100%;">PROCEED TO PAYMENT</button>
             {% else %}
             <button type="submit" class="checkout-btn text-label-caps" style="font-size: 0.9375rem; width: 100%;">PLACE ORDER</button>

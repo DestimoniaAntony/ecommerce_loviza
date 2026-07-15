@@ -29,6 +29,7 @@ class SuperAdminRequiredMixin(LoginRequiredMixin):
 class VendorLoginRequiredMixin(LoginRequiredMixin):
     """
     Restricts view access to authenticated vendor staff only.
+    Ensures the vendor is active, approved, and has an active subscription.
     """
 
     def dispatch(self, request, *args, **kwargs):
@@ -37,6 +38,21 @@ class VendorLoginRequiredMixin(LoginRequiredMixin):
         if request.user.is_super_admin:
             messages.warning(request, 'Please use the admin panel.')
             return redirect('adminapp:dashboard')
+            
+        vendor = getattr(request.user, 'vendor', None)
+        if vendor:
+            if not vendor.is_active or vendor.status != 'approved':
+                from django.contrib.auth import logout
+                logout(request)
+                messages.error(request, 'Your vendor account is not active or has been suspended.')
+                return redirect('accounts:vendor_login')
+                
+            if not vendor.active_subscription:
+                from django.contrib.auth import logout
+                logout(request)
+                messages.error(request, 'Your subscription has expired or is inactive. Please contact the administrator.')
+                return redirect('accounts:vendor_login')
+
         return super().dispatch(request, *args, **kwargs)
 
 

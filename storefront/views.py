@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views import View
 from django.contrib import messages
 from django.db import transaction, models
@@ -1079,6 +1079,7 @@ class PlaceOrderView(View):
         # Dynamic workflow handling
         workflow = vendor.checkout_workflow
         is_online_payment = (workflow == 'online_payment' and payment_method == 'online')
+        is_stripe_payment = (workflow == 'online_payment_stripe' and payment_method == 'online')
 
         try:
             with transaction.atomic():
@@ -1089,6 +1090,9 @@ class PlaceOrderView(View):
                 elif payment_method == 'wallet' or is_online_payment:
                     order_status = 'processing'
                     payment_status = 'paid'
+                elif is_stripe_payment:
+                    order_status = 'pending'
+                    payment_status = 'pending'
 
                 order = Order.objects.create(
                     vendor=vendor,
@@ -1143,7 +1147,7 @@ class PlaceOrderView(View):
                     coupon.save()
 
                 # Complete fulfillment steps immediately (Simulating successful online payment synchronously)
-                if order_status != 'awaiting_approval':
+                if order_status != 'awaiting_approval' and not is_stripe_payment:
                     for item in cart.items.all():
                         bi, _ = BranchInventory.objects.get_or_create(
                             branch=branch,
@@ -1164,13 +1168,40 @@ class PlaceOrderView(View):
                             notes=f'Sold via Storefront Order: {order.order_number}'
                         )
 
-                # Clear shopping cart
-                cart.items.all().delete()
-                if 'applied_coupon_id' in request.session:
-                    del request.session['applied_coupon_id']
+                # Clear shopping cart for non-stripe payments
+                if not is_stripe_payment:
+                    cart.items.all().delete()
+                    if 'applied_coupon_id' in request.session:
+                        del request.session['applied_coupon_id']
 
             # Process payment details outside database transaction
-            if is_online_payment:
+            if is_stripe_payment:
+                import stripe
+                stripe.api_key = vendor.stripe_secret_key
+                try:
+                    session = stripe.checkout.Session.create(
+                        payment_method_types=['card'],
+                        line_items=[{
+                            'price_data': {
+                                'currency': vendor.currency.lower() if vendor.currency else 'inr',
+                                'product_data': {
+                                    'name': f'Order #{order.order_number}',
+                                },
+                                'unit_amount': int(order.total_amount * 100),
+                            },
+                            'quantity': 1,
+                        }],
+                        mode='payment',
+                        success_url=request.build_absolute_uri(reverse('storefront:order_success', kwargs={'order_id': order.pk})),
+                        cancel_url=request.build_absolute_uri(reverse('storefront:checkout')),
+                        metadata={'order_id': order.pk}
+                    )
+                    return redirect(session.url)
+                except Exception as e:
+                    messages.error(request, f'Stripe payment initiation failed: {str(e)}')
+                    return redirect('storefront:checkout')
+
+            elif is_online_payment:
                 messages.success(request, 'Thank you! Your payment was successful and the order has been placed.')
                 return redirect('storefront:order_success', order_id=order.pk)
 
@@ -1305,15 +1336,97 @@ class PaymentVerifyView(CustomerRequiredMixin, View):
         })
 
 
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+
+@method_decorator(csrf_exempt, name='dispatch')
+class StripeWebhookView(View):
+    def post(self, request):
+        import stripe
+        import json
+        payload = request.body
+        sig_header = request.headers.get('STRIPE_SIGNATURE', '')
+
+        # We need the vendor to verify the signature. 
+        # But we don't know the vendor until we parse the payload.
+        # Stripe webhooks allow parsing without verification first.
+        try:
+            event = stripe.Event.construct_from(json.loads(payload), stripe.api_key)
+        except ValueError as e:
+            return HttpResponse(status=400)
+            
+        if event.type == 'checkout.session.completed':
+            session = event.data.object
+            order_id = getattr(session.metadata, 'order_id', None)
+            
+            if order_id:
+                try:
+                    order = Order.objects.get(pk=order_id)
+                    vendor = order.vendor
+                    
+                    # Now verify signature properly using vendor's webhook secret
+                    if vendor.stripe_webhook_secret:
+                        try:
+                            event = stripe.Webhook.construct_event(
+                                payload, sig_header, vendor.stripe_webhook_secret
+                            )
+                        except stripe.error.SignatureVerificationError as e:
+                            return HttpResponse(status=400)
+                    
+                    if session.payment_status == 'paid' and order.payment_status != 'paid':
+                        with transaction.atomic():
+                            order.payment_status = 'paid'
+                            order.gateway_payment_id = session.payment_intent or session.id
+                            order.status = 'processing'
+                            order.save()
+
+                            # Credit loyalty points
+                            from crm.utils import credit_loyalty_points
+                            credit_loyalty_points(order)
+
+                            # Deduct inventory
+                            branch = order.branch
+                            for o_item in order.items.all():
+                                bi, _ = BranchInventory.objects.get_or_create(
+                                    branch=branch,
+                                    product_variant=o_item.product_variant,
+                                    defaults={'stock_qty': Decimal('0.00')}
+                                )
+                                bi.stock_qty = Decimal(str(bi.stock_qty)) - Decimal(str(o_item.quantity))
+                                bi.save()
+
+                                StockAdjustmentLog.objects.create(
+                                    vendor=vendor,
+                                    branch=branch,
+                                    product_variant=o_item.product_variant,
+                                    user=order.customer,
+                                    quantity_changed=-o_item.quantity,
+                                    reason='other',
+                                    notes=f'Sold via Storefront Order: {order.order_number} (Stripe)'
+                                )
+
+                except Order.DoesNotExist:
+                    pass
+
+        return HttpResponse(status=200)
+
 class OrderSuccessView(CustomerRequiredMixin, View):
     template_name = 'storefront/success.html'
 
     def get(self, request, order_id):
         order = get_object_or_404(Order, customer=request.user, pk=order_id)
+        
+        cart = get_or_create_cart(request)
+        if cart and order.payment_status in ('paid', 'processing', 'pending'):
+            # Clear cart if order is placed (or pending/paid via stripe success_url)
+            cart.items.all().delete()
+            if 'applied_coupon_id' in request.session:
+                del request.session['applied_coupon_id']
+                
         return render(request, self.template_name, {
             'order': order, 
             'page_title': 'Order Success',
-            'cart': get_or_create_cart(request)
+            'cart': cart
         })
 
 
