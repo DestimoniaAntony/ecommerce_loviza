@@ -16,38 +16,100 @@
   <script src="{% static 'storefront/js/main.js' %}" defer></script>
   <style>
     /* Responsive Navbar */
-    .nav-container { padding: 0.5rem 1rem !important; }
+    .nav-container {
+      padding: 0.5rem 1rem !important;
+    }
+
     @media (max-width: 900px) {
-      .nav-links { display: none !important; }
-      .hamburger-menu { display: block !important; }
-      .nav-icons .person-icon { display: none !important; }
-      .nav-icons { gap: 1rem !important; }
-      .mobile-account-section { display: block !important; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #ddd; }
-      .mobile-nav-overlay { padding-bottom: 2rem; }
+      .nav-links {
+        display: none !important;
+      }
+
+      .hamburger-menu {
+        display: block !important;
+      }
+
+      .nav-icons .person-icon {
+        display: none !important;
+      }
+
+      .nav-icons {
+        gap: 1rem !important;
+      }
+
+      .mobile-account-section {
+        display: block !important;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #ddd;
+      }
+
+      .mobile-nav-overlay {
+        padding-bottom: 2rem;
+      }
     }
+
     @media (min-width: 901px) {
-      .hamburger-menu { display: none !important; }
-      .mobile-account-section { display: none !important; }
+      .hamburger-menu {
+        display: none !important;
+      }
+
+      .mobile-account-section {
+        display: none !important;
+      }
     }
-    .mobile-account-section h3 { font-family: var(--font-sans); font-size: 1.1rem; margin-bottom: 1rem; font-weight: 500; }
-    .mobile-account-section a.btn-dark { display: block; width: 100%; background: #000; color: #fff; text-align: center; padding: 0.8rem; text-decoration: none; margin-bottom: 0.8rem; font-family: var(--font-sans); font-size: 0.95rem; }
-    .mobile-account-section a.btn-outline { display: block; width: 100%; background: transparent; color: #000; border: 1px solid #000; text-align: center; padding: 0.8rem; text-decoration: none; font-family: var(--font-sans); font-size: 0.95rem; }
+
+    .mobile-account-section h3 {
+      font-family: var(--font-sans);
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      font-weight: 500;
+    }
+
+    .mobile-account-section a.btn-dark {
+      display: block;
+      width: 100%;
+      background: #000;
+      color: #fff;
+      text-align: center;
+      padding: 0.8rem;
+      text-decoration: none;
+      margin-bottom: 0.8rem;
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+    }
+
+    .mobile-account-section a.btn-outline {
+      display: block;
+      width: 100%;
+      background: transparent;
+      color: #000;
+      border: 1px solid #000;
+      text-align: center;
+      padding: 0.8rem;
+      text-decoration: none;
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+    }
   </style>
 </head>
 
 <body>
 
   <!-- Header Navigation -->
-  <header style="border-bottom: 1px solid var(--border-color); background-color: var(--surface-primary); position: relative; z-index: 1000;">
+  <header
+    style="border-bottom: 1px solid var(--border-color); background-color: var(--surface-primary); position: relative; z-index: 1000;">
     <!-- Announcement Bar -->
     {% if request.tenant.top_announcement_text %}
-    <div style="background-color: black; color: white; text-align: center; padding: 0.5rem; font-size: 0.8rem; letter-spacing: 0.05em;">
+    <div
+      style="background-color: black; color: white; text-align: center; padding: 0.5rem; font-size: 0.8rem; letter-spacing: 0.05em;">
       {{ request.tenant.top_announcement_text }}
     </div>
     {% endif %}
 
     <!-- Main Nav -->
-    <nav class="nav-container" style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; width: 100%; border: none;">
+    <nav class="nav-container"
+      style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; width: 100%; border: none;">
       <!-- Left Column (Desktop Links & Mobile Hamburger) -->
       <div class="nav-left" style="display: flex; gap: 2.5rem; align-items: center; justify-self: start;">
         <!-- Mobile Hamburger -->
@@ -57,47 +119,59 @@
 
         <!-- Left Links (Desktop) -->
         <div class="nav-links" style="display: flex; gap: 2.5rem; align-items: center;">
-        <div class="nav-item-dropdown" style="position: relative; padding: 1rem 0;">
-          <a class="nav-main-link" href="{% url 'storefront:catalog' %}" style="display: flex; align-items: center; gap: 0.25rem; font-weight: 500; font-size: 1rem; color: var(--text-primary); text-decoration: none;">Shop <span class="material-symbols-outlined" style="font-size: 1.2rem;">expand_more</span></a>
-          <div class="nav-dropdown-menu" style="position: absolute; top: 100%; left: 0; transform: none; background: #ffffff; border: none; padding: 1rem 0; min-width: 240px; z-index: 1000; box-shadow: 0 8px 24px rgba(0,0,0,0.08); margin-top: -0.5rem; border-radius: 2px;">
-            <a href="{% url 'storefront:catalog' %}" style="font-weight: 500; color: #111;">Shop All</a>
-            {% for root_node in storefront_categories %}
+          <div class="nav-item-dropdown" style="position: relative; padding: 1rem 0;">
+            <a class="nav-main-link" href="{% url 'storefront:catalog' %}"
+              style="display: flex; align-items: center; gap: 0.25rem; font-weight: 500; font-size: 1rem; color: var(--text-primary); text-decoration: none;">Shop
+              <span class="material-symbols-outlined" style="font-size: 1.2rem;">expand_more</span></a>
+            <div class="nav-dropdown-menu"
+              style="position: absolute; top: 100%; left: 0; transform: none; background: #ffffff; border: none; padding: 1rem 0; min-width: 240px; z-index: 1000; box-shadow: 0 8px 24px rgba(0,0,0,0.08); margin-top: -0.5rem; border-radius: 2px;">
+              <a href="{% url 'storefront:catalog' %}" style="font-weight: 500; color: #111;">Shop All</a>
+              {% for root_node in storefront_categories %}
               <div style="position: relative;">
-                <a href="{% url 'storefront:catalog' %}?category={{ root_node.slug }}" style="padding-right: 3rem;">{{ root_node.name }}</a>
+                <a href="{% url 'storefront:catalog' %}?category={{ root_node.slug }}" style="padding-right: 3rem;">
+                  {{ root_node.name }}</a>
                 {% if not root_node.is_leaf_node %}
-                  <span class="material-symbols-outlined" 
-                        style="position: absolute; right: 1rem; top: 0.75rem; cursor: pointer; font-size: 1.2rem; color: #888;"
-                        onclick="const sub = this.parentElement.nextElementSibling; if(sub.style.display==='none'){sub.style.display='block'; this.innerText='remove';}else{sub.style.display='none'; this.innerText='add';}">add</span>
+                <span class="material-symbols-outlined"
+                  style="position: absolute; right: 1rem; top: 0.75rem; cursor: pointer; font-size: 1.2rem; color: #888;"
+                  onclick="const sub = this.parentElement.nextElementSibling; if(sub.style.display==='none'){sub.style.display='block'; this.innerText='remove';}else{sub.style.display='none'; this.innerText='add';}">add</span>
                 {% endif %}
               </div>
               {% if not root_node.is_leaf_node %}
-                <div style="display: none; background: #fafafa;">
-                  {% for child in root_node.get_children %}
-                    <a href="{% url 'storefront:catalog' %}?category={{ child.slug }}" style="padding-left: 2.5rem; font-size: 0.85rem; color: #888; background: transparent;">
-                      <span style="margin-right: 0.25rem; opacity: 0.5;">-</span> {{ child.name }}
-                    </a>
-                  {% endfor %}
-                </div>
+              <div style="display: none; background: #fafafa;">
+                {% for child in root_node.get_children %}
+                <a href="{% url 'storefront:catalog' %}?category={{ child.slug }}"
+                  style="padding-left: 2.5rem; font-size: 0.85rem; color: #888; background: transparent;">
+                  <span style="margin-right: 0.25rem; opacity: 0.5;">-</span> {{ child.name }}
+                </a>
+                {% endfor %}
+              </div>
               {% endif %}
-            {% endfor %}
+              {% endfor %}
+            </div>
           </div>
-        </div>
-        <a class="nav-main-link" href="{% url 'storefront:about_us' %}" style="font-weight: 500; font-size: 1rem; color: var(--text-primary); text-decoration: none;">About us</a>
-        <a class="nav-main-link" href="{% url 'storefront:contact' %}" style="font-weight: 500; font-size: 1rem; color: var(--text-primary); text-decoration: none;">Contact us</a>
+          <a class="nav-main-link" href="{% url 'storefront:about_us' %}"
+            style="font-weight: 500; font-size: 1rem; color: var(--text-primary); text-decoration: none;">About us</a>
+          <a class="nav-main-link" href="{% url 'storefront:contact' %}"
+            style="font-weight: 500; font-size: 1rem; color: var(--text-primary); text-decoration: none;">Contact us</a>
         </div>
       </div>
 
       <!-- Center Brand -->
       <div class="nav-brand" style="text-align: center; justify-self: center;">
         <a href="{% url 'storefront:home' %}" style="text-decoration: none;">
-          <h1 style="font-family: 'Inter', sans-serif; font-weight: 400; letter-spacing: 0.15em; font-size: 1.75rem; text-transform: uppercase; color: var(--text-primary); margin: 0;">{{ request.tenant.business_name|default:"LAHA" }}</h1>
+          <h1
+            style="font-family: 'Inter', sans-serif; font-weight: 400; letter-spacing: 0.15em; font-size: 1.75rem; text-transform: uppercase; color: var(--text-primary); margin: 0;">
+            {{ request.tenant.business_name|default:"LAHA" }}</h1>
         </a>
       </div>
 
       <!-- Right Icons -->
       <div class="nav-icons" style="display: flex; gap: 1.5rem; align-items: center; justify-self: end;">
-        <span class="material-symbols-outlined" onclick="toggleSearch()" style="font-weight: 300; cursor: pointer;">search</span>
-        <span class="material-symbols-outlined person-icon" onclick="location.href='{% if request.user.is_authenticated and request.user.user_type == 'customer' %}{% url 'storefront:profile' %}{% else %}{% url 'storefront:login' %}{% endif %}'" style="cursor: pointer; font-weight: 300;">person</span>
+        <span class="material-symbols-outlined" onclick="toggleSearch()"
+          style="font-weight: 300; cursor: pointer;">search</span>
+        <span class="material-symbols-outlined person-icon"
+          onclick="location.href='{% if request.user.is_authenticated and request.user.user_type == 'customer' %}{% url 'storefront:profile' %}{% else %}{% url 'storefront:login' %}{% endif %}'"
+          style="cursor: pointer; font-weight: 300;">person</span>
         <div class="cart-icon-wrapper" onclick="toggleCart()" style="cursor: pointer;">
           <span class="material-symbols-outlined" style="font-weight: 300;">shopping_bag</span>
           {% if cart.items.count > 0 %}
@@ -110,69 +184,91 @@
 
   <!-- Mobile Menu Drawer Overlay -->
   <div class="mobile-nav-overlay" id="mobile-nav-overlay">
-    
+
     <!-- MAIN MOBILE MENU -->
     <div id="mobile-menu-main">
       <div class="mobile-nav-item">
-        <div class="mobile-nav-header" onclick="document.getElementById('mobile-menu-main').style.display='none'; document.getElementById('mobile-menu-shop').style.display='block';" style="cursor: pointer; padding: 1rem 0;">
+        <div class="mobile-nav-header"
+          onclick="document.getElementById('mobile-menu-main').style.display='none'; document.getElementById('mobile-menu-shop').style.display='block';"
+          style="cursor: pointer; padding: 1rem 0;">
           <a class="font-serif" href="javascript:void(0)" style="font-size: 1.1rem; padding: 0;">Shop</a>
           <span class="material-symbols-outlined">chevron_right</span>
         </div>
       </div>
-      
-      <a class="font-serif" href="{% url 'storefront:about_us' %}" onclick="toggleMobileMenu()" style="display: block; padding: 1rem 0; font-size: 1.1rem; text-decoration: none; color: inherit;">About Us</a>
-      <a class="font-serif" href="{% url 'storefront:contact' %}" onclick="toggleMobileMenu()" style="display: block; padding: 1rem 0; font-size: 1.1rem; text-decoration: none; color: inherit;">Contact Us</a>
-      
+
+      <a class="font-serif" href="{% url 'storefront:about_us' %}" onclick="toggleMobileMenu()"
+        style="display: block; padding: 1rem 0; font-size: 1.1rem; text-decoration: none; color: inherit;">About Us</a>
+      <a class="font-serif" href="{% url 'storefront:contact' %}" onclick="toggleMobileMenu()"
+        style="display: block; padding: 1rem 0; font-size: 1.1rem; text-decoration: none; color: inherit;">Contact
+        Us</a>
+
       <div class="mobile-account-section">
         <h3>My Account</h3>
         {% if request.user.is_authenticated and request.user.user_type == 'customer' %}
-          <a href="{% url 'storefront:profile' %}" class="btn-dark">Dashboard</a>
-          <a href="{% url 'storefront:logout' %}" class="btn-outline">Log out</a>
+        <a href="{% url 'storefront:profile' %}" class="btn-dark">Dashboard</a>
+        <a href="{% url 'storefront:logout' %}" class="btn-outline">Log out</a>
         {% else %}
-          <a href="{% url 'storefront:login' %}" class="btn-dark">Log in</a>
-          <a href="{% url 'storefront:register' %}" class="btn-outline">Register</a>
+        <a href="{% url 'storefront:login' %}" class="btn-dark">Log in</a>
+        <a href="{% url 'storefront:register' %}" class="btn-outline">Register</a>
         {% endif %}
       </div>
     </div>
 
     <!-- SHOP SUBMENU -->
     <div id="mobile-menu-shop" style="display: none;">
-      <div class="mobile-nav-header" onclick="document.getElementById('mobile-menu-shop').style.display='none'; document.getElementById('mobile-menu-main').style.display='block';" style="border-bottom: 1px solid var(--border-color, #eee); margin-bottom: 1rem; padding-bottom: 1rem; cursor: pointer;">
+      <div class="mobile-nav-header"
+        onclick="document.getElementById('mobile-menu-shop').style.display='none'; document.getElementById('mobile-menu-main').style.display='block';"
+        style="border-bottom: 1px solid var(--border-color, #eee); margin-bottom: 1rem; padding-bottom: 1rem; cursor: pointer;">
         <span class="material-symbols-outlined" style="margin-right: 0.5rem;">arrow_back</span>
-        <a class="font-serif" href="javascript:void(0)" style="font-size: 1.1rem; padding: 0; font-weight: 500;">Shop</a>
+        <a class="font-serif" href="javascript:void(0)"
+          style="font-size: 1.1rem; padding: 0; font-weight: 500;">Shop</a>
       </div>
-      
+
       {% for root_node in storefront_categories %}
-        {% if not root_node.is_leaf_node %}
-          <div class="mobile-nav-item">
-            <div class="mobile-nav-header" onclick="this.nextElementSibling.classList.toggle('open'); let icon = this.querySelector('.material-symbols-outlined'); icon.innerText = icon.innerText === 'add' ? 'remove' : 'add';" style="cursor: pointer; padding: 1rem 0;">
-              <a class="font-serif" href="javascript:void(0)" style="font-size: 1.1rem; padding: 0;">{{ root_node.name }}</a>
-              <span class="material-symbols-outlined">add</span>
-            </div>
-            <div class="mobile-nav-sub">
-              <a class="font-serif" href="{% url 'storefront:catalog' %}?category={{ root_node.slug }}" onclick="toggleMobileMenu()" style="display: block; padding-left: 1rem; padding-bottom: 1rem; font-size: 1.1rem; text-decoration: none; color: inherit;">All {{ root_node.name }}</a>
-              {% for child in root_node.get_children %}
-                <a class="font-serif" href="{% url 'storefront:catalog' %}?category={{ child.slug }}" onclick="toggleMobileMenu()" style="display: block; padding-left: 1rem; padding-bottom: 1rem; font-size: 1.1rem; text-decoration: none; color: inherit;">{{ child.name }}</a>
-              {% endfor %}
-            </div>
-          </div>
-        {% else %}
-          <a class="font-serif" href="{% url 'storefront:catalog' %}?category={{ root_node.slug }}" onclick="toggleMobileMenu()" style="display: block; padding: 1rem 0; font-size: 1.1rem;">{{ root_node.name }}</a>
-        {% endif %}
+      {% if not root_node.is_leaf_node %}
+      <div class="mobile-nav-item">
+        <div class="mobile-nav-header"
+          onclick="this.nextElementSibling.classList.toggle('open'); let icon = this.querySelector('.material-symbols-outlined'); icon.innerText = icon.innerText === 'add' ? 'remove' : 'add';"
+          style="cursor: pointer; padding: 1rem 0;">
+          <a class="font-serif" href="javascript:void(0)" style="font-size: 1.1rem; padding: 0;">{{ root_node.name
+            }}</a>
+          <span class="material-symbols-outlined">add</span>
+        </div>
+        <div class="mobile-nav-sub">
+          <a class="font-serif" href="{% url 'storefront:catalog' %}?category={{ root_node.slug }}"
+            onclick="toggleMobileMenu()"
+            style="display: block; padding-left: 1rem; padding-bottom: 1rem; font-size: 1.1rem; text-decoration: none; color: inherit;">All
+            {{ root_node.name }}</a>
+          {% for child in root_node.get_children %}
+          <a class="font-serif" href="{% url 'storefront:catalog' %}?category={{ child.slug }}"
+            onclick="toggleMobileMenu()"
+            style="display: block; padding-left: 1rem; padding-bottom: 1rem; font-size: 1.1rem; text-decoration: none; color: inherit;">{{
+            child.name }}</a>
+          {% endfor %}
+        </div>
+      </div>
+      {% else %}
+      <a class="font-serif" href="{% url 'storefront:catalog' %}?category={{ root_node.slug }}"
+        onclick="toggleMobileMenu()" style="display: block; padding: 1rem 0; font-size: 1.1rem;">{{ root_node.name
+        }}</a>
+      {% endif %}
       {% endfor %}
-      
-      <a class="font-serif" href="{% url 'storefront:catalog' %}" onclick="toggleMobileMenu()" style="display: block; margin-top: 1rem; border-top: 1px solid var(--border-color, #eee); padding-top: 1rem; font-size: 1.1rem;">Shop All</a>
+
+      <a class="font-serif" href="{% url 'storefront:catalog' %}" onclick="toggleMobileMenu()"
+        style="display: block; margin-top: 1rem; border-top: 1px solid var(--border-color, #eee); padding-top: 1rem; font-size: 1.1rem;">Shop
+        All</a>
     </div>
 
   </div>
 
   {% if messages %}
   <div class="messages-container" style="max-width: 1200px; margin: 1rem auto; padding: 0 5%;">
-      {% for message in messages %}
-      <div class="alert alert-{{ message.tags }}" style="padding: 1rem; margin-bottom: 1rem; border-radius: 4px; {% if message.tags == 'error' %}background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;{% elif message.tags == 'success' %}background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;{% else %}background-color: #e2e3e5; color: #383d41; border: 1px solid #d6d8db;{% endif %}">
-          {{ message }}
-      </div>
-      {% endfor %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}"
+      style="padding: 1rem; margin-bottom: 1rem; border-radius: 4px; {% if message.tags == 'error' %}background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;{% elif message.tags == 'success' %}background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;{% else %}background-color: #e2e3e5; color: #383d41; border: 1px solid #d6d8db;{% endif %}">
+      {{ message }}
+    </div>
+    {% endfor %}
   </div>
   {% endif %}
 
@@ -189,12 +285,13 @@
       <div class="footer-col accordion-item">
         <div class="accordion-header" onclick="toggleFooterAccordion(this)">
           <span class="text-label-caps">Our Policies</span>
-          <span class="material-symbols-outlined chevron-icon">expand_more</span>
+          <span class="material-symbols-outlined chevron-icon">More</span>
         </div>
         <div class="accordion-content">
           <ul>
             <li><a class="text-body-md" href="{% url 'storefront:privacy_policy' %}">Privacy Policy</a></li>
-            <li><a class="text-body-md" href="{% url 'storefront:returns_refunds' %}">Exchange and Returns Policy</a></li>
+            <li><a class="text-body-md" href="{% url 'storefront:returns_refunds' %}">Exchange and Returns Policy</a>
+            </li>
             <li><a class="text-body-md" href="{% url 'storefront:shipping_delivery' %}">Shipping & Delivery</a></li>
             <li><a class="text-body-md" href="{% url 'storefront:terms_of_service' %}">Terms Of Service</a></li>
           </ul>
@@ -205,7 +302,7 @@
       <div class="footer-col accordion-item">
         <div class="accordion-header" onclick="toggleFooterAccordion(this)">
           <span class="text-label-caps">Pages</span>
-          <span class="material-symbols-outlined chevron-icon">expand_more</span>
+          <span class="material-symbols-outlined chevron-icon">More</span>
         </div>
         <div class="accordion-content">
           <ul>
@@ -220,21 +317,25 @@
       <div class="footer-col accordion-item">
         <div class="accordion-header" onclick="toggleFooterAccordion(this)">
           <span class="text-label-caps">Social Links</span>
-          <span class="material-symbols-outlined chevron-icon">expand_more</span>
+          <span class="material-symbols-outlined chevron-icon">More</span>
         </div>
         <div class="accordion-content">
           <ul>
             {% if request.tenant.instagram_url %}
-            <li><a class="text-body-md" href="{{ request.tenant.instagram_url }}" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+            <li><a class="text-body-md" href="{{ request.tenant.instagram_url }}" target="_blank"
+                rel="noopener noreferrer">Instagram</a></li>
             {% endif %}
             {% if request.tenant.facebook_url %}
-            <li><a class="text-body-md" href="{{ request.tenant.facebook_url }}" target="_blank" rel="noopener noreferrer">Facebook</a></li>
+            <li><a class="text-body-md" href="{{ request.tenant.facebook_url }}" target="_blank"
+                rel="noopener noreferrer">Facebook</a></li>
             {% endif %}
             {% if request.tenant.twitter_url %}
-            <li><a class="text-body-md" href="{{ request.tenant.twitter_url }}" target="_blank" rel="noopener noreferrer">Twitter</a></li>
+            <li><a class="text-body-md" href="{{ request.tenant.twitter_url }}" target="_blank"
+                rel="noopener noreferrer">Twitter</a></li>
             {% endif %}
             {% if request.tenant.youtube_url %}
-            <li><a class="text-body-md" href="{{ request.tenant.youtube_url }}" target="_blank" rel="noopener noreferrer">YouTube</a></li>
+            <li><a class="text-body-md" href="{{ request.tenant.youtube_url }}" target="_blank"
+                rel="noopener noreferrer">YouTube</a></li>
             {% endif %}
           </ul>
         </div>
@@ -245,7 +346,7 @@
       <!-- <div class="footer-col accordion-item newsletter-col">
         <div class="accordion-header" onclick="toggleFooterAccordion(this)">
           <span class="text-label-caps">Sign up for updates</span>
-          <span class="material-symbols-outlined chevron-icon">expand_more</span>
+          <span class="material-symbols-outlined chevron-icon">More</span>
         </div>
         <div class="accordion-content">
           <p class="text-body-md newsletter-desc">Promotions, new products and sales. Directly to your inbox.</p>
@@ -263,70 +364,82 @@
     <div class="footer-bottom">
 
 
-      <span class="copyright-text">© {% now "Y" %} {{ request.tenant.business_name|default:"LAHA" }}. Site by <a href="https://www.stepzinvention.com/" target="_blank">Stepz Inventions</a></span>
+      <span class="copyright-text">© {% now "Y" %} {{ request.tenant.business_name|default:"LAHA" }}. Site by <a
+          href="https://www.stepzinvention.com/" target="_blank">Stepz Inventions</a></span>
 
       <!-- Payment Icons -->
       <div class="footer-payment-icons">
         <!-- Amex -->
         <div class="payment-icon-wrapper" title="American Express">
           <svg width="38" height="24" viewBox="0 0 38 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="38" height="24" rx="3" fill="#007BC1"/>
-            <text x="50%" y="58%" dominant-baseline="middle" text-anchor="middle" font-family="'Inter', sans-serif" font-weight="900" font-size="7" fill="#ffffff" letter-spacing="-0.3">AMEX</text>
+            <rect width="38" height="24" rx="3" fill="#007BC1" />
+            <text x="50%" y="58%" dominant-baseline="middle" text-anchor="middle" font-family="'Inter', sans-serif"
+              font-weight="900" font-size="7" fill="#ffffff" letter-spacing="-0.3">AMEX</text>
           </svg>
         </div>
         <!-- Apple Pay -->
         <div class="payment-icon-wrapper" title="Apple Pay">
           <svg width="38" height="24" viewBox="0 0 38 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="38" height="24" rx="3" fill="#ffffff" stroke="#e0e0e0" stroke-width="1"/>
-            <path d="M12.5 12c0-1.6 1.3-2.4 1.4-2.4-.7-1.1-1.9-1.2-2.3-1.2-1 0-2 .7-2.5.7-.5 0-1.3-.6-2.1-.6-1.1 0-2.1.6-2.6 1.6-1.1 2-0.3 4.9 0.8 6.5.5.8 1.1 1.6 2 1.5.8 0 1.2-.5 2.2-.5 1 0 1.3.5 2.2.5.9 0 1.4-.7 2-1.5.6-.9.9-1.8.9-1.8s-1.5-.6-1.5-2.3z" fill="#000000" transform="translate(4, -1) scale(0.9)"/>
-            <path d="M11.5 7.6c.4-.5.7-1.2.6-1.9-.6 0-1.4.4-1.8 1-.4.4-.7 1.1-.6 1.8.7.1 1.4-.4 1.8-.9z" fill="#000000" transform="translate(4, -1) scale(0.9)"/>
-            <text x="23" y="14.5" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="600" font-size="8.5" fill="#000000">Pay</text>
+            <rect width="38" height="24" rx="3" fill="#ffffff" stroke="#e0e0e0" stroke-width="1" />
+            <path
+              d="M12.5 12c0-1.6 1.3-2.4 1.4-2.4-.7-1.1-1.9-1.2-2.3-1.2-1 0-2 .7-2.5.7-.5 0-1.3-.6-2.1-.6-1.1 0-2.1.6-2.6 1.6-1.1 2-0.3 4.9 0.8 6.5.5.8 1.1 1.6 2 1.5.8 0 1.2-.5 2.2-.5 1 0 1.3.5 2.2.5.9 0 1.4-.7 2-1.5.6-.9.9-1.8.9-1.8s-1.5-.6-1.5-2.3z"
+              fill="#000000" transform="translate(4, -1) scale(0.9)" />
+            <path d="M11.5 7.6c.4-.5.7-1.2.6-1.9-.6 0-1.4.4-1.8 1-.4.4-.7 1.1-.6 1.8.7.1 1.4-.4 1.8-.9z" fill="#000000"
+              transform="translate(4, -1) scale(0.9)" />
+            <text x="23" y="14.5" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+              font-weight="600" font-size="8.5" fill="#000000">Pay</text>
           </svg>
         </div>
         <!-- Diners Club -->
         <div class="payment-icon-wrapper" title="Diners Club">
           <svg width="38" height="24" viewBox="0 0 38 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="38" height="24" rx="3" fill="#ffffff"/>
-            <circle cx="19" cy="12" r="8" stroke="#0079C1" stroke-width="1.5"/>
-            <circle cx="19" cy="12" r="5" fill="#0079C1"/>
-            <path d="M12 12H15M23 12H26" stroke="#0079C1" stroke-width="1.5" stroke-linecap="round"/>
+            <rect width="38" height="24" rx="3" fill="#ffffff" />
+            <circle cx="19" cy="12" r="8" stroke="#0079C1" stroke-width="1.5" />
+            <circle cx="19" cy="12" r="5" fill="#0079C1" />
+            <path d="M12 12H15M23 12H26" stroke="#0079C1" stroke-width="1.5" stroke-linecap="round" />
           </svg>
         </div>
         <!-- Discover -->
         <div class="payment-icon-wrapper" title="Discover">
           <svg width="38" height="24" viewBox="0 0 38 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="38" height="24" rx="3" fill="#ffffff"/>
-            <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="'Inter', sans-serif" font-weight="bold" font-size="6.5" fill="#000000" letter-spacing="-0.3">DISCOVER</text>
-            <circle cx="27" cy="12.5" r="2.5" fill="#FF6B00"/>
+            <rect width="38" height="24" rx="3" fill="#ffffff" />
+            <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="'Inter', sans-serif"
+              font-weight="bold" font-size="6.5" fill="#000000" letter-spacing="-0.3">DISCOVER</text>
+            <circle cx="27" cy="12.5" r="2.5" fill="#FF6B00" />
           </svg>
         </div>
         <!-- JCB -->
         <div class="payment-icon-wrapper" title="JCB">
           <svg width="38" height="24" viewBox="0 0 38 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="38" height="24" rx="3" fill="#ffffff"/>
+            <rect width="38" height="24" rx="3" fill="#ffffff" />
             <g transform="translate(6, 4)">
-              <rect x="0" y="2" width="8" height="12" rx="1.5" fill="#003780"/>
-              <rect x="9" y="2" width="8" height="12" rx="1.5" fill="#E60012"/>
-              <rect x="18" y="2" width="8" height="12" rx="1.5" fill="#00833E"/>
-              <text x="4" y="10" dominant-baseline="middle" text-anchor="middle" font-family="'Inter', sans-serif" font-weight="bold" font-size="6" fill="#ffffff">J</text>
-              <text x="13" y="10" dominant-baseline="middle" text-anchor="middle" font-family="'Inter', sans-serif" font-weight="bold" font-size="6" fill="#ffffff">C</text>
-              <text x="22" y="10" dominant-baseline="middle" text-anchor="middle" font-family="'Inter', sans-serif" font-weight="bold" font-size="6" fill="#ffffff">B</text>
+              <rect x="0" y="2" width="8" height="12" rx="1.5" fill="#003780" />
+              <rect x="9" y="2" width="8" height="12" rx="1.5" fill="#E60012" />
+              <rect x="18" y="2" width="8" height="12" rx="1.5" fill="#00833E" />
+              <text x="4" y="10" dominant-baseline="middle" text-anchor="middle" font-family="'Inter', sans-serif"
+                font-weight="bold" font-size="6" fill="#ffffff">J</text>
+              <text x="13" y="10" dominant-baseline="middle" text-anchor="middle" font-family="'Inter', sans-serif"
+                font-weight="bold" font-size="6" fill="#ffffff">C</text>
+              <text x="22" y="10" dominant-baseline="middle" text-anchor="middle" font-family="'Inter', sans-serif"
+                font-weight="bold" font-size="6" fill="#ffffff">B</text>
             </g>
           </svg>
         </div>
         <!-- Mastercard -->
         <div class="payment-icon-wrapper" title="Mastercard">
           <svg width="38" height="24" viewBox="0 0 38 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="38" height="24" rx="3" fill="#1A1A1A"/>
-            <circle cx="15.5" cy="12" r="6" fill="#EB001B"/>
-            <circle cx="22.5" cy="12" r="6" fill="#F79E1B" fill-opacity="0.8"/>
+            <rect width="38" height="24" rx="3" fill="#1A1A1A" />
+            <circle cx="15.5" cy="12" r="6" fill="#EB001B" />
+            <circle cx="22.5" cy="12" r="6" fill="#F79E1B" fill-opacity="0.8" />
           </svg>
         </div>
         <!-- Visa -->
         <div class="payment-icon-wrapper" title="Visa">
           <svg width="38" height="24" viewBox="0 0 38 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="38" height="24" rx="3" fill="#1A1F71"/>
-            <path d="M11 8H13.5L11.8 16H9.3L11 8ZM18.5 8.2C17.9 8 17.1 7.8 16.3 7.8C13.8 7.8 12 9.1 12 11.1C12 12.5 13.2 13.3 14.1 13.8C15.1 14.3 15.4 14.6 15.4 15.1C15.4 15.8 14.6 16.1 13.9 16.1C13 16.1 12.4 15.8 12 15.6L11.5 17.8C12.1 18.1 13.1 18.3 14.1 18.3C16.8 18.3 18.5 16.9 18.5 14.8C18.5 11.4 13.9 11.2 13.9 9.7C13.9 9.2 14.3 8.7 15.3 8.6C15.7 8.5 16.6 8.5 17.6 8.7L18.5 8.2ZM24.5 8H22.1C21.4 8 20.9 8.4 20.6 9.1L17.2 16H19.8L20.3 14.5H23.5L23.8 16H26.1L24.5 8ZM20.9 12.6C21.1 12 22.3 8.8 22.3 8.8L23.1 12.6H20.9ZM8.2 8H5.8L3.5 14.6C3.1 13.7 2.3 12.2 1.7 11.2C1 10.2 0.3 9.1 0 8.7L2.4 16H5L8.9 8H8.2Z" fill="#ffffff" transform="scale(0.85) translate(4, 2)"/>
+            <rect width="38" height="24" rx="3" fill="#1A1F71" />
+            <path
+              d="M11 8H13.5L11.8 16H9.3L11 8ZM18.5 8.2C17.9 8 17.1 7.8 16.3 7.8C13.8 7.8 12 9.1 12 11.1C12 12.5 13.2 13.3 14.1 13.8C15.1 14.3 15.4 14.6 15.4 15.1C15.4 15.8 14.6 16.1 13.9 16.1C13 16.1 12.4 15.8 12 15.6L11.5 17.8C12.1 18.1 13.1 18.3 14.1 18.3C16.8 18.3 18.5 16.9 18.5 14.8C18.5 11.4 13.9 11.2 13.9 9.7C13.9 9.2 14.3 8.7 15.3 8.6C15.7 8.5 16.6 8.5 17.6 8.7L18.5 8.2ZM24.5 8H22.1C21.4 8 20.9 8.4 20.6 9.1L17.2 16H19.8L20.3 14.5H23.5L23.8 16H26.1L24.5 8ZM20.9 12.6C21.1 12 22.3 8.8 22.3 8.8L23.1 12.6H20.9ZM8.2 8H5.8L3.5 14.6C3.1 13.7 2.3 12.2 1.7 11.2C1 10.2 0.3 9.1 0 8.7L2.4 16H5L8.9 8H8.2Z"
+              fill="#ffffff" transform="scale(0.85) translate(4, 2)" />
           </svg>
         </div>
       </div>
@@ -338,7 +451,8 @@
     <div class="search-modal-content">
       <!-- Search Input Header -->
       <div class="search-modal-header">
-        <input class="laha-search-input" id="global-search-input" data-search-url="{% url 'storefront:api_search' %}" placeholder="Search..." type="text" autocomplete="off" />
+        <input class="laha-search-input" id="global-search-input" data-search-url="{% url 'storefront:api_search' %}"
+          placeholder="Search..." type="text" autocomplete="off" />
         <div class="search-modal-actions">
           <button class="search-clear-btn" onclick="document.querySelector('.laha-search-input').value = ''">
             <span class="material-symbols-outlined">close</span>
@@ -348,10 +462,10 @@
           </button>
         </div>
       </div>
-      
+
       <!-- Search Results Body -->
       <div class="search-modal-body">
-        
+
         <!-- Left Column: Links -->
         <div class="search-left-col">
           <div class="search-section">
@@ -360,7 +474,7 @@
               <!-- Dynamic suggestions injected here -->
             </ul>
           </div>
-          
+
         </div>
 
         <!-- Right Column: Products -->
@@ -393,15 +507,17 @@
     <div class="currency-switcher-menu" id="footer-currency-menu">
       <form method="POST" action="{% url 'storefront:set_currency' %}">
         {% csrf_token %}
-        <button type="submit" name="currency_code" value="{{ request.tenant.currency }}" class="currency-option" onclick="selectFooterCurrency('{{ request.tenant.currency }}')">
-          <span class="flag-placeholder" data-code="{{ request.tenant.currency }}"></span> {{ request.tenant.currency }}
+        <button type="submit" name="currency_code" value="{{ request.tenant.currency }}" class="currency-option"
+          onclick="selectFooterCurrency('{{ request.tenant.currency }}')">
+          <span class="flag-placeholder" data-code="{{ request.tenant.currency }}"></span> <span class="currency-name" data-code="{{ request.tenant.currency }}">{{ request.tenant.currency }}</span>
         </button>
         {% for curr in request.tenant.supported_currencies.all %}
-          {% if curr.is_active and curr.code != request.tenant.currency %}
-            <button type="submit" name="currency_code" value="{{ curr.code }}" class="currency-option" onclick="selectFooterCurrency('{{ curr.code }}')">
-              <span class="flag-placeholder" data-code="{{ curr.code }}"></span> {{ curr.code }}
-            </button>
-          {% endif %}
+        {% if curr.is_active and curr.code != request.tenant.currency %}
+        <button type="submit" name="currency_code" value="{{ curr.code }}" class="currency-option"
+          onclick="selectFooterCurrency('{{ curr.code }}')">
+          <span class="flag-placeholder" data-code="{{ curr.code }}"></span> <span class="currency-name" data-code="{{ curr.code }}">{{ curr.code }}</span>
+        </button>
+        {% endif %}
         {% endfor %}
       </form>
     </div>
@@ -420,148 +536,178 @@
         <div class="cart-item-list" style="display: flex; flex-direction: column; gap: 2.5rem; padding-bottom: 2rem;">
 
           {% if cart and cart.items.count > 0 %}
-            {% for item in cart.items.all %}
-            <div class="cart-item">
-              <div class="cart-item-img"
-                style="background-image: url('{% if item.product_variant.image %}{{ item.product_variant.image.url }}{% elif item.product_variant.product.image %}{{ item.product_variant.product.image.url }}{% else %}{% static 'storefront/images/product_main.png' %}{% endif %}');">
+          {% for item in cart.items.all %}
+          <div class="cart-item">
+            <div class="cart-item-img"
+              style="background-image: url('{% if item.product_variant.image %}{{ item.product_variant.image.url }}{% elif item.product_variant.product.image %}{{ item.product_variant.product.image.url }}{% else %}{% static 'storefront/images/product_main.png' %}{% endif %}');">
+            </div>
+            <div class="cart-item-details" style="display: flex; flex-direction: column; gap: 0.5rem; flex-grow: 1;">
+              <div>
+                <div class="cart-item-header">
+                  <h4 style="font-weight: 600; font-size: 0.9375rem;">{{ item.product_variant.product.name }}</h4>
+                  <p class="text-label-caps" style="font-weight: 500;">
+                    {% format_price item.total_cost %}
+                    <span
+                      style="font-weight: normal; color: var(--text-muted); font-size: 0.75rem; text-transform: none; margin-left: 0.25rem;">(Qty:
+                      {{ item.quantity }})</span>
+                  </p>
+                </div>
+                {% if item.product_variant.name %}
+                <p class="cart-item-options" style="font-size: 0.75rem; color: var(--text-muted);">
+                  Variant: {{ item.product_variant.name }}
+                </p>
+                {% endif %}
               </div>
-              <div class="cart-item-details" style="display: flex; flex-direction: column; gap: 0.5rem; flex-grow: 1;">
-                <div>
-                  <div class="cart-item-header">
-                    <h4 style="font-weight: 600; font-size: 0.9375rem;">{{ item.product_variant.product.name }}</h4>
-                    <p class="text-label-caps" style="font-weight: 500;">
-                        {% format_price item.total_cost %}
-                        <span style="font-weight: normal; color: var(--text-muted); font-size: 0.75rem; text-transform: none; margin-left: 0.25rem;">(Qty: {{ item.quantity }})</span>
-                    </p>
+              <div class="cart-item-footer"
+                style="display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
+                <form method="post" action="{% url 'storefront:cart_update' %}" style="display:inline-block;">
+                  {% csrf_token %}
+                  <input type="hidden" name="item_id" value="{{ item.id }}">
+                  <div class="quantity-selector"
+                    style="display: flex; align-items: center; border: 1px solid var(--border-color);">
+                    <button type="button"
+                      onclick="const qtyInput = this.form.querySelector('input[name=quantity]'); qtyInput.value=parseInt(qtyInput.value)-1; this.form.submit();"
+                      style="padding: 0.25rem 0.5rem; background: none; border: none; cursor: pointer;">-</button>
+                    <input type="number" name="quantity" value="{{ item.quantity }}"
+                      style="width: 30px; text-align: center; border: none; background: transparent; pointer-events: none; font-size: 0.875rem;">
+                    <button type="button"
+                      onclick="const qtyInput = this.form.querySelector('input[name=quantity]'); qtyInput.value=parseInt(qtyInput.value)+1; this.form.submit();"
+                      style="padding: 0.25rem 0.5rem; background: none; border: none; cursor: pointer;">+</button>
                   </div>
-                  {% if item.product_variant.name %}
-                  <p class="cart-item-options" style="font-size: 0.75rem; color: var(--text-muted);">Variant: {{ item.product_variant.name }}</p>
-                  {% endif %}
-                </div>
-                <div class="cart-item-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
-                  <form method="post" action="{% url 'storefront:cart_update' %}" style="display:inline-block;">
-                    {% csrf_token %}
-                    <input type="hidden" name="item_id" value="{{ item.id }}">
-                    <div class="quantity-selector" style="display: flex; align-items: center; border: 1px solid var(--border-color);">
-                      <button type="button" onclick="const qtyInput = this.form.querySelector('input[name=quantity]'); qtyInput.value=parseInt(qtyInput.value)-1; this.form.submit();" style="padding: 0.25rem 0.5rem; background: none; border: none; cursor: pointer;">-</button>
-                      <input type="number" name="quantity" value="{{ item.quantity }}" style="width: 30px; text-align: center; border: none; background: transparent; pointer-events: none; font-size: 0.875rem;">
-                      <button type="button" onclick="const qtyInput = this.form.querySelector('input[name=quantity]'); qtyInput.value=parseInt(qtyInput.value)+1; this.form.submit();" style="padding: 0.25rem 0.5rem; background: none; border: none; cursor: pointer;">+</button>
-                    </div>
-                  </form>
-                  <form method="post" action="{% url 'storefront:cart_remove' %}" style="display:inline-block;">
-                    {% csrf_token %}
-                    <input type="hidden" name="item_id" value="{{ item.id }}">
-                    <button type="submit" class="cart-item-remove" style="background:none; border:none; color: var(--text-muted); font-size: 0.75rem; cursor: pointer; text-decoration: underline; text-transform: uppercase;">Remove</button>
-                  </form>
-                </div>
+                </form>
+                <form method="post" action="{% url 'storefront:cart_remove' %}" style="display:inline-block;">
+                  {% csrf_token %}
+                  <input type="hidden" name="item_id" value="{{ item.id }}">
+                  <button type="submit" class="cart-item-remove"
+                    style="background:none; border:none; color: var(--text-muted); font-size: 0.75rem; cursor: pointer; text-decoration: underline; text-transform: uppercase;">Remove</button>
+                </form>
               </div>
             </div>
-            {% endfor %}
+          </div>
+          {% endfor %}
           {% else %}
-            <div style="padding: 2rem; text-align: center; color: var(--text-muted);">
-              Your cart is empty.
-            </div>
+          <div style="padding: 2rem; text-align: center; color: var(--text-muted);">
+            Your cart is empty.
+          </div>
           {% endif %}
         </div>
       </div>
       <div class="drawer-footer" style="padding: 1.5rem 2rem;">
-        
+
         <!-- Cart Note Section -->
         <div id="cart-note-section" style="margin-bottom: 1.5rem;">
-            {% if cart.note %}
-            <div id="note-display-area" style="background: var(--surface-container-low); padding: 1rem; border-radius: 4px; display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
-                <div style="flex-grow: 1;">
-                    <div style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;"><span class="material-symbols-outlined" style="font-size: 1rem;">edit</span> Note for seller</div>
-                    <p style="font-size: 0.875rem; color: var(--text-secondary); white-space: pre-wrap; margin: 0;">{{ cart.note }}</p>
-                </div>
-                <button type="button" onclick="document.getElementById('note-display-area').style.display='none'; document.getElementById('note-edit-area').style.display='block';" style="background: none; border: none; text-decoration: underline; font-size: 0.75rem; cursor: pointer; padding: 0;">Edit</button>
+          {% if cart.note %}
+          <div id="note-display-area"
+            style="background: var(--surface-container-low); padding: 1rem; border-radius: 4px; display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+            <div style="flex-grow: 1;">
+              <div
+                style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span class="material-symbols-outlined" style="font-size: 1rem;">edit</span> Note for seller</div>
+              <p style="font-size: 0.875rem; color: var(--text-secondary); white-space: pre-wrap; margin: 0;">{{
+                cart.note }}</p>
             </div>
-            
-            <div id="note-edit-area" style="display: none;">
-            {% else %}
-            <button id="note-toggle-btn" type="button" onclick="this.style.display='none'; document.getElementById('note-edit-area').style.display='block';" style="width: 100%; background: var(--surface-container-low); border: none; padding: 0.75rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; cursor: pointer; border-radius: 4px; font-weight: 500; font-size: 0.9rem;">
-                <span class="material-symbols-outlined" style="font-size: 1.1rem;">edit</span> Note
-            </button>
-            
-            <div id="note-edit-area" style="display: none;">
-            {% endif %}
-                <div style="font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
-                    <span class="material-symbols-outlined" style="font-size: 1.1rem;">edit</span> Add note for seller
-                </div>
-                <form method="post" action="{% url 'storefront:cart_note_update' %}">
-                    {% csrf_token %}
-                    <textarea name="note" rows="4" style="width: 100%; border: 1px solid var(--border-color); border-radius: 4px; padding: 0.75rem; font-family: inherit; font-size: 0.875rem; resize: vertical; margin-bottom: 0.75rem;">{{ cart.note|default:'' }}</textarea>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <button type="button" onclick="{% if cart.note %}document.getElementById('note-edit-area').style.display='none'; document.getElementById('note-display-area').style.display='flex';{% else %}document.getElementById('note-edit-area').style.display='none'; document.getElementById('note-toggle-btn').style.display='flex';{% endif %}" style="flex: 1; padding: 0.75rem; background: transparent; border: 1px solid #000; cursor: pointer; font-weight: 500; font-size: 0.9rem;">Cancel</button>
-                        <button type="submit" style="flex: 1; padding: 0.75rem; background: #000; color: #fff; border: 1px solid #000; cursor: pointer; font-weight: 500; font-size: 0.9rem;">Save</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+            <button type="button"
+              onclick="document.getElementById('note-display-area').style.display='none'; document.getElementById('note-edit-area').style.display='block';"
+              style="background: none; border: none; text-decoration: underline; font-size: 0.75rem; cursor: pointer; padding: 0;">Edit</button>
+          </div>
 
-        <div class="subtotal-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-          <span class="text-label-caps" style="color: var(--text-muted)">Subtotal</span>
-          <span class="font-serif" style="font-size: 1.5rem;">{% format_price cart.total_price|default:"0.00" %}</span>
+          <div id="note-edit-area" style="display: none;">
+            {% else %}
+            <button id="note-toggle-btn" type="button"
+              onclick="this.style.display='none'; document.getElementById('note-edit-area').style.display='block';"
+              style="width: 100%; background: var(--surface-container-low); border: none; padding: 0.75rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; cursor: pointer; border-radius: 4px; font-weight: 500; font-size: 0.9rem;">
+              <span class="material-symbols-outlined" style="font-size: 1.1rem;">edit</span> Note
+            </button>
+
+            <div id="note-edit-area" style="display: none;">
+              {% endif %}
+              <div
+                style="font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span class="material-symbols-outlined" style="font-size: 1.1rem;">edit</span> Add note for seller
+              </div>
+              <form method="post" action="{% url 'storefront:cart_note_update' %}">
+                {% csrf_token %}
+                <textarea name="note" rows="4"
+                  style="width: 100%; border: 1px solid var(--border-color); border-radius: 4px; padding: 0.75rem; font-family: inherit; font-size: 0.875rem; resize: vertical; margin-bottom: 0.75rem;">{{ cart.note|default:'' }}</textarea>
+                <div style="display: flex; gap: 0.5rem;">
+                  <button type="button"
+                    onclick="{% if cart.note %}document.getElementById('note-edit-area').style.display='none'; document.getElementById('note-display-area').style.display='flex';{% else %}document.getElementById('note-edit-area').style.display='none'; document.getElementById('note-toggle-btn').style.display='flex';{% endif %}"
+                    style="flex: 1; padding: 0.75rem; background: transparent; border: 1px solid #000; cursor: pointer; font-weight: 500; font-size: 0.9rem;">Cancel</button>
+                  <button type="submit"
+                    style="flex: 1; padding: 0.75rem; background: #000; color: #fff; border: 1px solid #000; cursor: pointer; font-weight: 500; font-size: 0.9rem;">Save</button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <div class="subtotal-row"
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span class="text-label-caps" style="color: var(--text-muted)">Subtotal</span>
+            <span class="font-serif" style="font-size: 1.5rem;">
+              {% format_price cart.total_price|default:"0.00" %}
+            </span>
+          </div>
+          <!-- <p style="margin-bottom: 1rem; text-align: center; color: var(--text-muted); font-size: 0.8rem;">Shipping and taxes calculated at checkout.</p> -->
+          <button class="checkout-btn text-label-caps" style="margin-bottom: 0.5rem;"
+            onclick="location.href='{% url 'storefront:cart' %}'">Proceed to Checkout</button>
+          <button class="continue-btn text-label-caps" onclick="toggleCart()" style="margin-bottom: 0.5rem;">Continue
+            Shopping</button>
         </div>
-        <!-- <p style="margin-bottom: 1rem; text-align: center; color: var(--text-muted); font-size: 0.8rem;">Shipping and taxes calculated at checkout.</p> -->
-        <button class="checkout-btn text-label-caps" style="margin-bottom: 0.5rem;" onclick="location.href='{% url 'storefront:cart' %}'">Proceed to Checkout</button>
-        <button class="continue-btn text-label-caps" onclick="toggleCart()" style="margin-bottom: 0.5rem;">Continue Shopping</button>
       </div>
-    </div>
     </div>
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('cart_open') === '1') {
-            if (typeof toggleCart === 'function') {
-                toggleCart();
-            }
-            // Remove the parameter from the URL to prevent re-opening on refresh
-            const newUrl = window.location.pathname + window.location.search.replace(/[\?&]cart_open=1/, '').replace(/^&/, '?');
-            window.history.replaceState({}, document.title, newUrl || window.location.pathname);
+    document.addEventListener('DOMContentLoaded', function () {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('cart_open') === '1') {
+        if (typeof toggleCart === 'function') {
+          toggleCart();
         }
+        // Remove the parameter from the URL to prevent re-opening on refresh
+        const newUrl = window.location.pathname + window.location.search.replace(/[\?&]cart_open=1/, '').replace(/^&/, '?');
+        window.history.replaceState({}, document.title, newUrl || window.location.pathname);
+      }
     });
 
     function applyCoupon(e, formElement) {
-        e.preventDefault();
-        const codeInput = formElement.querySelector('input[name="coupon_code"]');
-        const code = codeInput ? codeInput.value : '';
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        const messageDiv = document.getElementById('coupon-message') || (function() {
-            let div = document.createElement('div');
-            div.id = 'coupon-message';
-            div.style.marginTop = '0.5rem';
-            div.style.fontSize = '0.85rem';
-            formElement.parentNode.insertBefore(div, formElement.nextSibling);
-            return div;
-        })();
-        
-        fetch("/cart/coupon/apply/", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': csrfToken
-            },
-            body: new URLSearchParams({'coupon_code': code})
-        })
+      e.preventDefault();
+      const codeInput = formElement.querySelector('input[name="coupon_code"]');
+      const code = codeInput ? codeInput.value : '';
+      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+      const messageDiv = document.getElementById('coupon-message') || (function () {
+        let div = document.createElement('div');
+        div.id = 'coupon-message';
+        div.style.marginTop = '0.5rem';
+        div.style.fontSize = '0.85rem';
+        formElement.parentNode.insertBefore(div, formElement.nextSibling);
+        return div;
+      })();
+
+      fetch("/cart/coupon/apply/", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': csrfToken
+        },
+        body: new URLSearchParams({ 'coupon_code': code })
+      })
         .then(response => response.json())
         .then(data => {
-            messageDiv.style.display = 'block';
-            messageDiv.innerText = data.message;
-            if (data.status === 'success') {
-                messageDiv.style.color = '#155724';
-                setTimeout(() => location.reload(), 1000);
-            } else {
-                messageDiv.style.color = '#d32f2f';
-            }
+          messageDiv.style.display = 'block';
+          messageDiv.innerText = data.message;
+          if (data.status === 'success') {
+            messageDiv.style.color = '#155724';
+            setTimeout(() => location.reload(), 1000);
+          } else {
+            messageDiv.style.color = '#d32f2f';
+          }
         })
         .catch(err => {
-            messageDiv.style.display = 'block';
-            messageDiv.innerText = 'An error occurred while applying the coupon.';
-            messageDiv.style.color = '#d32f2f';
+          messageDiv.style.display = 'block';
+          messageDiv.innerText = 'An error occurred while applying the coupon.';
+          messageDiv.style.color = '#d32f2f';
         });
     }
   </script>
@@ -573,14 +719,17 @@
       <div class="newsletter-popup-content">
         <div class="newsletter-popup-left">
           {% if request.tenant.email_settings.welcome_discount_type == 'percentage' %}
-            <h2>Save {{ request.tenant.email_settings.welcome_discount_value|floatformat:0 }}%</h2>
-            <p>Subscribe and take {{ request.tenant.email_settings.welcome_discount_value|floatformat:0 }}% OFF on your first order.</p>
+          <h2>Save {{ request.tenant.email_settings.welcome_discount_value|floatformat:0 }}%</h2>
+          <p>Subscribe and take {{ request.tenant.email_settings.welcome_discount_value|floatformat:0 }}% OFF on your
+            first order.</p>
           {% elif request.tenant.email_settings.welcome_discount_type == 'flat' %}
-            <h2>Save {{ request.tenant.currency_symbol }}{{ request.tenant.email_settings.welcome_discount_value|floatformat:0 }}</h2>
-            <p>Subscribe and take {{ request.tenant.currency_symbol }}{{ request.tenant.email_settings.welcome_discount_value|floatformat:0 }} OFF on your first order.</p>
+          <h2>Save {{ request.tenant.currency_symbol }}{{
+            request.tenant.email_settings.welcome_discount_value|floatformat:0 }}</h2>
+          <p>Subscribe and take {{ request.tenant.currency_symbol }}{{
+            request.tenant.email_settings.welcome_discount_value|floatformat:0 }} OFF on your first order.</p>
           {% else %}
-            <h2>Save 10%</h2>
-            <p>Subscribe and take 10% OFF on your first order.</p>
+          <h2>Save 10%</h2>
+          <p>Subscribe and take 10% OFF on your first order.</p>
           {% endif %}
           <form class="newsletter-form">
             <input type="text" name="first_name" placeholder="First Name" required>
@@ -589,7 +738,8 @@
           </form>
           <div class="newsletter-message" style="display: none;"></div>
         </div>
-        <div class="newsletter-popup-right" style="background-image: url('{% if request.tenant.email_settings.popup_image %}{{ request.tenant.email_settings.popup_image.url }}{% else %}{% static 'storefront/images/product_main.png' %}{% endif %}');">
+        <div class="newsletter-popup-right"
+          style="background-image: url('{% if request.tenant.email_settings.popup_image %}{{ request.tenant.email_settings.popup_image.url }}{% else %}{% static 'storefront/images/product_main.png' %}{% endif %}');">
         </div>
       </div>
     </div>
@@ -597,232 +747,335 @@
 
   <style>
     .newsletter-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.5); z-index: 10000;
-      display: none; align-items: center; justify-content: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
     }
+
     .newsletter-popup {
-      background: #fff; width: 90%; max-width: 800px;
-      position: relative; overflow: hidden;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      background: #fff;
+      width: 90%;
+      max-width: 800px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
     }
+
     .newsletter-close {
-      position: absolute; top: 15px; right: 15px;
-      background: #fff; border: 1px solid #ccc; color: #000;
-      border-radius: 50%; width: 30px; height: 30px;
-      font-size: 1.2rem; cursor: pointer; z-index: 2;
-      display: flex; align-items: center; justify-content: center;
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: #fff;
+      border: 1px solid #ccc;
+      color: #000;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
+
     .newsletter-popup-content {
-      display: flex; min-height: 500px;
+      display: flex;
+      min-height: 500px;
     }
+
     .newsletter-popup-left {
-      flex: 1 1 50%; width: 50%; padding: 50px 40px; display: flex; flex-direction: column;
-      justify-content: center; align-items: center; text-align: center;
+      flex: 1 1 50%;
+      width: 50%;
+      padding: 50px 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
     }
+
     .newsletter-popup-left h2 {
-      font-family: serif; font-size: 2.8rem; margin-bottom: 15px; color: #000;
+      font-family: serif;
+      font-size: 2.8rem;
+      margin-bottom: 15px;
+      color: #000;
     }
+
     .newsletter-popup-left p {
-      margin-bottom: 25px; font-size: 0.95rem; color: #555;
+      margin-bottom: 25px;
+      font-size: 0.95rem;
+      color: #555;
     }
+
     .newsletter-popup-left form {
-      width: 100%; max-width: 300px; display: flex; flex-direction: column; gap: 12px;
+      width: 100%;
+      max-width: 300px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
+
     .newsletter-popup-left input {
-      padding: 12px 15px; border: 1px solid #ddd; width: 100%;
-      font-family: inherit; font-size: 0.9rem;
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      width: 100%;
+      font-family: inherit;
+      font-size: 0.9rem;
     }
+
     .newsletter-popup-left button {
-      padding: 15px; background: #000; color: #fff; border: none;
-      font-weight: bold; cursor: pointer; text-transform: uppercase;
-      font-size: 0.85rem; letter-spacing: 1px; margin-top: 5px;
+      padding: 15px;
+      background: #000;
+      color: #fff;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      margin-top: 5px;
     }
+
     .newsletter-popup-right {
-      flex: 1 1 50%; width: 50%; background-size: cover; background-position: center;
+      flex: 1 1 50%;
+      width: 50%;
+      background-size: cover;
+      background-position: center;
     }
+
     @media (max-width: 768px) {
-      .newsletter-popup-content { min-height: 350px; }
-      .newsletter-popup-left { padding: 20px 15px; }
-      .newsletter-popup-left h2 { font-size: 1.8rem; margin-bottom: 10px; }
-      .newsletter-popup-left p { font-size: 0.8rem; margin-bottom: 15px; }
-      .newsletter-popup-left input { padding: 8px 10px; font-size: 0.8rem; }
-      .newsletter-popup-left button { padding: 10px; font-size: 0.75rem; }
-      .newsletter-close { width: 24px; height: 24px; font-size: 1rem; top: 10px; right: 10px; }
+      .newsletter-popup-content {
+        min-height: 350px;
+      }
+
+      .newsletter-popup-left {
+        padding: 20px 15px;
+      }
+
+      .newsletter-popup-left h2 {
+        font-size: 1.8rem;
+        margin-bottom: 10px;
+      }
+
+      .newsletter-popup-left p {
+        font-size: 0.8rem;
+        margin-bottom: 15px;
+      }
+
+      .newsletter-popup-left input {
+        padding: 8px 10px;
+        font-size: 0.8rem;
+      }
+
+      .newsletter-popup-left button {
+        padding: 10px;
+        font-size: 0.75rem;
+      }
+
+      .newsletter-close {
+        width: 24px;
+        height: 24px;
+        font-size: 1rem;
+        top: 10px;
+        right: 10px;
+      }
     }
   </style>
 
   <script>
     function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
         }
-        return cookieValue;
+      }
+      return cookieValue;
     }
 
-    document.addEventListener("DOMContentLoaded", function() {
-        if (!localStorage.getItem('newsletter_popup_seen')) {
-            setTimeout(function() {
-                document.getElementById('newsletter-overlay').style.display = 'flex';
-            }, 3000);
-        }
+    document.addEventListener("DOMContentLoaded", function () {
+      if (!localStorage.getItem('newsletter_popup_seen')) {
+        setTimeout(function () {
+          document.getElementById('newsletter-overlay').style.display = 'flex';
+        }, 3000);
+      }
 
-        const newsletterForms = document.querySelectorAll('.newsletter-form');
-        newsletterForms.forEach(form => {
-            form.removeAttribute('onsubmit'); // Remove old inline handler if any
-            
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const emailInput = form.querySelector('input[type="email"]');
-                const firstNameInput = form.querySelector('input[name="first_name"]');
-                const email = emailInput ? emailInput.value : '';
-                const firstName = firstNameInput ? firstNameInput.value : '';
-                
-                let messageDiv = form.parentNode.querySelector('.newsletter-message');
-                if (!messageDiv) {
-                    messageDiv = document.createElement('div');
-                    messageDiv.className = 'newsletter-message';
-                    messageDiv.style.marginTop = '10px';
-                    messageDiv.style.fontSize = '0.9rem';
-                    form.parentNode.insertBefore(messageDiv, form.nextSibling);
+      const newsletterForms = document.querySelectorAll('.newsletter-form');
+      newsletterForms.forEach(form => {
+        form.removeAttribute('onsubmit'); // Remove old inline handler if any
+
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();
+          const emailInput = form.querySelector('input[type="email"]');
+          const firstNameInput = form.querySelector('input[name="first_name"]');
+          const email = emailInput ? emailInput.value : '';
+          const firstName = firstNameInput ? firstNameInput.value : '';
+
+          let messageDiv = form.parentNode.querySelector('.newsletter-message');
+          if (!messageDiv) {
+            messageDiv = document.createElement('div');
+            messageDiv.className = 'newsletter-message';
+            messageDiv.style.marginTop = '10px';
+            messageDiv.style.fontSize = '0.9rem';
+            form.parentNode.insertBefore(messageDiv, form.nextSibling);
+          }
+
+          const btn = form.querySelector('button[type="submit"]');
+          const originalText = btn.innerText;
+          btn.innerText = 'Submitting...';
+          btn.disabled = true;
+
+          fetch("{% url 'storefront:subscribe' %}", {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: new URLSearchParams({ 'email': email, 'first_name': firstName })
+          })
+            .then(response => response.json())
+            .then(data => {
+              btn.innerText = originalText;
+              btn.disabled = false;
+              messageDiv.style.display = 'block';
+              messageDiv.innerText = data.message;
+              if (data.status === 'success') {
+                messageDiv.style.color = '#155724';
+                localStorage.setItem('newsletter_popup_seen', 'true');
+                if (form.closest('#newsletter-overlay')) {
+                  setTimeout(closeNewsletterPopup, 3000);
                 }
-
-                const btn = form.querySelector('button[type="submit"]');
-                const originalText = btn.innerText;
-                btn.innerText = 'Submitting...';
-                btn.disabled = true;
-
-                fetch("{% url 'storefront:subscribe' %}", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRFToken': getCookie('csrftoken')
-                    },
-                    body: new URLSearchParams({'email': email, 'first_name': firstName})
-                })
-                .then(response => response.json())
-                .then(data => {
-                    btn.innerText = originalText;
-                    btn.disabled = false;
-                    messageDiv.style.display = 'block';
-                    messageDiv.innerText = data.message;
-                    if (data.status === 'success') {
-                        messageDiv.style.color = '#155724';
-                        localStorage.setItem('newsletter_popup_seen', 'true');
-                        if (form.closest('#newsletter-overlay')) {
-                            setTimeout(closeNewsletterPopup, 3000);
-                        }
-                    } else {
-                        messageDiv.style.color = '#d32f2f';
-                    }
-                })
-                .catch(err => {
-                    btn.innerText = originalText;
-                    btn.disabled = false;
-                    messageDiv.style.display = 'block';
-                    messageDiv.innerText = 'An error occurred.';
-                    messageDiv.style.color = '#d32f2f';
-                });
+              } else {
+                messageDiv.style.color = '#d32f2f';
+              }
+            })
+            .catch(err => {
+              btn.innerText = originalText;
+              btn.disabled = false;
+              messageDiv.style.display = 'block';
+              messageDiv.innerText = 'An error occurred.';
+              messageDiv.style.color = '#d32f2f';
             });
         });
+      });
     });
 
     function closeNewsletterPopup() {
-        document.getElementById('newsletter-overlay').style.display = 'none';
-        localStorage.setItem('newsletter_popup_seen', 'true');
+      document.getElementById('newsletter-overlay').style.display = 'none';
+      localStorage.setItem('newsletter_popup_seen', 'true');
     }
 
     // Laha.ae Footer Functions
     function toggleFooterAccordion(headerElement) {
-        if (window.innerWidth > 768) return; // Desktop doesn't collapse
-        const item = headerElement.parentElement;
-        const content = headerElement.nextElementSibling;
-        
-        // Close other accordion items
-        document.querySelectorAll('.accordion-item').forEach(otherItem => {
-            if (otherItem !== item && otherItem.classList.contains('active')) {
-                otherItem.classList.remove('active');
-                otherItem.querySelector('.accordion-content').style.maxHeight = null;
-            }
-        });
+      if (window.innerWidth > 768) return; // Desktop doesn't collapse
+      const item = headerElement.parentElement;
+      const content = headerElement.nextElementSibling;
 
-        item.classList.toggle('active');
-        if (item.classList.contains('active')) {
-            content.style.maxHeight = content.scrollHeight + "px";
-        } else {
-            content.style.maxHeight = null;
+      // Close other accordion items
+      document.querySelectorAll('.accordion-item').forEach(otherItem => {
+        if (otherItem !== item && otherItem.classList.contains('active')) {
+          otherItem.classList.remove('active');
+          otherItem.querySelector('.accordion-content').style.maxHeight = null;
         }
+      });
+
+      item.classList.toggle('active');
+      if (item.classList.contains('active')) {
+        content.style.maxHeight = content.scrollHeight + "px";
+      } else {
+        content.style.maxHeight = null;
+      }
     }
 
     function toggleFooterCurrencyMenu(event) {
-        event.stopPropagation();
-        const menu = document.getElementById('footer-currency-menu');
-        menu.classList.toggle('active');
+      event.stopPropagation();
+      const menu = document.getElementById('footer-currency-menu');
+      menu.classList.toggle('active');
     }
 
-    document.addEventListener('click', function(event) {
-        const menu = document.getElementById('footer-currency-menu');
-        if (menu && menu.classList.contains('active')) {
-            if (!event.target.closest('.currency-switcher-container')) {
-                menu.classList.remove('active');
-            }
+    document.addEventListener('click', function (event) {
+      const menu = document.getElementById('footer-currency-menu');
+      if (menu && menu.classList.contains('active')) {
+        if (!event.target.closest('.currency-switcher-container')) {
+          menu.classList.remove('active');
         }
+      }
     });
 
     // Populate currency flags dynamically
-    document.addEventListener("DOMContentLoaded", function() {
-        const currencyToCountry = {
-            'AED': 'AE', 'INR': 'IN', 'USD': 'US', 'EUR': 'EU',
-            'GBP': 'GB', 'SAR': 'SA', 'QAR': 'QA', 'OMR': 'OM',
-            'BHD': 'BH', 'KWD': 'KW', 'AUD': 'AU', 'CAD': 'CA',
-            'SGD': 'SG', 'JPY': 'JP', 'CNY': 'CN'
-        };
+    document.addEventListener("DOMContentLoaded", function () {
+      const currencyToCountry = {
+        'AED': 'AE', 'INR': 'IN', 'USD': 'US', 'EUR': 'EU',
+        'GBP': 'GB', 'SAR': 'SA', 'QAR': 'QA', 'OMR': 'OM',
+        'BHD': 'BH', 'KWD': 'KW', 'AUD': 'AU', 'CAD': 'CA',
+        'SGD': 'SG', 'JPY': 'JP', 'CNY': 'CN'
+      };
 
-        function getFlagEmoji(currencyCode) {
-            const country = currencyToCountry[currencyCode] || currencyCode.substring(0, 2);
-            const codePoints = country.toUpperCase().split('').map(char => 127397 + char.charCodeAt(0));
-            try {
-                return String.fromCodePoint(...codePoints);
-            } catch(e) {
-                return '🏳️';
-            }
-        }
-
-        // Set selected flag
-        const currentCurrency = "{{ request.session.currency_code|default:request.tenant.currency }}";
-        const selectedFlagEl = document.getElementById('footer-selected-flag');
-        if (selectedFlagEl) {
-            selectedFlagEl.innerText = getFlagEmoji(currentCurrency);
-        }
-
-        // Set placeholders
-        document.querySelectorAll('.flag-placeholder').forEach(el => {
-            const code = el.getAttribute('data-code');
-            el.innerText = getFlagEmoji(code);
-        });
+      function setFlagImage(el, currencyCode) {
+        if (!el) return;
+        const country = (currencyToCountry[currencyCode] || currencyCode.substring(0, 2)).toLowerCase();
+        let countryCode = country;
+        if (currencyCode === 'EUR') countryCode = 'eu';
         
-        // Handle window resize reset
-        window.addEventListener('resize', function() {
-            if (window.innerWidth > 768) {
-                document.querySelectorAll('.accordion-content').forEach(content => {
-                    content.style.maxHeight = null;
-                });
-                document.querySelectorAll('.accordion-item').forEach(item => {
-                    item.classList.remove('active');
-                });
-            }
-        });
+        el.innerHTML = `<img src="https://flagcdn.com/w20/${countryCode}.png" alt="${currencyCode}" style="vertical-align: middle; width: 20px; height: auto; border-radius: 2px; margin-right: 8px; border: 1px solid rgba(0,0,0,0.1); display: inline-block;">`;
+      }
+
+      // Set selected flag
+      const currentCurrency = "{{ request.session.currency_code|default:request.tenant.currency }}";
+      const selectedFlagEl = document.getElementById('footer-selected-flag');
+      setFlagImage(selectedFlagEl, currentCurrency);
+
+      // Set placeholders
+      document.querySelectorAll('.flag-placeholder').forEach(el => {
+        const code = el.getAttribute('data-code');
+        setFlagImage(el, code);
+      });
+
+      // Set full currency names
+      let currencyNames;
+      try {
+        currencyNames = new Intl.DisplayNames(['en'], { type: 'currency' });
+      } catch (e) { }
+
+      document.querySelectorAll('.currency-name').forEach(el => {
+        const code = el.getAttribute('data-code');
+        if (currencyNames) {
+          try {
+            el.innerText = currencyNames.of(code);
+          } catch (e) {
+            // Fallback to code if name not found
+          }
+        }
+      });
+
+      // Handle window resize reset
+      window.addEventListener('resize', function () {
+        if (window.innerWidth > 768) {
+          document.querySelectorAll('.accordion-content').forEach(content => {
+            content.style.maxHeight = null;
+          });
+          document.querySelectorAll('.accordion-item').forEach(item => {
+            item.classList.remove('active');
+          });
+        }
+      });
     });
   </script>
   {% block scripts %}{% endblock %}
 </body>
+
 </html>
