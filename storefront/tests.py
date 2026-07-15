@@ -371,7 +371,7 @@ class StorefrontTestCase(TestCase):
 
         # Verify redirect to success screen
         self.assertEqual(response.status_code, 302)
-        self.assertIn(reverse('storefront:order_success', kwargs={'order_id': order.id}), response.url)
+        self.assertIn(reverse('storefront:order_success', kwargs={'token': order.token}), response.url)
 
         # Verify order items are created
         self.assertEqual(order.items.count(), 1)

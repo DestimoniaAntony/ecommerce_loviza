@@ -285,7 +285,7 @@
       <div class="footer-col accordion-item">
         <div class="accordion-header" onclick="toggleFooterAccordion(this)">
           <span class="text-label-caps">Our Policies</span>
-          <span class="material-symbols-outlined chevron-icon">More</span>
+          <span class="material-symbols-outlined chevron-icon">expand_more</span>
         </div>
         <div class="accordion-content">
           <ul>
@@ -302,7 +302,7 @@
       <div class="footer-col accordion-item">
         <div class="accordion-header" onclick="toggleFooterAccordion(this)">
           <span class="text-label-caps">Pages</span>
-          <span class="material-symbols-outlined chevron-icon">More</span>
+          <span class="material-symbols-outlined chevron-icon">expand_more</span>
         </div>
         <div class="accordion-content">
           <ul>
@@ -317,7 +317,7 @@
       <div class="footer-col accordion-item">
         <div class="accordion-header" onclick="toggleFooterAccordion(this)">
           <span class="text-label-caps">Social Links</span>
-          <span class="material-symbols-outlined chevron-icon">More</span>
+          <span class="material-symbols-outlined chevron-icon">expand_more</span>
         </div>
         <div class="accordion-content">
           <ul>
@@ -346,7 +346,7 @@
       <!-- <div class="footer-col accordion-item newsletter-col">
         <div class="accordion-header" onclick="toggleFooterAccordion(this)">
           <span class="text-label-caps">Sign up for updates</span>
-          <span class="material-symbols-outlined chevron-icon">More</span>
+          <span class="material-symbols-outlined chevron-icon">expand_more</span>
         </div>
         <div class="accordion-content">
           <p class="text-body-md newsletter-desc">Promotions, new products and sales. Directly to your inbox.</p>
@@ -603,8 +603,8 @@
               <div
                 style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;">
                 <span class="material-symbols-outlined" style="font-size: 1rem;">edit</span> Note for seller</div>
-              <p style="font-size: 0.875rem; color: var(--text-secondary); white-space: pre-wrap; margin: 0;">{{
-                cart.note }}</p>
+              <p style="font-size: 0.875rem; color: var(--text-secondary); white-space: pre-wrap; margin: 0;">
+                {{ cart.note|default:'' }}</p>
             </div>
             <button type="button"
               onclick="document.getElementById('note-display-area').style.display='none'; document.getElementById('note-edit-area').style.display='block';"

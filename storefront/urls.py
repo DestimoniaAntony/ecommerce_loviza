@@ -42,7 +42,7 @@ urlpatterns = [
     path('checkout/place/', views.PlaceOrderView.as_view(), name='place_order'),
     path('checkout/verify-payment/', views.PaymentVerifyView.as_view(), name='verify_payment'),
     path('checkout/stripe/webhook/', views.StripeWebhookView.as_view(), name='stripe_webhook'),
-    path('order/<int:order_id>/success/', views.OrderSuccessView.as_view(), name='order_success'),
+    path('order/<uuid:token>/success/', views.OrderSuccessView.as_view(), name='order_success'),
 
     # Customer Dashboard
     path('profile/', views.CustomerProfileView.as_view(), name='profile'),

@@ -3,7 +3,7 @@
 {% load currency_tags %}
 
 {% block content %}
-<main style="padding: 4rem 2rem; max-width: 1200px; margin: 0 auto; min-height: 50vh;">
+<main style="padding: 4rem 5%; max-width: 1200px; margin: 0 auto; min-height: 50vh;">
     <div style="text-align: center; margin-bottom: 3rem;">
         <h1 class="text-display-md" style="font-weight: 300; margin-bottom: 1rem;">Shopping Cart</h1>
         <p class="text-label-caps" style="color: #666; font-size: 0.75rem;">
@@ -13,49 +13,109 @@
     </div>
 
     {% if cart and cart.items.count > 0 %}
+    <style>
+        .cart-table th, .cart-table td {
+            padding: 2rem 0;
+        }
+        .cart-table th { padding-bottom: 1rem; padding-top: 0; }
+        .qty-col, .total-col { text-align: center; }
+        .price-col, .total-col { text-align: right; }
+        
+        @media (max-width: 768px) {
+            .cart-table { min-width: 100% !important; display: block; }
+            .cart-table thead { display: none; }
+            .cart-table tbody { display: block; width: 100%; }
+            .cart-table tr {
+                display: grid;
+                grid-template-columns: 1fr auto;
+                grid-template-areas: 
+                    "product price"
+                    "qty     qty";
+                row-gap: 1rem;
+                padding: 1.5rem 0 !important;
+                border-bottom: 1px solid #eee;
+                align-items: center;
+            }
+            .cart-table td { display: block; padding: 0 !important; border: none; }
+            
+            .cart-table .product-col { grid-area: product; }
+            .cart-table .product-col-inner { display: flex; gap: 1rem; align-items: flex-start; }
+            .cart-table .product-col-inner > a { width: 100px; flex-shrink: 0; }
+            .cart-table .product-col-inner img { width: 100% !important; height: auto !important; aspect-ratio: 3/4; }
+            .cart-table .product-details { padding-top: 0 !important; }
+            
+            .cart-table .price-col { display: none !important; }
+            
+            .cart-table .qty-col { 
+                grid-area: qty; 
+                width: auto; 
+                margin-left: calc(100px + 1rem); 
+            }
+            .cart-table .total-col { 
+                grid-area: price; 
+                text-align: right;
+            }
+        }
+    </style>
     <div class="cart-table-container" style="overflow-x: auto;">
         <table class="cart-table" style="width: 100%; border-collapse: collapse; margin-bottom: 3rem; min-width: 600px;">
             <thead>
                 <tr style="border-bottom: 1px solid #eee; text-align: left;">
-                    <th class="text-label-caps" style="padding-bottom: 1rem; font-weight: normal; color: #333;">Product</th>
-                    <th class="text-label-caps" style="padding-bottom: 1rem; font-weight: normal; color: #333; text-align: right;">Price</th>
-                    <th class="text-label-caps" style="padding-bottom: 1rem; font-weight: normal; color: #333; text-align: center;">Quantity</th>
-                    <th class="text-label-caps" style="padding-bottom: 1rem; font-weight: normal; color: #333; text-align: right;">Total</th>
+                    <th class="text-label-caps product-col" style="font-weight: normal; color: #333;">Product</th>
+                    <th class="text-label-caps price-col hide-mobile" style="font-weight: normal; color: #333;">Price</th>
+                    <th class="text-label-caps qty-col hide-mobile" style="font-weight: normal; color: #333;">Quantity</th>
+                    <th class="text-label-caps total-col hide-mobile" style="font-weight: normal; color: #333;">Total</th>
+                    <th class="text-label-caps mobile-price-header" style="font-weight: normal; color: #333; display: none;">Price</th>
                 </tr>
             </thead>
             <tbody>
                 {% for item in cart.items.all %}
                 <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding: 2rem 0; display: flex; gap: 1.5rem; align-items: flex-start;">
-                        <a href="{% url 'storefront:product_detail' item.product_variant.product.slug %}">
-                            <img src="{% if item.product_variant.image %}{{ item.product_variant.image.url }}{% elif item.product_variant.product.image %}{{ item.product_variant.product.image.url }}{% elif item.product_variant.product.images.first %}{{ item.product_variant.product.images.first.image.url }}{% else %}{% static 'storefront/images/product_main.png' %}{% endif %}" alt="{{ item.product_variant.product.name }}" style="width: 120px; height: 160px; object-fit: cover;">
-                        </a>
-                        <div style="padding-top: 0.5rem;">
-                            <a href="{% url 'storefront:product_detail' item.product_variant.product.slug %}" style="text-decoration: none; color: inherit;">
-                                <h3 class="text-body-md" style="font-weight: 500; margin-bottom: 0.5rem;">{{ item.product_variant.product.name }}</h3>
+                    <td class="product-col" style="padding: 2rem 0;">
+                        <div class="product-col-inner" style="display: flex; gap: 1.5rem; align-items: flex-start;">
+                            <a href="{% url 'storefront:product_detail' item.product_variant.product.slug %}">
+                                <img src="{% if item.product_variant.image %}{{ item.product_variant.image.url }}{% elif item.product_variant.product.image %}{{ item.product_variant.product.image.url }}{% elif item.product_variant.product.images.first %}{{ item.product_variant.product.images.first.image.url }}{% else %}{% static 'storefront/images/product_main.png' %}{% endif %}" alt="{{ item.product_variant.product.name }}" style="width: 120px; height: 160px; object-fit: cover;">
                             </a>
-                            
-                            {% if item.product_variant.attributes_data %}
-                                <div style="color: #666; font-size: 0.85rem; line-height: 1.5;">
-                                {% for key, val in item.product_variant.attributes_data.items %}
-                                    <p style="margin: 0;">{{ key|title }}: {{ val }}</p>
-                                {% endfor %}
-                                </div>
-                            {% elif item.product_variant.name %}
-                                <p style="color: #666; font-size: 0.85rem; margin: 0;">Variant: {{ item.product_variant.name }}</p>
-                            {% endif %}
-                            
-                            <form method="post" action="{% url 'storefront:cart_remove' %}" style="margin-top: 0.75rem;">
-                                {% csrf_token %}
-                                <input type="hidden" name="item_id" value="{{ item.id }}">
-                                <button type="submit" style="background: none; border: none; color: #666; text-decoration: underline; cursor: pointer; padding: 0; font-size: 0.85rem;">Remove</button>
-                            </form>
+                            <div class="product-details" style="padding-top: 0.5rem;">
+                                <a href="{% url 'storefront:product_detail' item.product_variant.product.slug %}" style="text-decoration: none; color: inherit;">
+                                    <h3 class="text-body-md" style="font-weight: 500; margin-bottom: 0.5rem;">{{ item.product_variant.product.name }}</h3>
+                                </a>
+                                
+                                {% if item.product_variant.attributes_data %}
+                                    <div style="color: #666; font-size: 0.85rem; line-height: 1.5;">
+                                    {% for key, val in item.product_variant.attributes_data.items %}
+                                        <p style="margin: 0;">{{ key|title }}: {{ val }}</p>
+                                    {% endfor %}
+                                    </div>
+                                {% elif item.product_variant.name %}
+                                    <p style="color: #666; font-size: 0.85rem; margin: 0;">Variant: {{ item.product_variant.name }}</p>
+                                {% endif %}
+
+                                {% if item.customization_data %}
+                                    <div style="color: #666; font-size: 0.85rem; line-height: 1.5; margin-top: 0.25rem;">
+                                        {% if item.customization_data.is_customized %}
+                                        <p style="margin: 0;">Size: Customize (+{% format_price item.custom_fee|default:0 %})</p>
+                                        {% endif %}
+                                        {% for key, val in item.customization_data.items %}
+                                            {% if key != 'is_customized' and key != '_base_price' and key != '_custom_fee' %}
+                                                <p style="margin: 0;">{{ key|title }}: {{ val }}</p>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                
+                                <form method="post" action="{% url 'storefront:cart_remove' %}" style="margin-top: 0.75rem;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="item_id" value="{{ item.id }}">
+                                    <button type="submit" style="background: none; border: none; color: #666; text-decoration: underline; cursor: pointer; padding: 0; font-size: 0.85rem;">Remove</button>
+                                </form>
+                            </div>
                         </div>
                     </td>
-                    <td class="text-label-caps" style="padding: 2rem 0; text-align: right; vertical-align: middle;">
-                        {% format_price item.product_variant.price %}
+                    <td class="text-label-caps price-col hide-mobile" style="padding: 2rem 0; vertical-align: middle;">
+                        {% format_price item.unit_price %}
                     </td>
-                    <td style="padding: 2rem 0; text-align: center; vertical-align: middle;">
+                    <td class="qty-col" style="padding: 2rem 0; vertical-align: middle;">
                         <form method="post" action="{% url 'storefront:cart_update' %}" style="display: inline-flex; align-items: center; border: 1px solid #ddd; padding: 0.5rem;">
                             {% csrf_token %}
                             <input type="hidden" name="item_id" value="{{ item.id }}">
@@ -64,7 +124,7 @@
                             <button type="button" onclick="this.form.quantity.value=parseInt(this.form.quantity.value)+1; this.form.submit();" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #333; padding: 0 0.5rem;">&plus;</button>
                         </form>
                     </td>
-                    <td class="text-label-caps" style="padding: 2rem 0; text-align: right; vertical-align: middle; font-weight: 500;">
+                    <td class="text-label-caps total-col" style="padding: 2rem 0; vertical-align: middle; font-weight: 500;">
                         {% format_price item.total_cost %}
                     </td>
                 </tr>

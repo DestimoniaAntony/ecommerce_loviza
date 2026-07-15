@@ -196,6 +196,16 @@ class Product(TimestampModel):
             return round(max(percentages))
         return 0
 
+    @property
+    def custom_total_price(self):
+        from decimal import Decimal
+        try:
+            base = Decimal(str(self.attributes_data.get('base_price', '0.00')))
+            fee = Decimal(str(self.attributes_data.get('custom_fee', '0.00')))
+            return base + fee
+        except Exception:
+            return Decimal('0.00')
+
 
 class ProductVariant(TimestampModel):
     """

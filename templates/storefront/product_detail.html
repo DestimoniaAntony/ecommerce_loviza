@@ -87,7 +87,7 @@
                     <input type="hidden" name="variant_id" id="selected-variant-id" value="{{ default_variant.id }}">
                 </div>
                 {% elif product.has_variants %}
-                <div class="option-group">
+                <div class="option-group" id="simple-variant-options">
                   <div class="size-header">
                     <span class="text-label-caps">Select Variant</span>
                   </div>
@@ -107,6 +107,42 @@
                 {% else %}
                 <input type="hidden" name="variant_id" id="selected-variant-id" value="{{ default_variant.id }}">
                 {% endif %}
+                
+                <!-- Custom Option Toggle -->
+                {% if product.attributes_data.custom_option_enabled %}
+                <div class="custom-option-wrapper" style="margin-top: 1.5rem; padding: 1rem; border: 1px solid var(--border-color-light); border-radius: 6px; background-color: #fafafa;">
+                    <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer; margin-bottom: 0;">
+                        <input type="checkbox" id="toggle-custom-option" style="margin-top: 4px; width: 18px; height: 18px; accent-color: var(--color-primary);" onchange="toggleCustomOption(this.checked)">
+                        <div style="display: flex; flex-direction: column;">
+                            <span style="font-weight: 600; font-size: 1rem; color: #333;">Custom Made-to-Measure</span>
+                            <span style="font-size: 0.85rem; color: #666; margin-top: 2px;">Enter your own measurements instead of a standard size</span>
+                        </div>
+                        <div style="margin-left: auto; font-weight: bold; color: var(--color-primary); font-size: 1.05rem;">
+                            + {% format_price product.attributes_data.custom_fee|default:0 %}
+                        </div>
+                    </label>
+                    <input type="hidden" name="is_customized" id="is_customized_input" value="false">
+                </div>
+                {% endif %}
+                
+                {% if custom_fields_list %}
+                <div id="customization-fields-container" style="display: none; margin-top: 1.5rem; background: rgba(0,0,0,0.02); padding: 1.25rem; border: 1px solid var(--border-color-light); border-radius: 4px;">
+                    <div style="margin-bottom: 1rem;">
+                        <span class="text-label-caps" style="font-size: 0.85rem; letter-spacing: 0.05em; color: #333;">Customization Details</span>
+                        <p style="font-size: 0.8rem; color: #777; margin-top: 0.25rem;">Please provide your specific measurements for this customized variant.</p>
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    {% for field in custom_fields_list %}
+                        <div>
+                            <label style="display: block; font-size: 0.85rem; margin-bottom: 0.25rem; color: #555;">{{ field }} <span style="color: #d32f2f;">*</span></label>
+                            <input type="text" name="custom_{{ field }}" class="custom-field-input" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color-light); border-radius: 3px; font-size: 0.9rem;">
+                        </div>
+                    {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
                 <div class="option-group" style="margin-top: 1.5rem;">
                   <span style="display:block; margin-bottom: 0.5rem; font-size: 0.9rem; color: #333;">Quantity</span>
                   <div style="display: flex; gap: 1rem; align-items: stretch;">
@@ -141,7 +177,7 @@
         </div>
       </form>
     </div>
-        {% if general_attributes_display or product.info_sections.exists %}
+        {% if general_attributes_display or product.info_sections.all %}
         <div class="accordion-wrapper">
             {% if general_attributes_display %}
             <div class="accordion-item">
@@ -166,7 +202,7 @@
             </div>
             {% endif %}
 
-            {% if product.info_sections.exists %}
+            {% if product.info_sections.all %}
             {% for section in product.info_sections.all %}
             <div class="accordion-item">
               <button type="button" class="accordion-trigger" onclick="toggleAccordion(this)">
@@ -251,6 +287,12 @@
                     buyBtn.style.opacity = '1';
                 }
             }
+            
+            // Re-apply custom option state if active
+            const customToggle = document.getElementById('toggle-custom-option');
+            if (customToggle && customToggle.checked) {
+                toggleCustomOption(true);
+            }
         } else {
             if (variantInput) variantInput.value = "";
             if (addBtn && buyBtn) {
@@ -301,6 +343,62 @@
                 addBtn.innerText = 'Add to cart';
                 buyBtn.disabled = false;
                 buyBtn.style.opacity = '1';
+            }
+        }
+        
+        // Re-apply custom option state if active
+        const customToggle = document.getElementById('toggle-custom-option');
+        if (customToggle && customToggle.checked) {
+            toggleCustomOption(true);
+        }
+    }
+    
+    function toggleCustomOption(checked) {
+        document.getElementById('is_customized_input').value = checked ? 'true' : 'false';
+        
+        const variantContainer = document.getElementById('variant-options-container');
+        const simpleVariantContainer = document.getElementById('simple-variant-options');
+        
+        if (checked) {
+            if (variantContainer) variantContainer.style.opacity = '0.5';
+            if (simpleVariantContainer) simpleVariantContainer.style.opacity = '0.5';
+            
+            // Set price to custom price
+            document.getElementById('display-price').innerText = '{% format_price product.custom_total_price %}';
+            const cp = document.getElementById('display-compare-price');
+            const d = document.getElementById('display-discount');
+            if (cp) cp.style.display = 'none';
+            if (d) d.style.display = 'none';
+            
+            const customContainer = document.getElementById('customization-fields-container');
+            if (customContainer) {
+                customContainer.style.display = 'block';
+                customContainer.querySelectorAll('.custom-field-input').forEach(input => input.required = true);
+            }
+            
+            const addBtn = document.getElementById('add-to-cart-btn');
+            if (addBtn) {
+                addBtn.disabled = false;
+                addBtn.style.opacity = '1';
+                addBtn.innerText = 'Add to cart';
+            }
+        } else {
+            if (variantContainer) variantContainer.style.opacity = '1';
+            if (simpleVariantContainer) simpleVariantContainer.style.opacity = '1';
+            
+            const customContainer = document.getElementById('customization-fields-container');
+            if (customContainer) {
+                customContainer.style.display = 'none';
+                customContainer.querySelectorAll('.custom-field-input').forEach(input => {
+                    input.required = false;
+                });
+            }
+            
+            if (typeof handleVariantSelectionChange === 'function') {
+                handleVariantSelectionChange();
+            } else {
+                const checkedRadio = document.querySelector('input[name="variant_id"]:checked');
+                if (checkedRadio) checkedRadio.onchange();
             }
         }
     }

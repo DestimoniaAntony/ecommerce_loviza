@@ -45,6 +45,14 @@
                                         <span class="text-muted" style="display: block; font-size: 0.85rem; margin-top: 2px;">Variant: {{ item.product_variant.name }}</span>
                                     {% endif %}
                                     <span class="text-muted" style="display: block; font-size: 0.8rem; margin-top: 2px;">SKU: {{ item.product_variant.sku }}</span>
+                                    {% if item.customization_data %}
+                                        <div style="margin-top: 8px; padding: 8px; background: rgba(255,255,255,0.02); border: 1px dashed var(--border-color); border-radius: 4px; font-size: 0.8rem;">
+                                            <strong style="color: var(--text-primary); display: block; margin-bottom: 4px;">Customizations:</strong>
+                                            {% for key, val in item.customization_data.items %}
+                                                <span style="display: block; color: var(--text-muted);">{{ key|title }}: <span style="color: var(--text-primary);">{{ val }}</span></span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
                                 </div>
                             </td>
                             <td class="text-right" style="color: var(--text-primary);">

@@ -168,6 +168,14 @@
                   {% if item.product_variant.name %}
                   <p class="cart-item-options" style="font-size: 0.6875rem;">Variant: {{ item.product_variant.name }}</p>
                   {% endif %}
+                  {% if item.customization_data %}
+                  <div style="margin-top: 0.25rem; padding: 0.25rem; background: #fafafa; border: 1px solid #eee; border-radius: 4px; font-size: 0.65rem; color: #555;">
+                      <p style="margin: 0 0 0.1rem 0; font-weight: 600;">Customizations:</p>
+                      {% for key, val in item.customization_data.items %}
+                          <p style="margin: 0;">{{ key|title }}: {{ val }}</p>
+                      {% endfor %}
+                  </div>
+                  {% endif %}
                   <p class="cart-item-options" style="font-size: 0.6875rem; margin-top: 0.25rem;">Qty: {{ item.quantity }}</p>
                 </div>
               </div>

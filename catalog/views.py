@@ -485,13 +485,25 @@ class ProductCreateView(PermissionRequiredMixin, View):
                     attrs_data[attr.code] = 'true' if val == 'true' else 'false'
                 elif val is not None and str(val).strip():
                     attrs_data[attr.code] = str(val).strip()
+            custom_option_enabled = request.POST.get('custom_option_enabled') == 'true'
+            if custom_option_enabled:
+                attrs_data['custom_option_enabled'] = True
+                attrs_data['custom_fee'] = request.POST.get('custom_fee', '0.00').strip()
+                custom_fields = request.POST.get('custom_fields', '').strip()
+                if custom_fields:
+                    attrs_data['custom_fields'] = custom_fields
+
+            attrs_data['base_price'] = request.POST.get('base_price', '0.00').strip()
+            attrs_data['base_compare_price'] = request.POST.get('base_compare_price', '').strip()
+            apply_base_price_to_variants = request.POST.get('apply_base_price_to_variants') == 'true'
+
             product.attributes_data = attrs_data
             product.save()
 
             if not has_variants:
                 sku = request.POST.get('sku', '').strip()
-                price = request.POST.get('price', '0.00').strip()
-                compare_at_price = request.POST.get('compare_at_price', '').strip()
+                price = attrs_data.get('base_price', '0.00')
+                compare_at_price = attrs_data.get('base_compare_price', '')
                 stock_qty = request.POST.get('stock_qty', '0.00').strip()
                 image = request.FILES.get('image')
 
@@ -519,8 +531,13 @@ class ProductCreateView(PermissionRequiredMixin, View):
                     if not sku:
                         continue
                     
-                    price = variant_prices[idx] if idx < len(variant_prices) else '0.00'
-                    compare_at = variant_compare_at_prices[idx] if idx < len(variant_compare_at_prices) else ''
+                    if apply_base_price_to_variants:
+                        price = attrs_data.get('base_price', '0.00')
+                        compare_at = attrs_data.get('base_compare_price', '')
+                    else:
+                        price = variant_prices[idx] if idx < len(variant_prices) else '0.00'
+                        compare_at = variant_compare_at_prices[idx] if idx < len(variant_compare_at_prices) else ''
+                    
                     stock = variant_stock_qtys[idx] if idx < len(variant_stock_qtys) else '0.00'
                     attrs_json_str = variant_attrs_jsons[idx] if idx < len(variant_attrs_jsons) else '{}'
                     
@@ -532,15 +549,20 @@ class ProductCreateView(PermissionRequiredMixin, View):
                     variant_name = ", ".join(attrs_data.values())
                     img = variant_images[idx] if idx < len(variant_images) else None
 
+                    sku_clean = sku.upper().strip()
+                    import uuid
+                    while ProductVariant.objects.filter(sku=sku_clean).exists():
+                        sku_clean = f"{sku_clean}-{uuid.uuid4().hex[:4].upper()}"
+
                     ProductVariant.objects.create(
                         product=product,
                         name=variant_name,
-                        sku=sku.upper().strip(),
+                        sku=sku_clean,
                         price=price or '0.00',
                         compare_at_price=compare_at or None,
                         stock_qty=stock or '0.00',
-                        image=img,
-                        attributes_data=attrs_data
+                        attributes_data=attrs_data,
+                        image=img
                     )
 
         messages.success(request, f'Product "{name}" added successfully!')
@@ -626,8 +648,19 @@ class ProductEditView(PermissionRequiredMixin, View):
                     attrs_data[attr.code] = 'true' if val == 'true' else 'false'
                 elif val is not None and str(val).strip():
                     attrs_data[attr.code] = str(val).strip()
-            product.attributes_data = attrs_data
+            custom_option_enabled = request.POST.get('custom_option_enabled') == 'true'
+            if custom_option_enabled:
+                attrs_data['custom_option_enabled'] = True
+                attrs_data['custom_fee'] = request.POST.get('custom_fee', '0.00').strip()
+                custom_fields = request.POST.get('custom_fields', '').strip()
+                if custom_fields:
+                    attrs_data['custom_fields'] = custom_fields
+            
+            attrs_data['base_price'] = request.POST.get('base_price', '0.00').strip()
+            attrs_data['base_compare_price'] = request.POST.get('base_compare_price', '').strip()
+            apply_base_price_to_variants = request.POST.get('apply_base_price_to_variants') == 'true'
 
+            product.attributes_data = attrs_data
             product.save()
 
             # Process gallery deletions
@@ -679,8 +712,8 @@ class ProductEditView(PermissionRequiredMixin, View):
 
             if not has_variants:
                 sku = request.POST.get('sku', '').strip()
-                price = request.POST.get('price', '0.00').strip()
-                compare_at_price = request.POST.get('compare_at_price', '').strip()
+                price = attrs_data.get('base_price', '0.00')
+                compare_at_price = attrs_data.get('base_compare_price', '')
                 stock_qty = request.POST.get('stock_qty', '0.00').strip()
                 image = request.FILES.get('image')
 
@@ -722,8 +755,13 @@ class ProductEditView(PermissionRequiredMixin, View):
                     if not sku:
                         continue
 
-                    price = variant_prices[idx] if idx < len(variant_prices) else '0.00'
-                    compare_at = variant_compare_at_prices[idx] if idx < len(variant_compare_at_prices) else ''
+                    if apply_base_price_to_variants:
+                        price = attrs_data.get('base_price', '0.00')
+                        compare_at = attrs_data.get('base_compare_price', '')
+                    else:
+                        price = variant_prices[idx] if idx < len(variant_prices) else '0.00'
+                        compare_at = variant_compare_at_prices[idx] if idx < len(variant_compare_at_prices) else ''
+                    
                     stock = variant_stock_qtys[idx] if idx < len(variant_stock_qtys) else '0.00'
                     attrs_json_str = variant_attrs_jsons[idx] if idx < len(variant_attrs_jsons) else '{}'
                     v_id = variant_ids[idx] if (idx < len(variant_ids) and variant_ids[idx]) else None
@@ -736,26 +774,38 @@ class ProductEditView(PermissionRequiredMixin, View):
                     variant_name = ", ".join(attrs_data.values())
                     img = variant_images[idx] if idx < len(variant_images) else None
 
+                    sku_clean = sku.upper().strip()
+                    v = None
                     if v_id:
-                        try:
-                            v = product.variants.get(pk=v_id)
-                            v.name = variant_name
-                            v.sku = sku.upper().strip()
-                            v.price = price or '0.00'
-                            v.compare_at_price = compare_at or None
-                            v.stock_qty = stock or '0.00'
-                            v.attributes_data = attrs_data
-                            if img:
-                                v.image = img
-                            v.save()
-                            keep_variant_ids.append(v.pk)
-                        except ProductVariant.DoesNotExist:
-                            pass
+                        v = product.variants.filter(pk=v_id).first()
+                    
+                    if not v:
+                        v = ProductVariant.objects.filter(sku=sku_clean).first()
+                        if v and v.product != product:
+                            import uuid
+                            sku_clean = f"{sku_clean}-{uuid.uuid4().hex[:4].upper()}"
+                            v = None
+
+                    if v:
+                        v.name = variant_name
+                        v.sku = sku_clean
+                        v.price = price or '0.00'
+                        v.compare_at_price = compare_at or None
+                        v.stock_qty = stock or '0.00'
+                        v.attributes_data = attrs_data
+                        if img:
+                            v.image = img
+                        v.save()
+                        keep_variant_ids.append(v.pk)
                     else:
+                        import uuid
+                        while ProductVariant.objects.filter(sku=sku_clean).exists():
+                            sku_clean = f"{sku_clean}-{uuid.uuid4().hex[:4].upper()}"
+                            
                         new_v = ProductVariant.objects.create(
                             product=product,
                             name=variant_name,
-                            sku=sku.upper().strip(),
+                            sku=sku_clean,
                             price=price or '0.00',
                             compare_at_price=compare_at or None,
                             stock_qty=stock or '0.00',

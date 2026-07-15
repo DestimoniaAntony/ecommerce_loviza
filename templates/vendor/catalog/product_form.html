@@ -4,6 +4,8 @@
 {% block title %}{% if product %}Edit Product — {{ product.name }}{% else %}Add Product{% endif %} — CommerceHub{% endblock %}
 
 {% block content %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 <div class="breadcrumb">
     <a href="{% url 'commercehub_app:dashboard' %}">Dashboard</a>
     <span class="breadcrumb-sep">›</span>
@@ -90,6 +92,32 @@
             {% endif %}
         </div>
 
+        <!-- ═══ BASE PRICING ═══ -->
+        <div class="form-section">
+            <h3 class="form-section-title">Base Pricing <span style="color: var(--accent-color);">*</span></h3>
+            <p class="form-hint" style="margin-bottom: 15px;">Set the base price for this product. If the product has variants, you can choose to apply this price to all of them.</p>
+            
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="base_price">Base Price ({{ request.user.vendor.currency_symbol|default:'AED' }})</label>
+                    <input type="number" step="0.01" min="0" id="base_price" name="base_price" class="form-input" placeholder="0.00" 
+                           value="{% if product and product.attributes_data.base_price %}{{ product.attributes_data.base_price }}{% elif default_variant %}{{ default_variant.price|floatformat:'2' }}{% endif %}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="base_compare_price">Compare-at Price (Optional)</label>
+                    <input type="number" step="0.01" min="0" id="base_compare_price" name="base_compare_price" class="form-input" placeholder="0.00" 
+                           value="{% if product and product.attributes_data.base_compare_price %}{{ product.attributes_data.base_compare_price }}{% elif default_variant %}{{ default_variant.compare_at_price|floatformat:'2' }}{% endif %}">
+                </div>
+            </div>
+            
+            <div class="form-group" style="margin-top: 10px;" id="apply-price-to-variants-container">
+                <label class="form-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;">
+                    <input type="checkbox" id="apply_base_price_to_variants" name="apply_base_price_to_variants" value="true" style="width: 18px; height: 18px; accent-color: var(--color-primary);" onchange="applyBasePriceToVariants()">
+                    <span style="font-size: 15px; font-weight: 500;">Apply this price to all variants</span>
+                </label>
+            </div>
+        </div>
+
         <!-- ═══ PRODUCT SPECIFICATIONS (General Attributes) ═══ -->
         {% if general_attributes %}
         <div class="form-section">
@@ -130,7 +158,7 @@
             <p class="form-hint" style="margin-bottom: 16px;">Add custom accordions (e.g., "Fabric Details", "Shipping") that will appear on the product page.</p>
             
             <div id="info-sections-container">
-                {% if product and product.info_sections.exists %}
+                {% if product and product.info_sections.all %}
                     {% for section in product.info_sections.all %}
                         <div class="info-section-item" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; position: relative;">
                             <input type="hidden" name="info_id[]" value="{{ section.id }}">
@@ -165,6 +193,37 @@
             </button>
         </div>
 
+        <!-- ═══ STANDALONE CUSTOM OPTION ═══ -->
+        <div class="form-section">
+            <h3 class="form-section-title">Standalone Custom Option</h3>
+            <p class="form-hint" style="margin-bottom: 15px;">Enable this to offer a completely separate "Made-to-Measure" or "Custom Size" option, separate from any variants.</p>
+            
+            <div class="form-group">
+                <label class="form-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;">
+                    <input type="checkbox" id="custom_option_enabled" name="custom_option_enabled" value="true" {% if product and product.attributes_data.custom_option_enabled %}checked{% endif %} style="width: 18px; height: 18px; accent-color: var(--color-primary);" onchange="document.getElementById('custom-option-settings').style.display = this.checked ? 'block' : 'none';">
+                    <span style="font-size: 15px; font-weight: 600;">Enable Custom/Made-to-Measure Option</span>
+                </label>
+            </div>
+
+            <div id="custom-option-settings" style="display: {% if product and product.attributes_data.custom_option_enabled %}block{% else %}none{% endif %}; padding: 15px; background: rgba(0,0,0,0.02); border-radius: 8px; border: 1px solid var(--border-color); margin-top: 15px;">
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label" for="custom_fee">Additional Customization Fee ({{ request.user.vendor.currency_symbol|default:'AED' }})</label>
+                        <input type="number" step="0.01" min="0" id="custom_fee" name="custom_fee" class="form-input" placeholder="0.00" value="{% if product and product.attributes_data.custom_fee %}{{ product.attributes_data.custom_fee }}{% endif %}">
+                        <p class="form-hint">This fee is added on top of the Base Product Price.</p>
+                    </div>
+                    <div class="form-group">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" for="custom_fields">Customization Fields</label>
+                    <input type="text" id="custom_fields" name="custom_fields" class="form-input" placeholder="e.g. Length, Chest width, Sleeve length" 
+                           value="{% if product and product.attributes_data.custom_fields %}{{ product.attributes_data.custom_fields }}{% endif %}">
+                    <p class="form-hint">Comma separated list of extra text fields to ask the customer.</p>
+                </div>
+            </div>
+        </div>
+
         <!-- ═══ VARIANT TOGGLE ═══ -->
         <div class="form-section">
             <div class="form-group">
@@ -186,20 +245,6 @@
                     <input type="text" id="sku" name="sku" class="form-input" placeholder="e.g. POLO-SHIRT-M" 
                            value="{{ default_variant.sku|default:'' }}">
                     <p class="form-hint">Leave blank to auto-generate a unique SKU.</p>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="price">Price (₹) <span class="req">*</span></label>
-                    <input type="number" id="price" name="price" class="form-input" placeholder="0.00" step="0.01" min="0.00" 
-                           value="{{ default_variant.price|default:'0.00' }}">
-                </div>
-            </div>
-
-            <div class="form-grid-2">
-                <div class="form-group">
-                    <label class="form-label" for="compare_at_price">Compare-at Price (₹)</label>
-                    <input type="number" id="compare_at_price" name="compare_at_price" class="form-input" placeholder="0.00" step="0.01" min="0.00" 
-                           value="{{ default_variant.compare_at_price|default:'' }}">
-                    <p class="form-hint">Original price before discount.</p>
                 </div>
                 {% if request.user.vendor.track_inventory %}
                 <div class="form-group">
@@ -280,7 +325,7 @@
                             <th>Stock Qty</th>
                             {% endif %}
                             <th>Image</th>
-                            <th>Action</th>
+                            <th style="width: 50px;"></th>
                         </tr>
                     </thead>
                     <tbody id="variants-tbody">
@@ -303,7 +348,7 @@
                                 </td>
                                 {% if request.user.vendor.track_inventory %}
                                 <td>
-                                    <input type="number" name="variant_stock_qty[]" class="form-input" style="padding: 6px; font-size: 13px;" step="0.01" min="0.00" value="{{ variant.stock_qty }}">
+                                    <input type="number" step="0.01" min="0" class="form-input" name="variant_stock_qty[]" value="{{ variant.stock_qty|floatformat:'2' }}" required>
                                 </td>
                                 {% else %}
                                 <input type="hidden" name="variant_stock_qty[]" value="0.00">
@@ -340,6 +385,23 @@
     </form>
 </div>
 
+<!-- Image Cropper Modal -->
+<div id="cropperModal" class="modal" style="display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.8); align-items: center; justify-content: center;">
+    <div class="modal-content" style="background-color: var(--bg-color, #1e1e2d); margin: auto; padding: 24px; border: 1px solid var(--border-color); border-radius: var(--radius); width: 90%; max-width: 600px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #fff;">Crop Image (3:4 Ratio)</h3>
+            <span id="closeCropperModal" style="color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; line-height: 1;">&times;</span>
+        </div>
+        <div style="max-height: 60vh; overflow: hidden; display: flex; justify-content: center; background: #000; border-radius: 4px;">
+            <img id="cropperImage" src="" style="max-width: 100%; max-height: 60vh; display: block;">
+        </div>
+        <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
+            <button type="button" id="cancelCropBtn" class="btn btn-ghost" style="color: #fff;">Cancel</button>
+            <button type="button" id="applyCropBtn" class="btn btn-primary">Apply Crop</button>
+        </div>
+    </div>
+</div>
+
 <!-- Raw Json data for safety check -->
 <div style="display:none;" id="product-name-slug">{{ product.slug|default:'' }}</div>
 
@@ -349,22 +411,49 @@
         const singleFields = document.getElementById("single-product-fields");
         const variantFields = document.getElementById("variant-product-fields");
         const singleSku = document.getElementById("sku");
-        const singlePrice = document.getElementById("price");
 
         function toggleFields() {
             if (hasVariantsCheckbox.checked) {
                 singleFields.style.display = "none";
                 variantFields.style.display = "block";
                 
-                singleSku.removeAttribute("required");
-                singlePrice.removeAttribute("required");
+                if (singleSku) singleSku.removeAttribute("required");
+                
+                // Show apply to all checkbox
+                document.getElementById("apply-price-to-variants-container").style.display = "block";
             } else {
                 singleFields.style.display = "block";
                 variantFields.style.display = "none";
                 
-                singlePrice.setAttribute("required", "required");
+                // Hide apply to all checkbox
+                document.getElementById("apply-price-to-variants-container").style.display = "none";
             }
         }
+        
+        window.applyBasePriceToVariants = function() {
+            const applyCheckbox = document.getElementById('apply_base_price_to_variants');
+            const basePrice = document.getElementById('base_price').value;
+            const baseComparePrice = document.getElementById('base_compare_price').value;
+            const priceInputs = document.querySelectorAll('input[name="variant_price[]"]');
+            const compareInputs = document.querySelectorAll('input[name="variant_compare_at_price[]"]');
+
+            if (applyCheckbox && applyCheckbox.checked) {
+                priceInputs.forEach(input => {
+                    input.value = basePrice;
+                    input.setAttribute('readonly', 'readonly');
+                });
+                compareInputs.forEach(input => {
+                    input.value = baseComparePrice;
+                    input.setAttribute('readonly', 'readonly');
+                });
+            } else {
+                priceInputs.forEach(input => input.removeAttribute('readonly'));
+                compareInputs.forEach(input => input.removeAttribute('readonly'));
+            }
+        };
+
+        document.getElementById('base_price').addEventListener('input', window.applyBasePriceToVariants);
+        document.getElementById('base_compare_price').addEventListener('input', window.applyBasePriceToVariants);
 
         hasVariantsCheckbox.addEventListener("change", toggleFields);
         toggleFields(); // run once on load
@@ -473,7 +562,7 @@
                         </td>
                         {% if request.user.vendor.track_inventory %}
                         <td>
-                            <input type="number" name="variant_stock_qty[]" class="form-input" style="padding: 6px; font-size: 13px;" step="0.01" min="0.00" value="0.00">
+                            <input type="number" step="0.01" min="0" class="form-input" name="variant_stock_qty[]" value="0.00" required>
                         </td>
                         {% else %}
                         <input type="hidden" name="variant_stock_qty[]" value="0.00">
@@ -488,6 +577,11 @@
                     `;
                     tbody.appendChild(row);
                 });
+                
+                // Re-apply base price to newly generated rows if the checkbox is active
+                if (typeof window.applyBasePriceToVariants === 'function') {
+                    window.applyBasePriceToVariants();
+                }
             });
         }
 
@@ -532,5 +626,263 @@
         
         container.appendChild(sectionDiv);
     }
+    // Image Cropper Logic
+    let cropper;
+    let currentFileInput;
+    let cropQueue = [];
+    let currentCropIndex = 0;
+    let currentDataTransfer = new DataTransfer();
+    
+    const cropperModal = document.getElementById('cropperModal');
+    const cropperImage = document.getElementById('cropperImage');
+    const closeCropperModal = document.getElementById('closeCropperModal');
+    const cancelCropBtn = document.getElementById('cancelCropBtn');
+    const applyCropBtn = document.getElementById('applyCropBtn');
+
+    function openCropper(fileInput) {
+        let files = Array.from(fileInput.files).filter(f => f.type.startsWith('image/'));
+        if (files.length === 0) return;
+        
+        if (fileInput.name === 'gallery_images') {
+            const deleteCheckboxes = document.querySelectorAll('input[name="delete_images[]"]');
+            let activeExistingCount = 0;
+            deleteCheckboxes.forEach(cb => {
+                if (!cb.checked) activeExistingCount++;
+            });
+            
+            const allowedNew = 6 - activeExistingCount;
+            
+            if (files.length > allowedNew) {
+                if (allowedNew <= 0) {
+                    alert(`You already have ${activeExistingCount} images in the gallery. The maximum limit is 6. Please delete some existing images before uploading new ones.`);
+                    fileInput.value = ''; // Reset input
+                    return;
+                } else {
+                    alert(`You can only have a maximum of 6 images in the gallery total. You currently have ${activeExistingCount} existing images. Only the first ${allowedNew} selected image(s) will be processed.`);
+                    files = files.slice(0, allowedNew);
+                }
+            }
+        }
+
+        currentFileInput = fileInput;
+        cropQueue = files;
+        currentCropIndex = 0;
+        currentDataTransfer = new DataTransfer(); // Reset
+
+        // Reset the file input value if the user closes without applying so the change event can fire again for the same file
+        fileInput.dataset.originalValue = fileInput.value;
+        
+        processNextCrop();
+    }
+    
+    function processNextCrop() {
+        if (currentCropIndex >= cropQueue.length) {
+            // Finished all
+            if (currentDataTransfer.files.length > 0) {
+                currentFileInput.files = currentDataTransfer.files;
+                currentFileInput.dataset.originalValue = ''; // Clear so we know it was processed
+                
+                // Handle Previews
+                if (currentFileInput.name === 'gallery_images') {
+                    updateGalleryPreviews(currentFileInput);
+                } else {
+                    updateSinglePreview(currentFileInput, currentDataTransfer.files[0]);
+                }
+            } else {
+                // If they canceled all crops and no original files were kept, clear it
+                if (currentFileInput.dataset.originalValue === currentFileInput.value) {
+                    currentFileInput.value = '';
+                }
+            }
+            
+            closeCropperModal.style.display = ''; // Reset
+            cropperModal.style.display = 'none';
+            currentFileInput = null;
+            cropQueue = [];
+            return;
+        }
+        
+        const file = cropQueue[currentCropIndex];
+        const url = URL.createObjectURL(file);
+        cropperImage.src = url;
+        cropperModal.style.display = 'flex';
+        
+        let isInfoImage = currentFileInput.name && currentFileInput.name.startsWith('info_image_');
+        let ratioStr = isInfoImage ? '(1:1 Ratio)' : '(3:4 Ratio)';
+        let aspectRatioVal = isInfoImage ? 1 : 3/4;
+        
+        // Update title to show progress if multiple
+        const titleEl = cropperModal.querySelector('h3');
+        if (cropQueue.length > 1) {
+            titleEl.innerText = `Crop Image ${currentCropIndex + 1} of ${cropQueue.length} ${ratioStr}`;
+        } else {
+            titleEl.innerText = `Crop Image ${ratioStr}`;
+        }
+
+        if (cropper) {
+            cropper.destroy();
+        }
+
+        cropper = new Cropper(cropperImage, {
+            aspectRatio: aspectRatioVal,
+            viewMode: 2,
+            autoCropArea: 1,
+            responsive: true,
+        });
+    }
+
+    function closeCropper() {
+        cropperModal.style.display = 'none';
+        if (cropper) {
+            cropper.destroy();
+            cropper = null;
+        }
+        if (currentFileInput && currentFileInput.dataset.originalValue === currentFileInput.value) {
+            // User canceled entirely, clear input to allow re-selection
+            currentFileInput.value = '';
+        }
+        currentFileInput = null;
+        cropQueue = [];
+    }
+    
+    // Cancel means skip cropping for this one, keep original!
+    cancelCropBtn.addEventListener('click', function() {
+        if (!currentFileInput) {
+            closeCropper();
+            return;
+        }
+        
+        // Keep original file
+        const originalFile = cropQueue[currentCropIndex];
+        currentDataTransfer.items.add(originalFile);
+        
+        currentCropIndex++;
+        if (cropper) {
+            cropper.destroy();
+            cropper = null;
+        }
+        processNextCrop();
+    });
+
+    closeCropperModal.addEventListener('click', closeCropper);
+
+    applyCropBtn.addEventListener('click', function() {
+        if (!cropper) return;
+        
+        // Disable button while processing
+        const origText = applyCropBtn.innerText;
+        applyCropBtn.innerText = 'Applying...';
+        applyCropBtn.disabled = true;
+        
+        let isInfoImage = currentFileInput.name && currentFileInput.name.startsWith('info_image_');
+        let cropW = isInfoImage ? 800 : 900;
+        let cropH = isInfoImage ? 800 : 1200;
+        
+        cropper.getCroppedCanvas({
+            width: cropW,
+            height: cropH,
+            fillColor: '#fff',
+            imageSmoothingEnabled: true,
+            imageSmoothingQuality: 'high',
+        }).toBlob((blob) => {
+            applyCropBtn.innerText = origText;
+            applyCropBtn.disabled = false;
+            
+            if (!blob) {
+                // Keep original on fail
+                const originalFile = cropQueue[currentCropIndex];
+                currentDataTransfer.items.add(originalFile);
+            } else {
+                // Create a new File object
+                const originalFile = cropQueue[currentCropIndex];
+                const croppedFile = new File([blob], originalFile.name, { type: 'image/jpeg', lastModified: new Date().getTime() });
+                currentDataTransfer.items.add(croppedFile);
+            }
+            
+            currentCropIndex++;
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+            processNextCrop();
+        }, 'image/jpeg', 0.9);
+    });
+
+    function updateSinglePreview(fileInput, croppedFile) {
+        if (!croppedFile) return;
+        
+        let previewImg = fileInput.parentElement.querySelector('img');
+        
+        if (previewImg) {
+            previewImg.src = URL.createObjectURL(croppedFile);
+        } else {
+            let previewDiv = document.createElement('div');
+            previewDiv.style.marginTop = '4px';
+            previewDiv.className = 'img-preview-container';
+            const img = document.createElement('img');
+            img.style.width = '48px';
+            img.style.height = '48px';
+            img.style.objectFit = 'cover';
+            img.style.borderRadius = '3px';
+            img.src = URL.createObjectURL(croppedFile);
+            previewDiv.appendChild(img);
+            fileInput.parentElement.appendChild(previewDiv);
+        }
+    }
+    
+    function updateGalleryPreviews(fileInput) {
+        let previewContainer = document.getElementById('gallery-new-previews');
+        if (!previewContainer) {
+            previewContainer = document.createElement('div');
+            previewContainer.id = 'gallery-new-previews';
+            previewContainer.style.display = 'flex';
+            previewContainer.style.flexWrap = 'wrap';
+            previewContainer.style.gap = '16px';
+            previewContainer.style.marginTop = '10px';
+            
+            // Insert it after the hint text
+            fileInput.parentElement.appendChild(previewContainer);
+        }
+        
+        previewContainer.innerHTML = '';
+        
+        if (fileInput.files.length > 0) {
+            const label = document.createElement('label');
+            label.className = 'form-label';
+            label.innerText = 'New Images to Upload:';
+            label.style.width = '100%';
+            previewContainer.appendChild(label);
+        }
+        
+        Array.from(fileInput.files).forEach(file => {
+            const wrapper = document.createElement('div');
+            wrapper.style.background = 'rgba(255,255,255,0.03)';
+            wrapper.style.border = '1px solid var(--border-color)';
+            wrapper.style.borderRadius = 'var(--radius)';
+            wrapper.style.padding = '10px';
+            wrapper.style.textAlign = 'center';
+            
+            const img = document.createElement('img');
+            img.style.width = '85px';
+            img.style.height = '85px';
+            img.style.objectFit = 'cover';
+            img.style.borderRadius = '4px';
+            img.style.display = 'block';
+            img.src = URL.createObjectURL(file);
+            
+            wrapper.appendChild(img);
+            previewContainer.appendChild(wrapper);
+        });
+    }
+
+    // Event delegation for dynamically added variant rows, main image, gallery images, and info images
+    document.addEventListener('change', function(e) {
+        if (e.target.name === 'variant_image[]' || e.target.name === 'image' || e.target.name === 'gallery_images' || (e.target.name && e.target.name.startsWith('info_image_'))) {
+            if (e.target.files && e.target.files.length > 0) {
+                openCropper(e.target);
+            }
+        }
+    });
+
 </script>
 {% endblock %}

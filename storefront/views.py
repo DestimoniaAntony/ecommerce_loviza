@@ -402,6 +402,7 @@ class ProductDetailView(View):
             all_attr_codes = set()
             for v in variants:
                 all_attr_codes.update(v.attributes_data.keys())
+            all_attr_codes.discard('is_customizable')
             
             ordered_codes = sorted(list(all_attr_codes))
             attrs = Attribute.objects.filter(vendor=vendor, code__in=ordered_codes)
@@ -437,15 +438,21 @@ class ProductDetailView(View):
                 
                 # Import convert_price locally to avoid circular import issues if any
                 from storefront.templatetags.currency_tags import convert_price
-                
+
                 variants_data[combo_key] = {
                     'id': v.id,
                     'price': convert_price(request, v.price),
                     'compare_at_price': convert_price(request, v.compare_at_price) if v.compare_at_price else '',
                     'discount_percentage': v.discount_percentage,
                     'stock_qty': float(v.stock_qty),
-                    'image_url': img_url
+                    'image_url': img_url,
+                    'is_customizable': v.attributes_data.get('is_customizable', False)
                 }
+
+        custom_fields_list = []
+        if product.attributes_data and 'custom_fields' in product.attributes_data:
+            cf_str = product.attributes_data.get('custom_fields', '')
+            custom_fields_list = [x.strip() for x in cf_str.split(',') if x.strip()]
 
         context = {
             'product': product,
@@ -455,6 +462,7 @@ class ProductDetailView(View):
             'variants_data_json': json.dumps(variants_data),
             'related_products': related_products,
             'general_attributes_display': general_attributes_display,
+            'custom_fields_list': custom_fields_list,
             'cart': get_or_create_cart(request),
             'page_title': f'{product.name} — {vendor.business_name}',
         }
@@ -704,10 +712,7 @@ class CartAddView(View):
         
         # Check stock if tracking is enabled
         if vendor.track_inventory:
-            current_cart_qty = 0
-            existing_item = cart.items.filter(product_variant=variant).first()
-            if existing_item:
-                current_cart_qty = existing_item.quantity
+            current_cart_qty = sum(item.quantity for item in cart.items.filter(product_variant=variant))
             
             if (current_cart_qty + qty) > variant.stock_qty:
                 if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.POST.get('is_ajax'):
@@ -716,14 +721,39 @@ class CartAddView(View):
                 messages.error(request, f'Cannot add {qty} more items. Only {variant.stock_qty} items in stock.')
                 return redirect('storefront:cart')
 
-        item, created = CartItem.objects.get_or_create(
-            cart=cart,
-            product_variant=variant,
-            defaults={'quantity': qty}
-        )
-        if not created:
-            item.quantity += qty
-            item.save()
+        custom_data = {}
+        for key, value in request.POST.items():
+            if key.startswith('custom_') and value.strip():
+                clean_key = key[7:]
+                custom_data[clean_key] = value.strip()
+                
+        is_customized = request.POST.get('is_customized') == 'true'
+        if is_customized:
+            custom_data['is_customized'] = True
+            
+            raw_base_price = variant.product.attributes_data.get('base_price', variant.price)
+            custom_data['_base_price'] = str(raw_base_price)
+            
+            raw_custom_fee = variant.product.attributes_data.get('custom_fee', '0.00')
+            custom_data['_custom_fee'] = str(raw_custom_fee)
+                
+        existing_items = cart.items.filter(product_variant=variant)
+        found_item = None
+        for i in existing_items:
+            if i.customization_data == custom_data:
+                found_item = i
+                break
+                
+        if found_item:
+            found_item.quantity += qty
+            found_item.save()
+        else:
+            CartItem.objects.create(
+                cart=cart,
+                product_variant=variant,
+                quantity=qty,
+                customization_data=custom_data
+            )
 
         # messages.success(request, f'"{variant.product.name}" added to cart.')
         
@@ -1118,7 +1148,8 @@ class PlaceOrderView(View):
                         order=order,
                         product_variant=item.product_variant,
                         quantity=item.quantity,
-                        price=item.product_variant.price
+                        price=item.product_variant.price,
+                        customization_data=item.customization_data
                     )
 
                 # If paying via wallet, process debit transaction
@@ -1192,7 +1223,7 @@ class PlaceOrderView(View):
                             'quantity': 1,
                         }],
                         mode='payment',
-                        success_url=request.build_absolute_uri(reverse('storefront:order_success', kwargs={'order_id': order.pk})),
+                        success_url=request.build_absolute_uri(reverse('storefront:order_success', kwargs={'token': order.token})),
                         cancel_url=request.build_absolute_uri(reverse('storefront:checkout')),
                         metadata={'order_id': order.pk}
                     )
@@ -1203,7 +1234,7 @@ class PlaceOrderView(View):
 
             elif is_online_payment:
                 messages.success(request, 'Thank you! Your payment was successful and the order has been placed.')
-                return redirect('storefront:order_success', order_id=order.pk)
+                return redirect('storefront:order_success', token=order.token)
 
             elif workflow == 'whatsapp_enquiry':
                 whatsapp_number = vendor.whatsapp_number or vendor.phone
@@ -1245,11 +1276,11 @@ class PlaceOrderView(View):
 
             elif workflow == 'approval_payment':
                 messages.success(request, 'Your order has been submitted for approval. Once approved, you will receive a payment link.')
-                return redirect('storefront:order_success', order_id=order.pk)
+                return redirect('storefront:order_success', token=order.token)
 
             else:
                 messages.success(request, 'Thank you! Your order has been placed successfully.')
-                return redirect('storefront:order_success', order_id=order.pk)
+                return redirect('storefront:order_success', token=order.token)
 
         except Exception as e:
             if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.POST.get('is_ajax'):
@@ -1332,7 +1363,7 @@ class PaymentVerifyView(CustomerRequiredMixin, View):
         messages.success(request, 'Payment completed successfully!')
         return JsonResponse({
             'status': 'success',
-            'redirect_url': reverse('storefront:order_success', kwargs={'order_id': order.pk})
+            'redirect_url': reverse('storefront:order_success', kwargs={'token': order.token})
         })
 
 
@@ -1413,8 +1444,8 @@ class StripeWebhookView(View):
 class OrderSuccessView(CustomerRequiredMixin, View):
     template_name = 'storefront/success.html'
 
-    def get(self, request, order_id):
-        order = get_object_or_404(Order, customer=request.user, pk=order_id)
+    def get(self, request, token):
+        order = get_object_or_404(Order, customer=request.user, token=token)
         
         cart = get_or_create_cart(request)
         if cart and order.payment_status in ('paid', 'processing', 'pending'):

@@ -1,8 +1,10 @@
+import uuid
 from django.db import models
 from django.conf import settings
 from tenants.models import Vendor
 from branches.models import Branch
 from catalog.models import ProductVariant
+from decimal import Decimal
 
 
 class CustomerAddress(models.Model):
@@ -93,16 +95,34 @@ class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
     product_variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE, related_name='cart_items')
     quantity = models.PositiveIntegerField(default=1)
+    customization_data = models.JSONField(default=dict, blank=True)
 
     class Meta:
         db_table = 'ch_cart_items'
         verbose_name = 'Cart Item'
         verbose_name_plural = 'Cart Items'
-        unique_together = ('cart', 'product_variant')
+
+    @property
+    def unit_price(self):
+        if self.customization_data and self.customization_data.get('is_customized'):
+            try:
+                from decimal import Decimal, InvalidOperation
+                base = Decimal(str(self.customization_data.get('_base_price', self.product_variant.price)))
+                fee = Decimal(str(self.customization_data.get('_custom_fee', '0.00')))
+                return base + fee
+            except (ValueError, TypeError, Exception):
+                pass
+        return self.product_variant.price
+
+    @property
+    def custom_fee(self):
+        if self.customization_data:
+            return self.customization_data.get('_custom_fee', '0.00')
+        return '0.00'
 
     @property
     def total_cost(self):
-        return self.quantity * self.product_variant.price
+        return self.quantity * self.unit_price
 
     def __str__(self):
         return f"{self.product_variant.sku} x {self.quantity}"
@@ -137,6 +157,7 @@ class Order(models.Model):
         related_name='orders'
     )
     branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='orders')
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     order_number = models.CharField(max_length=50)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     
@@ -184,6 +205,7 @@ class OrderItem(models.Model):
     quantity = models.PositiveIntegerField(default=1)
     price = models.DecimalField(max_digits=10, decimal_places=2)  # Capture price at time of purchase
     total_cost = models.DecimalField(max_digits=12, decimal_places=2)
+    customization_data = models.JSONField(default=dict, blank=True)
 
     class Meta:
         db_table = 'ch_order_items'

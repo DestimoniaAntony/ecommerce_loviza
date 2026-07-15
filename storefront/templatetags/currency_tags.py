@@ -27,6 +27,30 @@ def convert_price(request, price):
     except (ValueError, TypeError, Decimal.InvalidOperation):
         return f"{tenant.currency_symbol}{price}"
 
+def convert_price_raw(request, price):
+    """Returns the converted price as a raw Decimal without currency symbols."""
+    if not request or price is None:
+        return Decimal(str(price or 0))
+    
+    tenant = getattr(request, 'tenant', None)
+    if not tenant:
+        return Decimal(str(price or 0))
+        
+    target_currency_code = request.session.get('currency_code', tenant.currency)
+    
+    if target_currency_code == tenant.currency:
+        return Decimal(str(price))
+        
+    supported = tenant.supported_currencies.filter(code=target_currency_code, is_active=True).first()
+    if not supported:
+        return Decimal(str(price))
+        
+    try:
+        converted_price = Decimal(str(price)) * supported.exchange_rate
+        return Decimal(f"{converted_price:.2f}")
+    except (ValueError, TypeError, Decimal.InvalidOperation):
+        return Decimal(str(price))
+
 @register.simple_tag(takes_context=True)
 def format_price(context, price):
     """
