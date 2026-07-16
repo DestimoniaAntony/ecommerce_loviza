@@ -1675,6 +1675,14 @@ footer {
   grid-column: span 5;
 }
 
+@media (max-width: 992px) {
+  .checkout-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+}
+
 .checkout-summary-sticky {
   position: sticky;
   top: 8rem;
@@ -1708,6 +1716,13 @@ footer {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
   gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .form-row-2, .form-row-3 {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 }
 
 .editorial-select {

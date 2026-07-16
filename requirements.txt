@@ -37,3 +37,4 @@ python-decouple>=3.8        # Environment variables
 whitenoise>=6.6.0           # Static file serving
 dj-database-url>=2.1.0      # Environment DB URLs
 django-crispy-forms>=2.1 
+gunicorn>=21.2.0            # Production WSGI server

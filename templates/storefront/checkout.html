@@ -7,6 +7,12 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/intlTelInput.min.js"></script>
 <style>
   .iti { width: 100%; display: block; }
+  /* Fix for mobile dropdown overflow and overlap */
+  .iti__country-list {
+    white-space: normal;
+    max-width: 85vw;
+    z-index: 99999 !important;
+  }
 </style>
 
 <main class="checkout-main">
