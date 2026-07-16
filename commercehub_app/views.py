@@ -285,7 +285,7 @@ class VendorSettingsView(VendorLoginRequiredMixin, View):
         vendor.currency = request.POST.get('currency', vendor.currency).strip()
         vendor.currency_symbol = request.POST.get('currency_symbol', vendor.currency_symbol).strip()
 
-        if vendor.checkout_workflow in ['online_payment', 'approval_payment']:
+        if vendor.checkout_workflow in ['online_payment', 'approval_payment', 'online_payment_stripe']:
             vendor.razorpay_key_id = request.POST.get('razorpay_key_id', vendor.razorpay_key_id).strip()
             vendor.razorpay_key_secret = request.POST.get('razorpay_key_secret', vendor.razorpay_key_secret).strip()
             vendor.stripe_public_key = request.POST.get('stripe_public_key', vendor.stripe_public_key).strip()

@@ -73,7 +73,7 @@
                     </label>
                     <p class="form-hint" style="margin-left: 24px;">Must be filled in when creating a product.</p>
                 </div>
-                <div class="form-group">
+                <div class="form-group" style="display: none;">
                     <label class="form-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;">
                         <input type="checkbox" name="is_filterable" value="true" {% if attribute.is_filterable != False %}checked{% endif %} style="width: 16px; height: 16px; accent-color: var(--color-primary);">
                         <span>Filterable in storefront</span>

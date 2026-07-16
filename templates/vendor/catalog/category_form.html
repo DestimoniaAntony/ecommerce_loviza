@@ -4,6 +4,9 @@
 {% block title %}{% if category %}Edit Category — {{ category.name }}{% else %}Add New Category{% endif %} — CommerceHub{% endblock %}
 
 {% block content %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
 <div class="breadcrumb">
     <a href="{% url 'commercehub_app:dashboard' %}">Dashboard</a>
     <span class="breadcrumb-sep">›</span>
@@ -12,7 +15,21 @@
     <span>{% if category %}Edit Category{% else %}New Category{% endif %}</span>
 </div>
 
-<div class="data-card" style="max-width: 650px; padding: 28px;">
+<style>
+.category-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
+}
+@media (max-width: 900px) {
+    .category-layout {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+<div class="category-layout">
+    <div class="data-card" style="padding: 28px;">
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
 
@@ -51,16 +68,21 @@
                 <textarea id="description" name="description" class="form-input" rows="4" placeholder="Brief details about the category...">{{ category.description|default:'' }}</textarea>
             </div>
 
-            <div class="form-grid-2" style="align-items: center;">
+            <div class="form-grid-2" style="align-items: start;">
                 <div class="form-group">
-                    <label class="form-label" for="image">Category Image</label>
-                    <input type="file" id="image" name="image" class="form-input" accept="image/*">
-                    {% if category.image %}
-                        <div style="margin-top: 10px; display: flex; align-items: center; gap: 8px;">
-                            <img src="{{ category.image.url }}" alt="{{ category.name }}" style="width: 48px; height: 48px; object-fit: cover; border-radius: 4px;">
-                            <span style="font-size: 12px; color: var(--text-secondary);">Current Image</span>
+                    <label class="form-label">Category Image</label>
+                    <div class="file-upload-zone" id="imageZone">
+                        <input type="file" id="image" name="image" class="file-input-hidden" accept="image/*" style="display: none;">
+                        <div class="file-upload-content" onclick="document.getElementById('image').click()" style="padding: 20px; border: 2px dashed var(--border-color); text-align: center; cursor: pointer; border-radius: 4px;">
+                            <span style="font-size: 24px; color: var(--text-muted);">&#128247;</span><br>
+                            <span style="color: var(--text-secondary); font-size: 14px;">Click to upload image</span><br>
+                            <span style="color: var(--text-muted); font-size: 12px; display: block; margin-top: 4px;">Recommended: 500×500px (1:1 Ratio)</span>
                         </div>
-                    {% endif %}
+                        <img id="imagePreview" src="{% if category.image %}{{ category.image.url }}{% endif %}" style="{% if not category.image %}display:none;{% endif %} width: 100%; max-height: 200px; object-fit: contain; margin-top: 10px; border-radius: 4px; border: 1px solid var(--border-color);">
+                        {% if category.image %}
+                            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Current Image</div>
+                        {% endif %}
+                    </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="is_active">Status</label>
@@ -84,5 +106,149 @@
             <a href="{% url 'catalog:category_list' %}" class="btn btn-ghost">Cancel</a>
         </div>
     </form>
+    </div>
+
+    <!-- Right Side: Existing Categories Table -->
+    <div class="data-card" style="padding: 28px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h3 class="form-section-title" style="margin-bottom: 0;">Existing Categories</h3>
+            <a href="{% url 'catalog:category_list' %}" class="btn btn-ghost" style="padding: 6px 12px; font-size: 0.85rem;">View All</a>
+        </div>
+        
+        <div style="overflow-x: auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Category Name</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cat in categories %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'catalog:category_edit' cat.pk %}" style="color: var(--primary-color); text-decoration: none; font-weight: 500;">
+                                {{ cat.name }}
+                            </a>
+                            {% if cat.parent_id %}
+                                <br><small style="color: var(--text-muted); font-size: 0.8rem;">↳ Nested</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if cat.is_active != False %}
+                                <span class="badge badge-success" style="background: rgba(34,197,94,0.1); color: #16a34a; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">Active</span>
+                            {% else %}
+                                <span class="badge badge-error" style="background: rgba(239,68,68,0.1); color: #dc2626; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">Inactive</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2" style="text-align: center; padding: 24px; color: var(--text-muted);">
+                            No categories added yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
+<!-- Image Cropper Modal -->
+<div id="cropperModal" class="modal" style="display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.8); align-items: center; justify-content: center;">
+    <div style="background-color: var(--bg-surface); padding: 24px; border-radius: var(--radius); max-width: 90%; width: 600px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); border: 1px solid var(--border-color);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 style="margin: 0; font-size: 18px; color: var(--text-primary);">Crop Category Image</h3>
+            <span id="closeCropperModal" style="color: var(--text-muted); font-size: 28px; font-weight: bold; cursor: pointer; line-height: 1;">&times;</span>
+        </div>
+        <div style="width: 100%; max-height: 60vh; overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; border-radius: 4px;">
+            <img id="cropperImage" src="" style="max-width: 100%; max-height: 60vh; display: block;">
+        </div>
+        <div style="display: flex; gap: 12px; margin-top: 20px; justify-content: flex-end;">
+            <button type="button" id="cancelCropBtn" class="btn btn-ghost" style="border: 1px solid var(--border-color);">Cancel</button>
+            <button type="button" id="applyCropBtn" class="btn btn-primary">Crop & Apply</button>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    let cropper;
+    const fileInput = document.getElementById('image');
+    const previewImg = document.getElementById('imagePreview');
+    const uploadContent = document.querySelector('#imageZone .file-upload-content');
+    const cropperModal = document.getElementById('cropperModal');
+    const cropperImage = document.getElementById('cropperImage');
+    const closeCropperModal = document.getElementById('closeCropperModal');
+    const cancelCropBtn = document.getElementById('cancelCropBtn');
+    const applyCropBtn = document.getElementById('applyCropBtn');
+
+    if (previewImg.src && previewImg.src !== window.location.href) {
+        uploadContent.style.display = 'none';
+    }
+
+    fileInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            alert('Please select a valid image file.');
+            this.value = '';
+            return;
+        }
+
+        const url = URL.createObjectURL(file);
+        cropperImage.src = url;
+        cropperModal.style.display = 'flex';
+
+        if (cropper) cropper.destroy();
+
+        cropper = new Cropper(cropperImage, {
+            aspectRatio: 1, // 1:1 ratio for category icons
+            viewMode: 2,
+            autoCropArea: 1,
+            responsive: true,
+            background: false
+        });
+    });
+
+    function closeCropper() {
+        cropperModal.style.display = 'none';
+        if (cropper) {
+            cropper.destroy();
+            cropper = null;
+        }
+        if (fileInput.value && (!previewImg.src || previewImg.style.display === 'none')) {
+            fileInput.value = '';
+        }
+    }
+
+    closeCropperModal.addEventListener('click', closeCropper);
+    cancelCropBtn.addEventListener('click', closeCropper);
+
+    applyCropBtn.addEventListener('click', function() {
+        if (!cropper) return;
+
+        cropper.getCroppedCanvas({
+            width: 500,
+            height: 500,
+            imageSmoothingEnabled: true,
+            imageSmoothingQuality: 'high',
+        }).toBlob((blob) => {
+            const fileName = fileInput.files[0].name;
+            const file = new File([blob], fileName, { type: 'image/jpeg', lastModified: new Date().getTime() });
+            
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInput.files = dataTransfer.files;
+
+            previewImg.src = URL.createObjectURL(blob);
+            previewImg.style.display = 'block';
+            uploadContent.style.display = 'none';
+
+            closeCropper();
+        }, 'image/jpeg', 0.9);
+    });
+</script>
+{% endblock %}
 {% endblock %}

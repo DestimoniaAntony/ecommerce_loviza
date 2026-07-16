@@ -181,7 +181,7 @@
                                     {{ log.get_reason_display }}
                                 </span>
                             </td>
-                            <td style="padding: 10px 16px; color: var(--text-muted);">{{ log.user.get_short_name|default:log.user.phone }}</td>
+                            <td style="padding: 10px 16px; color: var(--text-muted);">{% if log.user %}{{ log.user.get_short_name|default:log.user.phone }}{% else %}System{% endif %}</td>
                             <td style="padding: 10px 16px; color: var(--text-muted); font-style: italic;">{{ log.notes|default:"—" }}</td>
                         </tr>
                     {% endfor %}
@@ -195,7 +195,7 @@
 
 <!-- Stock Adjustment Modal -->
 <div id="adjustmentModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-    <div class="data-card" style="width: 100%; max-width: 500px; padding: 28px; margin: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); position: relative; border-color: var(--color-primary);">
+    <div class="data-card" style="width: 100%; max-width: 500px; padding: 28px; margin: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); position: relative; border-color: var(--color-primary); max-height: calc(100vh - 32px); overflow-y: auto;">
         <button type="button" onclick="closeAdjustmentModal()" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer; line-height: 1;">&times;</button>
         
         <h3 class="form-section-title" style="margin-bottom: 24px; font-size: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; color: var(--text-primary);">Manual Stock Take / Adjustment</h3>

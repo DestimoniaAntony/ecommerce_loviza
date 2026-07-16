@@ -92,6 +92,14 @@
       font-size: 0.95rem;
     }
   </style>
+  {% if request.tenant.primary_color or request.tenant.secondary_color %}
+  <style>
+    :root {
+      {% if request.tenant.primary_color %}--primary-color: {{ request.tenant.primary_color }};{% endif %}
+      {% if request.tenant.secondary_color %}--secondary-color: {{ request.tenant.secondary_color }};{% endif %}
+    }
+  </style>
+  {% endif %}
 </head>
 
 <body>

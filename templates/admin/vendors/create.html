@@ -4,6 +4,8 @@
 {% block title %}Add New Vendor — CommerceHub{% endblock %}
 
 {% block content %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
 <!-- Breadcrumb -->
 <div class="breadcrumb">
@@ -193,7 +195,7 @@
                         <label class="form-label">Currency Code</label>
                         <select name="currency" id="vendor-currency-select" class="form-select">
                             {% for curr in all_global_currencies %}
-                            <option value="{{ curr }}" {% if request.POST.currency == curr or (not request.POST.currency and curr == 'AED') %}selected{% endif %}>{{ curr }}</option>
+                            <option value="{{ curr }}" {% if request.POST.currency == curr or not request.POST.currency and curr == 'AED' %}selected{% endif %}>{{ curr }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -206,7 +208,7 @@
                         <label class="form-label">Timezone</label>
                         <select name="timezone" id="vendor-timezone-select" class="form-select">
                             {% for tz in all_timezones %}
-                            <option value="{{ tz }}" {% if request.POST.timezone == tz or (not request.POST.timezone and tz == 'Asia/Dubai') %}selected{% endif %}>{{ tz }}</option>
+                            <option value="{{ tz }}" {% if request.POST.timezone == tz or not request.POST.timezone and tz == 'Asia/Dubai' %}selected{% endif %}>{{ tz }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -495,30 +497,115 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-// Image preview on file select
-function setupImagePreview(inputId, previewId, zoneId) {
-    const input   = document.getElementById(inputId);
-    const preview = document.getElementById(previewId);
-    const zone    = document.getElementById(zoneId);
+<!-- Image Cropper Modal -->
+<div id="cropperModal" class="modal" style="display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.8); align-items: center; justify-content: center;">
+    <div style="background-color: var(--bg-surface); padding: 24px; border-radius: var(--radius); max-width: 90%; width: 600px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); border: 1px solid var(--border-color);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 style="margin: 0; font-size: 18px; color: var(--text-primary);">Crop Image</h3>
+            <span id="closeCropperModal" style="color: var(--text-muted); font-size: 28px; font-weight: bold; cursor: pointer; line-height: 1;">&times;</span>
+        </div>
+        <div style="width: 100%; max-height: 60vh; overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; border-radius: 4px;">
+            <img id="cropperImage" src="" style="max-width: 100%; max-height: 60vh; display: block;">
+        </div>
+        <div style="display: flex; gap: 12px; margin-top: 20px; justify-content: flex-end;">
+            <button type="button" id="cancelCropBtn" class="btn btn-ghost" style="border: 1px solid var(--border-color);">Cancel</button>
+            <button type="button" id="applyCropBtn" class="btn btn-primary">Crop & Apply</button>
+        </div>
+    </div>
+</div>
 
-    if (!input) return;
-    input.addEventListener('change', function() {
-        const file = this.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            preview.src = e.target.result;
-            preview.style.display = 'block';
-            zone.querySelector('.file-upload-content').style.display = 'none';
-        };
-        reader.readAsDataURL(file);
+<script>
+// Image Cropper Logic
+let cropper;
+let currentFileInput;
+let currentPreviewImg;
+let currentZone;
+
+const cropperModal = document.getElementById('cropperModal');
+const cropperImage = document.getElementById('cropperImage');
+const closeCropperModal = document.getElementById('closeCropperModal');
+const cancelCropBtn = document.getElementById('cancelCropBtn');
+const applyCropBtn = document.getElementById('applyCropBtn');
+
+function openCropper(fileInput, previewId, zoneId, aspectRatio) {
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file.');
+        fileInput.value = '';
+        return;
+    }
+
+    currentFileInput = fileInput;
+    currentPreviewImg = document.getElementById(previewId);
+    currentZone = document.getElementById(zoneId);
+
+    const url = URL.createObjectURL(file);
+    cropperImage.src = url;
+    cropperModal.style.display = 'flex';
+
+    if (cropper) {
+        cropper.destroy();
+    }
+
+    cropper = new Cropper(cropperImage, {
+        aspectRatio: aspectRatio,
+        viewMode: 2,
+        autoCropArea: 1,
+        responsive: true,
+        background: false
     });
 }
 
-setupImagePreview('logoInput',    'logoPreview',    'logoZone');
-setupImagePreview('bannerInput',  'bannerPreview',  'bannerZone');
-setupImagePreview('faviconInput', 'faviconPreview', 'faviconZone');
+function closeCropper() {
+    cropperModal.style.display = 'none';
+    if (cropper) {
+        cropper.destroy();
+        cropper = null;
+    }
+    // Only clear the input if no cropped image was previously applied
+    if (currentFileInput && currentFileInput.value && !currentPreviewImg.src) {
+        currentFileInput.value = '';
+    }
+}
+
+closeCropperModal.addEventListener('click', closeCropper);
+cancelCropBtn.addEventListener('click', closeCropper);
+
+applyCropBtn.addEventListener('click', function() {
+    if (!cropper) return;
+
+    cropper.getCroppedCanvas({
+        width: currentFileInput.id === 'bannerInput' ? 1200 : (currentFileInput.id === 'faviconInput' ? 256 : 800),
+        imageSmoothingEnabled: true,
+        imageSmoothingQuality: 'high',
+    }).toBlob((blob) => {
+        const fileName = currentFileInput.files[0].name;
+        const file = new File([blob], fileName, { type: 'image/jpeg', lastModified: new Date().getTime() });
+        
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        currentFileInput.files = dataTransfer.files;
+
+        const url = URL.createObjectURL(blob);
+        currentPreviewImg.src = url;
+        currentPreviewImg.style.display = 'block';
+        currentZone.querySelector('.file-upload-content').style.display = 'none';
+
+        closeCropper();
+    }, 'image/jpeg', 0.9);
+});
+
+document.getElementById('logoInput').addEventListener('change', function() {
+    openCropper(this, 'logoPreview', 'logoZone', 1/1);
+});
+document.getElementById('bannerInput').addEventListener('change', function() {
+    openCropper(this, 'bannerPreview', 'bannerZone', 3/1);
+});
+document.getElementById('faviconInput').addEventListener('change', function() {
+    openCropper(this, 'faviconPreview', 'faviconZone', 1/1);
+});
 
 // Color picker sync
 function syncColor(pickerId, hexId) {

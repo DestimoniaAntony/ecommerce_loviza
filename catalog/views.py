@@ -767,11 +767,11 @@ class ProductEditView(PermissionRequiredMixin, View):
                     v_id = variant_ids[idx] if (idx < len(variant_ids) and variant_ids[idx]) else None
                     
                     try:
-                        attrs_data = json.loads(attrs_json_str)
+                        variant_attrs = json.loads(attrs_json_str)
                     except Exception:
-                        attrs_data = {}
+                        variant_attrs = {}
 
-                    variant_name = ", ".join(attrs_data.values())
+                    variant_name = ", ".join(variant_attrs.values())
                     img = variant_images[idx] if idx < len(variant_images) else None
 
                     sku_clean = sku.upper().strip()
@@ -792,7 +792,7 @@ class ProductEditView(PermissionRequiredMixin, View):
                         v.price = price or '0.00'
                         v.compare_at_price = compare_at or None
                         v.stock_qty = stock or '0.00'
-                        v.attributes_data = attrs_data
+                        v.attributes_data = variant_attrs
                         if img:
                             v.image = img
                         v.save()
@@ -809,7 +809,7 @@ class ProductEditView(PermissionRequiredMixin, View):
                             price=price or '0.00',
                             compare_at_price=compare_at or None,
                             stock_qty=stock or '0.00',
-                            attributes_data=attrs_data,
+                            attributes_data=variant_attrs,
                             image=img
                         )
                         keep_variant_ids.append(new_v.pk)
