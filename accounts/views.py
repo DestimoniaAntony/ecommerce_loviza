@@ -264,6 +264,30 @@ class LogoutView(View):
 
 from core.mixins import PermissionRequiredMixin
 
+def get_vendor_allowed_permissions(vendor):
+    if not vendor or not vendor.active_plan:
+        return ModulePermission.objects.none()
+    
+    plan = vendor.active_plan
+    allowed = []
+    
+    if plan.has_analytics: allowed.append('manage_analytics')
+    if plan.has_store_settings: allowed.append('manage_store_settings')
+    if plan.has_catalog_management: allowed.append('manage_catalog')
+    if plan.has_order_management: allowed.append('manage_orders')
+    if plan.has_inventory_management: allowed.append('manage_inventory')
+    if plan.has_organization_management: allowed.append('manage_organization')
+    if plan.has_whatsapp: allowed.append('manage_whatsapp')
+    if plan.has_loyalty: allowed.append('manage_loyalty')
+    if plan.has_crm: allowed.append('manage_crm')
+    if plan.has_marketing: allowed.append('manage_marketing')
+    if plan.has_api_access: allowed.append('manage_api')
+    if plan.has_white_label: allowed.append('manage_white_label')
+    if plan.has_advanced_reports: allowed.append('manage_advanced_reports')
+    
+    return ModulePermission.objects.filter(codename__in=allowed).order_by('name')
+
+
 class RoleListView(PermissionRequiredMixin, View):
     permission_codename = 'view_roles'
     template_name = 'vendor/roles/list.html'
@@ -282,7 +306,7 @@ class RoleCreateView(PermissionRequiredMixin, View):
     template_name = 'vendor/roles/form.html'
 
     def get(self, request):
-        permissions = ModulePermission.objects.all().order_by('name')
+        permissions = get_vendor_allowed_permissions(request.user.vendor)
         context = {
             'permissions': permissions,
             'page_title': 'Create Custom Role',
@@ -312,7 +336,8 @@ class RoleCreateView(PermissionRequiredMixin, View):
                 is_custom=True
             )
             if selected_permission_ids:
-                perms = ModulePermission.objects.filter(pk__in=selected_permission_ids)
+                allowed_perms = get_vendor_allowed_permissions(vendor)
+                perms = allowed_perms.filter(pk__in=selected_permission_ids)
                 role.permissions.set(perms)
                 
         messages.success(request, f'Role "{name}" created successfully!')
@@ -335,7 +360,7 @@ class RoleEditView(PermissionRequiredMixin, View):
 
     def get(self, request, role_id):
         role = get_object_or_404(Role, pk=role_id, vendor=request.user.vendor)
-        permissions = ModulePermission.objects.all().order_by('name')
+        permissions = get_vendor_allowed_permissions(request.user.vendor)
         role_permission_ids = role.permissions.values_list('pk', flat=True)
         context = {
             'role': role,
@@ -364,7 +389,8 @@ class RoleEditView(PermissionRequiredMixin, View):
             role.description = description
             role.save()
             if selected_permission_ids:
-                perms = ModulePermission.objects.filter(pk__in=selected_permission_ids)
+                allowed_perms = get_vendor_allowed_permissions(request.user.vendor)
+                perms = allowed_perms.filter(pk__in=selected_permission_ids)
                 role.permissions.set(perms)
             else:
                 role.permissions.clear()
@@ -422,6 +448,13 @@ class StaffCreateView(PermissionRequiredMixin, View):
             return redirect('accounts:staff_create')
 
         vendor = request.user.vendor
+        
+        if vendor.active_plan:
+            current_staff_count = vendor.staff_users.filter(user_type='vendor_staff').count()
+            if current_staff_count >= vendor.active_plan.max_staff:
+                messages.error(request, f'You have reached your staff limit of {vendor.active_plan.max_staff} for your current plan.')
+                return redirect('accounts:staff_create')
+
         role = get_object_or_404(Role, Q(vendor=vendor) | Q(vendor=None), pk=role_id)
         
         branch = None

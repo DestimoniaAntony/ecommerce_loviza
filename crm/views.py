@@ -125,7 +125,7 @@ class CouponCreateView(VendorLoginRequiredMixin, View):
             return render(request, self.template_name, {'page_title': 'Create Coupon'})
 
         try:
-            Coupon.objects.create(
+            coupon = Coupon.objects.create(
                 vendor=vendor,
                 code=code,
                 discount_type=discount_type,
@@ -136,6 +136,11 @@ class CouponCreateView(VendorLoginRequiredMixin, View):
                 usage_limit=int(usage_limit) if usage_limit else None,
                 is_active=is_active
             )
+            
+            # Trigger background email task
+            from crm.utils import send_coupon_notification_emails
+            send_coupon_notification_emails(vendor.id, coupon.id, request.get_host())
+            
             messages.success(request, f'Coupon {code} created successfully!')
             return redirect('crm:coupon_list')
         except Exception as e:

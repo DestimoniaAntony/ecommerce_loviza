@@ -34,3 +34,12 @@ def dict_get(dictionary, key):
         pass
 
     return None
+
+@register.filter
+def has_vendor_perm(user, perm_codename):
+    """
+    Usage: {% if request.user|has_vendor_perm:'manage_catalog' %}
+    """
+    if not hasattr(user, 'has_vendor_perm'):
+        return False
+    return user.has_vendor_perm(perm_codename)

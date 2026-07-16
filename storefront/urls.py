@@ -22,6 +22,7 @@ urlpatterns = [
 
     # Newsletter
     path('subscribe/', views.NewsletterSubscriptionView.as_view(), name='subscribe'),
+    path('unsubscribe/<str:token>/', views.NewsletterUnsubscribeView.as_view(), name='unsubscribe'),
 
     # Cart operations
     path('cart/', views.CartView.as_view(), name='cart'),

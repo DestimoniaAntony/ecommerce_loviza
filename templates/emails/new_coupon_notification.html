@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Special Offer from {{ vendor.business_name }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f5;
+            color: #333333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header {
+            background-color: {{ vendor.primary_color|default:"#4F46E5" }};
+            color: #ffffff;
+            text-align: center;
+            padding: 30px 20px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            padding: 30px;
+            text-align: center;
+        }
+        .coupon-box {
+            background-color: #f9fafb;
+            border: 2px dashed {{ vendor.primary_color|default:"#4F46E5" }};
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            font-size: 28px;
+            font-weight: bold;
+            color: {{ vendor.primary_color|default:"#4F46E5" }};
+            letter-spacing: 2px;
+        }
+        .details {
+            font-size: 16px;
+            color: #4b5563;
+            line-height: 1.5;
+            margin-bottom: 30px;
+        }
+        .btn {
+            display: inline-block;
+            background-color: {{ vendor.primary_color|default:"#4F46E5" }};
+            color: #ffffff;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .footer {
+            background-color: #f9fafb;
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        .footer a {
+            color: #6b7280;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Exclusive Offer Just For You!</h1>
+        </div>
+        
+        <div class="content">
+            <p style="font-size: 18px;">Hi {% if subscriber.first_name %}{{ subscriber.first_name }}{% else %}there{% endif %},</p>
+            <p>We're excited to offer you a new discount at <strong>{{ vendor.business_name }}</strong>!</p>
+            
+            <div class="coupon-box">
+                {{ coupon.code }}
+            </div>
+            
+            <div class="details">
+                <p>
+                    <strong>Discount:</strong> 
+                    {% if coupon.discount_type == 'percentage' %}
+                        {{ coupon.discount_value }}% Off
+                    {% else %}
+                        {{ vendor.currency_symbol|default:"$" }}{{ coupon.discount_value }} Off
+                    {% endif %}
+                </p>
+                {% if coupon.min_purchase > 0 %}
+                <p><strong>Minimum Spend:</strong> {{ vendor.currency_symbol|default:"$" }}{{ coupon.min_purchase }}</p>
+                {% endif %}
+                <p><strong>Valid Until:</strong> {{ coupon.end_date|date:"F j, Y" }}</p>
+            </div>
+            
+            <a href="http://{{ vendor.slug }}.localhost:8000" class="btn">Shop Now</a>
+        </div>
+        
+        <div class="footer">
+            <p>You are receiving this email because you subscribed to updates from {{ vendor.business_name }}.</p>
+            <p><a href="{{ unsubscribe_url }}">Unsubscribe from these emails</a></p>
+        </div>
+    </div>
+</body>
+</html>

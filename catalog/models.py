@@ -242,6 +242,11 @@ class ProductVariant(TimestampModel):
             return round(((self.compare_at_price - self.price) / self.compare_at_price) * 100)
         return 0
 
+    @property
+    def attributes_data_json(self):
+        import json
+        return json.dumps(self.attributes_data)
+
 
 class ProductImage(models.Model):
     """

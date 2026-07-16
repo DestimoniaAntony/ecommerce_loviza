@@ -174,6 +174,58 @@ class User(AbstractBaseUser, PermissionsMixin):
         name = self.get_full_name()
         return f'{name} ({self.phone})' if name else self.phone
 
+    def has_vendor_perm(self, perm_codename):
+        """
+        Check if the vendor user has permission to access a module.
+        It verifies BOTH the active subscription plan AND the user's role.
+        """
+        if self.is_super_admin:
+            return True
+        if not self.vendor or not self.vendor.active_plan:
+            return False
+
+        # Map specific sub-module view/manage permissions to the broad module permissions
+        permission_map = {
+            'view_catalog': 'manage_catalog',
+            'view_inventory': 'manage_inventory',
+            'view_roles': 'manage_organization',
+            'manage_roles': 'manage_organization',
+            'view_staff': 'manage_organization',
+            'manage_staff': 'manage_organization',
+            'view_branches': 'manage_organization',
+            'manage_branches': 'manage_organization',
+        }
+        perm_codename = permission_map.get(perm_codename, perm_codename)
+
+        # Check Subscription Plan Limits
+        plan = self.vendor.active_plan
+        plan_checks = {
+            'manage_analytics': plan.has_analytics,
+            'manage_store_settings': plan.has_store_settings,
+            'manage_catalog': plan.has_catalog_management,
+            'manage_orders': plan.has_order_management,
+            'manage_inventory': plan.has_inventory_management,
+            'manage_organization': plan.has_organization_management,
+            'manage_whatsapp': plan.has_whatsapp,
+            'manage_loyalty': plan.has_loyalty,
+            'manage_crm': plan.has_crm,
+            'manage_marketing': plan.has_marketing,
+            'manage_api': plan.has_api_access,
+            'manage_white_label': plan.has_white_label,
+            'manage_advanced_reports': plan.has_advanced_reports,
+        }
+        
+        # If the plan doesn't support it, completely block access
+        if perm_codename in plan_checks and not plan_checks[perm_codename]:
+            return False
+
+        # If user has no role, they are the primary owner. They get everything the plan allows.
+        if not self.role:
+            return True
+            
+        # If user has a role, check the role's permissions
+        return self.role.permissions.filter(codename=perm_codename).exists()
+
     def get_full_name(self):
         return f'{self.first_name} {self.last_name}'.strip()
 

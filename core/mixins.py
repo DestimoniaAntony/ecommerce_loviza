@@ -85,9 +85,7 @@ class PermissionRequiredMixin(VendorLoginRequiredMixin):
 
         user = request.user
         if user.is_authenticated and not user.is_super_admin:
-            if user.role:
-                has_perm = user.role.permissions.filter(codename=self.permission_codename).exists()
-                if not has_perm:
-                    messages.error(request, 'Access denied. You do not have permission to access this module.')
-                    return redirect('commercehub_app:dashboard')
+            if not user.has_vendor_perm(self.permission_codename):
+                messages.error(request, 'Access denied. You do not have permission or your active subscription plan does not support this module.')
+                return redirect('commercehub_app:dashboard')
         return res

@@ -1648,7 +1648,12 @@ class NewsletterSubscriptionView(View):
             if random_password:
                 body += f"We have also created an account for you to checkout faster!\nLogin ID (Email): {email}\nPassword: {random_password}\n\n"
                 
-            body += f"Shop now: {request.build_absolute_uri('/')}\n\nCheers,\n{vendor.business_name}"
+            from django.core.signing import Signer
+            signer = Signer()
+            token = signer.sign(str(sub.id))
+            unsubscribe_url = f"{request.build_absolute_uri('/unsubscribe/')}{token}/"
+                
+            body += f"Shop now: {request.build_absolute_uri('/')}\n\nCheers,\n{vendor.business_name}\n\nUnsubscribe from these emails: {unsubscribe_url}"
             from_email = settings_obj.default_from_email or settings_obj.email_host_user
             
             email_msg = EmailMessage(
@@ -1665,3 +1670,23 @@ class NewsletterSubscriptionView(View):
             return JsonResponse({'status': 'success', 'message': 'Subscribed successfully, but failed to send welcome email.'})
             
         return JsonResponse({'status': 'success', 'message': 'Subscribed! Check your email for your discount code.'})
+
+class NewsletterUnsubscribeView(View):
+    def get(self, request, token):
+        from django.core.signing import Signer, BadSignature
+        from crm.models import NewsletterSubscriber
+        
+        signer = Signer()
+        try:
+            sub_id = signer.unsign(token)
+            subscriber = NewsletterSubscriber.objects.get(id=sub_id)
+            subscriber.delete()
+            success = True
+        except (BadSignature, NewsletterSubscriber.DoesNotExist):
+            success = False
+            
+        context = {
+            'success': success,
+            'page_title': 'Unsubscribe from Newsletter'
+        }
+        return render(request, 'storefront/newsletter_unsubscribe.html', context)

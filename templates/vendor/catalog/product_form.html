@@ -14,7 +14,7 @@
     <span>{% if product %}Edit Product{% else %}New Product{% endif %}</span>
 </div>
 
-<div class="data-card" style="max-width: 1000px; padding: 28px;">
+<div class="data-card" style="padding: 28px;">
     <form method="post" enctype="multipart/form-data" id="productForm">
         {% csrf_token %}
 
@@ -335,7 +335,7 @@
                                 <td>
                                     <strong>{{ variant.name }}</strong>
                                     <input type="hidden" name="variant_id[]" value="{{ variant.pk }}">
-                                    <input type="hidden" name="variant_attributes_json[]" value='{{ variant.attributes_data|json_script:"v-data" }}' class="v-json-data">
+                                    <input type="hidden" name="variant_attributes_json[]" value="{{ variant.attributes_data_json }}" class="v-json-data">
                                 </td>
                                 <td>
                                     <input type="text" name="variant_sku[]" class="form-input" style="padding: 6px; font-size: 13px;" value="{{ variant.sku }}" required>
@@ -499,15 +499,16 @@
                     return;
                 }
 
-                // Warn user
                 const tbody = document.getElementById("variants-tbody");
-                if (tbody.children.length > 0) {
-                    if (!confirm("Regenerating the matrix will clear all existing unsaved rows in the variants table. Do you wish to continue?")) {
-                        return;
-                    }
-                }
 
-                tbody.innerHTML = ""; // Clear table
+                // Get existing variants to avoid duplicates
+                const existingVariants = new Set();
+                tbody.querySelectorAll("tr").forEach(row => {
+                    const nameEl = row.querySelector("td strong");
+                    if (nameEl) {
+                        existingVariants.add(nameEl.innerText.trim());
+                    }
+                });
 
                 // Cartesian Helper
                 function cartesian(args) {
@@ -530,10 +531,18 @@
                 const prodName = document.getElementById("name").value.trim() || "PRODUCT";
                 const baseSku = prodName.replace(/[^a-zA-Z0-9]/g, "-").toUpperCase().slice(0, 15);
 
+                let addedCount = 0;
+
                 combinations.forEach((combo, comboIdx) => {
                     // combo is an array of values, e.g. ["Red", "L"]
                     // Build representation name
                     const varName = combo.join(", ");
+                    
+                    // Skip if variant already exists
+                    if (existingVariants.has(varName)) {
+                        return;
+                    }
+
                     const varAttrsData = {};
                     combo.forEach((val, idx) => {
                         const code = attrCodes[idx].code;
@@ -545,6 +554,7 @@
                     const generatedSku = `${baseSku}-${skuSuffix}`;
 
                     const row = document.createElement("tr");
+                    addedCount++;
                     row.innerHTML = `
                         <td>
                             <strong>${varName}</strong>
@@ -587,9 +597,12 @@
 
         // Delete Row functionality
         document.getElementById("variants-table").addEventListener("click", function(e) {
-            if (e.target && e.target.classList.contains("delete-row-btn")) {
-                const row = e.target.closest("tr");
-                row.remove();
+            const btn = e.target.closest(".delete-row-btn");
+            if (btn) {
+                const row = btn.closest("tr");
+                if (row) {
+                    row.remove();
+                }
             }
         });
     });

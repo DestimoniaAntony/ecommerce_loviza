@@ -4,6 +4,8 @@ Enterprise Multi-Tenant Multi-Vendor E-Commerce SaaS Platform
 """
 import os
 from pathlib import Path
+from decouple import config, Csv
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -11,9 +13,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ─────────────────────────────────────────────
 # SECURITY
 # ─────────────────────────────────────────────
-SECRET_KEY = 'django-insecure-%y6fw8^6arlrauey@(5(=s$y#kl(yj)&z6uibe2s51^0v00(kk'
-DEBUG = True
-ALLOWED_HOSTS = ['*']
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-%y6fw8^6arlrauey@(5(=s$y#kl(yj)&z6uibe2s51^0v00(kk')
+DEBUG = config('DEBUG', default=True, cast=bool)
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*', cast=Csv())
 
 # ─────────────────────────────────────────────
 # CUSTOM USER MODEL
@@ -52,6 +54,7 @@ INSTALLED_APPS = [
 # ─────────────────────────────────────────────
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -90,10 +93,11 @@ WSGI_APPLICATION = 'commercehub.wsgi.application'
 # DATABASE (SQLite for development)
 # ─────────────────────────────────────────────
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': config(
+        'DATABASE_URL',
+        default='sqlite:///' + str(BASE_DIR / 'db.sqlite3'),
+        cast=dj_database_url.parse
+    )
 }
 
 # ─────────────────────────────────────────────
@@ -130,6 +134,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -144,7 +149,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # ─────────────────────────────────────────────
 SESSION_COOKIE_AGE = 86400 * 7          # 7 days
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = False           # Set True in production (HTTPS)
+SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=False, cast=bool)
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 # ─────────────────────────────────────────────
@@ -153,6 +158,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 X_FRAME_OPTIONS = 'DENY'
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=False, cast=bool)
 
 # ─────────────────────────────────────────────
 # OTP SETTINGS
@@ -163,10 +169,15 @@ OTP_MAX_ATTEMPTS = 5
 OTP_BACKEND = 'console'  # Options: 'console', 'twilio', 'msg91', 'fast2sms'
 
 # ─────────────────────────────────────────────
-# EMAIL SETTINGS (configure per vendor via DB)
+# EMAIL SETTINGS
 # ─────────────────────────────────────────────
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'noreply@commercehub.in'
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@commercehub.in')
 
 # ─────────────────────────────────────────────
 # ACCOUNT SECURITY
@@ -178,5 +189,5 @@ LOGIN_LOCKOUT_MINUTES = 30
 # PLATFORM SETTINGS
 # ─────────────────────────────────────────────
 PLATFORM_NAME = 'CommerceHub'
-PLATFORM_DOMAIN = 'localhost'
+PLATFORM_DOMAIN = config('PLATFORM_DOMAIN', default='localhost')
 TRIAL_DAYS = 14

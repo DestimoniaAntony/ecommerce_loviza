@@ -61,6 +61,14 @@ class SubscriptionPlan(TimestampModel):
     has_white_label = models.BooleanField(default=False)
     has_advanced_reports = models.BooleanField(default=False)
 
+    # Core Module Feature Flags
+    has_analytics = models.BooleanField(default=True)
+    has_store_settings = models.BooleanField(default=True)
+    has_catalog_management = models.BooleanField(default=True)
+    has_order_management = models.BooleanField(default=True)
+    has_inventory_management = models.BooleanField(default=True)
+    has_organization_management = models.BooleanField(default=True)
+
     class Meta:
         db_table = 'ch_subscription_plans'
         verbose_name = 'Subscription Plan'
@@ -170,8 +178,9 @@ class Vendor(TimestampModel):
     stripe_webhook_secret = models.CharField(max_length=150, blank=True)
     whatsapp_order_format = models.TextField(blank=True)
 
-    # ── Status ──
+    # ── Status & Plan ──
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    active_plan = models.ForeignKey('tenants.SubscriptionPlan', on_delete=models.SET_NULL, null=True, blank=True, related_name='active_vendors')
     is_active = models.BooleanField(default=True)
     approved_at = models.DateTimeField(null=True, blank=True)
     approved_by = models.ForeignKey(
@@ -283,6 +292,14 @@ class VendorSubscription(TimestampModel):
     def days_remaining(self):
         delta = self.end_date - timezone.now().date()
         return max(0, delta.days)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Sync the vendor's active_plan field automatically
+        if self.is_active and not self.is_expired:
+            if self.vendor.active_plan != self.plan:
+                self.vendor.active_plan = self.plan
+                self.vendor.save(update_fields=['active_plan'])
 
 
 # ─────────────────────────────────────────────────────────────

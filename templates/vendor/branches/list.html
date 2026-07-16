@@ -10,10 +10,13 @@
     </div>
 </div>
 
+{% if request.user.vendor.business_type == 'multi_partner' %}
 <div class="create-form-layout" style="gap: 28px;">
-
-    <!-- ═══ LEFT: BRANCHES LIST ═══ -->
     <div class="create-form-main" style="flex: 2;">
+{% else %}
+<div>
+    <div>
+{% endif %}
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
             <h3 class="section-title" style="margin: 0;">Branches</h3>
             {% if can_add_branch %}

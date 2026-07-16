@@ -228,6 +228,84 @@
                             </div>
                         </label>
 
+                        <!-- Core Modules -->
+                        <div style="grid-column: 1 / -1; margin-top: 16px;">
+                            <h4 style="font-size: 16px; margin-bottom: 8px; color: var(--text-primary); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">Core Platform Modules</h4>
+                            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Select which core foundational modules are enabled for this plan.</p>
+                        </div>
+
+                        <label style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: var(--transition);">
+                            <input type="checkbox" name="has_analytics" style="margin-top: 4px; scale: 1.1;" {% if plan is None or plan.has_analytics %}checked{% endif %}>
+                            <div>
+                                <strong style="display: block; font-size: 14px; color: var(--text-primary);">Dashboard &amp; Analytics</strong>
+                                <span style="display: block; font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">
+                                    &bull; High level overview<br>
+                                    &bull; Revenue tracking<br>
+                                    &bull; Key metrics
+                                </span>
+                            </div>
+                        </label>
+
+                        <label style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: var(--transition);">
+                            <input type="checkbox" name="has_store_settings" style="margin-top: 4px; scale: 1.1;" {% if plan is None or plan.has_store_settings %}checked{% endif %}>
+                            <div>
+                                <strong style="display: block; font-size: 14px; color: var(--text-primary);">Store Settings</strong>
+                                <span style="display: block; font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">
+                                    &bull; Business information<br>
+                                    &bull; Email templates<br>
+                                    &bull; Payment gateways
+                                </span>
+                            </div>
+                        </label>
+
+                        <label style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: var(--transition);">
+                            <input type="checkbox" name="has_catalog_management" style="margin-top: 4px; scale: 1.1;" {% if plan is None or plan.has_catalog_management %}checked{% endif %}>
+                            <div>
+                                <strong style="display: block; font-size: 14px; color: var(--text-primary);">Catalog Management</strong>
+                                <span style="display: block; font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">
+                                    &bull; Products &amp; Variants<br>
+                                    &bull; Categories<br>
+                                    &bull; Custom Attributes
+                                </span>
+                            </div>
+                        </label>
+
+                        <label style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: var(--transition);">
+                            <input type="checkbox" name="has_order_management" style="margin-top: 4px; scale: 1.1;" {% if plan is None or plan.has_order_management %}checked{% endif %}>
+                            <div>
+                                <strong style="display: block; font-size: 14px; color: var(--text-primary);">Order Management</strong>
+                                <span style="display: block; font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">
+                                    &bull; Process orders<br>
+                                    &bull; Fulfillment status<br>
+                                    &bull; Returns &amp; Refunds
+                                </span>
+                            </div>
+                        </label>
+
+                        <label style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: var(--transition);">
+                            <input type="checkbox" name="has_inventory_management" style="margin-top: 4px; scale: 1.1;" {% if plan is None or plan.has_inventory_management %}checked{% endif %}>
+                            <div>
+                                <strong style="display: block; font-size: 14px; color: var(--text-primary);">Inventory Management</strong>
+                                <span style="display: block; font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">
+                                    &bull; Stock levels &amp; tracking<br>
+                                    &bull; Suppliers management<br>
+                                    &bull; Purchase Orders
+                                </span>
+                            </div>
+                        </label>
+
+                        <label style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: var(--transition);">
+                            <input type="checkbox" name="has_organization_management" style="margin-top: 4px; scale: 1.1;" {% if plan is None or plan.has_organization_management %}checked{% endif %}>
+                            <div>
+                                <strong style="display: block; font-size: 14px; color: var(--text-primary);">Organization &amp; Staff</strong>
+                                <span style="display: block; font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">
+                                    &bull; Multi-branch setup<br>
+                                    &bull; Add staff members<br>
+                                    &bull; Custom Roles &amp; Permissions
+                                </span>
+                            </div>
+                        </label>
+
                     </div>
                 </div>
             </div>

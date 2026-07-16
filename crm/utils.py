@@ -108,11 +108,80 @@ def credit_loyalty_points(order):
     # Calculate earned points (points earned based on points_per_currency spent)
     points_earned = int(order.total_amount * loyalty_program.points_per_currency)
     
-    if points_earned > 0:
+    if points_earned > 0 and not already_credited:
         LoyaltyLedger.objects.create(
             vendor=vendor,
             customer=customer,
             points=points_earned,
             transaction_type='earn',
-            reference_order=order
+            reference_order=order,
+            reason=f'Earned from Order {order.order_number}'
         )
+
+import threading
+from django.core.signing import Signer
+from django.core.mail import EmailMultiAlternatives
+from django.core.mail.backends.smtp import EmailBackend
+from django.template.loader import render_to_string
+from crm.models import NewsletterSubscriber
+from tenants.models import VendorEmailSettings, Vendor
+
+def _send_emails_thread(vendor_id, coupon_id, request_host):
+    try:
+        vendor = Vendor.objects.get(id=vendor_id)
+        coupon = Coupon.objects.get(id=coupon_id)
+        settings_obj = VendorEmailSettings.objects.filter(vendor=vendor).first()
+        
+        # If no SMTP settings configured, we can't send vendor-specific emails
+        if not settings_obj or not settings_obj.email_host_user:
+            return
+
+        subscribers = NewsletterSubscriber.objects.filter(vendor=vendor, is_active=True)
+        if not subscribers.exists():
+            return
+
+        backend = EmailBackend(
+            host=settings_obj.email_host,
+            port=settings_obj.email_port,
+            username=settings_obj.email_host_user,
+            password=settings_obj.email_host_password,
+            use_tls=settings_obj.use_tls,
+            fail_silently=True
+        )
+
+        signer = Signer()
+        from_email = settings_obj.email_host_user
+
+        messages = []
+        for sub in subscribers:
+            token = signer.sign(str(sub.id))
+            unsubscribe_url = f"http://{request_host}/unsubscribe/{token}/"
+            
+            context = {
+                'subscriber': sub,
+                'coupon': coupon,
+                'vendor': vendor,
+                'unsubscribe_url': unsubscribe_url,
+            }
+            html_content = render_to_string('emails/new_coupon_notification.html', context)
+            
+            msg = EmailMultiAlternatives(
+                subject=f"New Special Offer from {vendor.business_name}!",
+                body=f"Use code {coupon.code} to get a discount. Unsubscribe here: {unsubscribe_url}",
+                from_email=from_email,
+                to=[sub.email],
+            )
+            msg.attach_alternative(html_content, "text/html")
+            messages.append(msg)
+
+        backend.send_messages(messages)
+    except Exception as e:
+        print(f"Failed to send coupon notifications: {e}")
+
+def send_coupon_notification_emails(vendor_id, coupon_id, request_host):
+    """
+    Spawns a background thread to email all active subscribers about a new coupon.
+    """
+    thread = threading.Thread(target=_send_emails_thread, args=(vendor_id, coupon_id, request_host))
+    thread.daemon = True
+    thread.start()

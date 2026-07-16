@@ -601,6 +601,12 @@ class PlanCreateView(SuperAdminRequiredMixin, View):
                 has_api_access=request.POST.get('has_api_access') == 'on',
                 has_white_label=request.POST.get('has_white_label') == 'on',
                 has_advanced_reports=request.POST.get('has_advanced_reports') == 'on',
+                has_analytics=request.POST.get('has_analytics') == 'on',
+                has_store_settings=request.POST.get('has_store_settings') == 'on',
+                has_catalog_management=request.POST.get('has_catalog_management') == 'on',
+                has_order_management=request.POST.get('has_order_management') == 'on',
+                has_inventory_management=request.POST.get('has_inventory_management') == 'on',
+                has_organization_management=request.POST.get('has_organization_management') == 'on',
             )
             messages.success(request, f'Subscription Plan "{plan.name}" created successfully.')
         except Exception as e:
@@ -651,6 +657,13 @@ class PlanEditView(SuperAdminRequiredMixin, View):
         plan.has_api_access = request.POST.get('has_api_access') == 'on'
         plan.has_white_label = request.POST.get('has_white_label') == 'on'
         plan.has_advanced_reports = request.POST.get('has_advanced_reports') == 'on'
+
+        plan.has_analytics = request.POST.get('has_analytics') == 'on'
+        plan.has_store_settings = request.POST.get('has_store_settings') == 'on'
+        plan.has_catalog_management = request.POST.get('has_catalog_management') == 'on'
+        plan.has_order_management = request.POST.get('has_order_management') == 'on'
+        plan.has_inventory_management = request.POST.get('has_inventory_management') == 'on'
+        plan.has_organization_management = request.POST.get('has_organization_management') == 'on'
         
         try:
             plan.save()
