@@ -238,8 +238,7 @@
         <div class="mobile-nav-header"
           onclick="this.nextElementSibling.classList.toggle('open'); let icon = this.querySelector('.material-symbols-outlined'); icon.innerText = icon.innerText === 'add' ? 'remove' : 'add';"
           style="cursor: pointer; padding: 1rem 0;">
-          <a class="font-serif" href="javascript:void(0)" style="font-size: 1.1rem; padding: 0;">{{ root_node.name
-            }}</a>
+          <a class="font-serif" href="javascript:void(0)" style="font-size: 1.1rem; padding: 0;">{{ root_node.name }}</a>
           <span class="material-symbols-outlined">add</span>
         </div>
         <div class="mobile-nav-sub">
@@ -250,15 +249,14 @@
           {% for child in root_node.get_children %}
           <a class="font-serif" href="{% url 'storefront:catalog' %}?category={{ child.slug }}"
             onclick="toggleMobileMenu()"
-            style="display: block; padding-left: 1rem; padding-bottom: 1rem; font-size: 1.1rem; text-decoration: none; color: inherit;">{{
-            child.name }}</a>
+            style="display: block; padding-left: 1rem; padding-bottom: 1rem; font-size: 1.1rem; text-decoration: none; color: inherit;">
+            {{ child.name }}</a>
           {% endfor %}
         </div>
       </div>
       {% else %}
       <a class="font-serif" href="{% url 'storefront:catalog' %}?category={{ root_node.slug }}"
-        onclick="toggleMobileMenu()" style="display: block; padding: 1rem 0; font-size: 1.1rem;">{{ root_node.name
-        }}</a>
+        onclick="toggleMobileMenu()" style="display: block; padding: 1rem 0; font-size: 1.1rem;">{{ root_node.name }}</a>
       {% endif %}
       {% endfor %}
 
