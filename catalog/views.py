@@ -687,13 +687,14 @@ class ProductEditView(PermissionRequiredMixin, View):
                 
                 if str(sid).startswith('new_'):
                     if heading or content or image:
-                        ProductInfoSection.objects.create(
+                        new_section = ProductInfoSection.objects.create(
                             product=product,
                             heading=heading,
                             content=content,
                             image=image,
                             sort_order=idx
                         )
+                        submitted_existing_ids.append(new_section.id)
                 else:
                     try:
                         section = ProductInfoSection.objects.get(id=sid, product=product)
