@@ -1327,6 +1327,16 @@ header {
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  max-height: calc(100vh - 10rem);
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.product-panel-sticky::-webkit-scrollbar {
+  display: none;
 }
 
 .product-title-section {
@@ -1965,6 +1975,8 @@ header {
   
   .product-panel-sticky {
     position: static;
+    max-height: none;
+    overflow-y: visible;
   }
   
   /* Collection */
