@@ -407,8 +407,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // ── Revenue Line Chart ──
     const revenueCtx = document.getElementById('revenueChart');
     if (revenueCtx) {
-        const revenueLabels = {{ chart_labels_json }};
-        const revenueData = {{ chart_data_json }};
+        const revenueLabels = {{ chart_labels_json|safe }};
+        const revenueData = {{ chart_data_json|safe }};
         new Chart(revenueCtx, {
             type: 'line',
             data: {
@@ -463,9 +463,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // ── Order Status Donut ──
     const statusCtx = document.getElementById('statusChart');
     if (statusCtx) {
-        const statusLabels = {{ status_labels_json }};
-        const statusData = {{ status_data_json }};
-        const statusColors = {{ status_colors_json }};
+        const statusLabels = {{ status_labels_json|safe }};
+        const statusData = {{ status_data_json|safe }};
+        const statusColors = {{ status_colors_json|safe }};
         new Chart(statusCtx, {
             type: 'doughnut',
             data: {

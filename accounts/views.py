@@ -534,3 +534,18 @@ class StaffEditView(PermissionRequiredMixin, View):
 
         messages.success(request, f'Staff member "{staff_user.get_full_name()}" updated successfully!')
         return redirect('accounts:staff_list')
+
+class StaffDeleteView(PermissionRequiredMixin, View):
+    permission_codename = 'manage_staff'
+
+    def post(self, request, staff_id):
+        staff_user = get_object_or_404(User, pk=staff_id, vendor=request.user.vendor)
+        
+        if staff_user.user_type != 'vendor_staff':
+            messages.error(request, 'You cannot delete the primary vendor account.')
+            return redirect('accounts:staff_list')
+            
+        staff_name = staff_user.get_full_name()
+        staff_user.delete()
+        messages.success(request, f'Staff member "{staff_name}" was successfully deleted.')
+        return redirect('accounts:staff_list')

@@ -24,4 +24,5 @@ urlpatterns = [
     path('staff/', views.StaffListView.as_view(), name='staff_list'),
     path('staff/create/', views.StaffCreateView.as_view(), name='staff_create'),
     path('staff/<int:staff_id>/edit/', views.StaffEditView.as_view(), name='staff_edit'),
+    path('staff/<int:staff_id>/delete/', views.StaffDeleteView.as_view(), name='staff_delete'),
 ]
