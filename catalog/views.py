@@ -703,6 +703,10 @@ class ProductEditView(PermissionRequiredMixin, View):
                         section.sort_order = idx
                         if image:
                             section.image = image
+                        elif request.POST.get(f'delete_info_image_{sid}') == 'true':
+                            if section.image:
+                                section.image.delete(save=False)
+                                section.image = None
                         section.save()
                         submitted_existing_ids.append(section.id)
                     except ProductInfoSection.DoesNotExist:

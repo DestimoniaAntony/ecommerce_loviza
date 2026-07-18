@@ -405,26 +405,38 @@ class ProductDetailView(View):
             all_attr_codes.discard('is_customizable')
             
             ordered_codes = sorted(list(all_attr_codes))
-            attrs = Attribute.objects.filter(vendor=vendor, code__in=ordered_codes)
-            attr_name_map = {a.code: a.name for a in attrs}
+            attrs = Attribute.objects.filter(vendor=vendor, code__in=ordered_codes).prefetch_related('options')
+            attr_map = {a.code: a for a in attrs}
             
             for code in ordered_codes:
+                name = attr_map[code].name if code in attr_map else code.title()
                 variant_options_list.append({
                     'code': code,
-                    'name': attr_name_map.get(code, code.title()),
+                    'name': name,
                     'values': []
                 })
+            
+            for v in variants:
+                for code in ordered_codes:
+                    val = v.attributes_data.get(code, '')
+                    # Add to values list if not present
+                    opt_dict = next(item for item in variant_options_list if item["code"] == code)
+                    if val and val not in opt_dict['values']:
+                        opt_dict['values'].append(val)
+            
+            # Sort the options to match the vendor panel sequence
+            for opt_dict in variant_options_list:
+                code = opt_dict['code']
+                if code in attr_map:
+                    db_options = [o.value for o in attr_map[code].options.all()]
+                    if db_options:
+                        opt_dict['values'].sort(key=lambda x: db_options.index(x) if x in db_options else 999)
             
             for v in variants:
                 combo_key_parts = []
                 for code in ordered_codes:
                     val = v.attributes_data.get(code, '')
                     combo_key_parts.append(val)
-                    
-                    # Add to values list if not present
-                    opt_dict = next(item for item in variant_options_list if item["code"] == code)
-                    if val and val not in opt_dict['values']:
-                        opt_dict['values'].append(val)
                 
                 combo_key = "|".join(combo_key_parts)
                 

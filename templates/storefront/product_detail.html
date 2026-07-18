@@ -212,7 +212,7 @@
               <div class="accordion-content">
                 <div class="accordion-inner-content">
                   {% if section.content %}
-                  {{ section.content|linebreaks }}
+                  {{ section.content|safe }}
                   {% endif %}
                   {% if section.image %}
                   <img src="{{ section.image.url }}" alt="{{ section.heading }}" style="max-width: 100%; height: auto; display: block; margin-top: 10px; border-radius: 4px;">

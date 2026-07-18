@@ -314,10 +314,15 @@ class VendorOrderListView(VendorLoginRequiredMixin, View):
         vendor = request.user.vendor
         status_filter = request.GET.get('status', '').strip()
 
-        orders = Order.objects.filter(vendor=vendor)
+        orders_qs = Order.objects.filter(vendor=vendor)
         if status_filter:
-            orders = orders.filter(status=status_filter)
-        orders = orders.order_by('-created_at')
+            orders_qs = orders_qs.filter(status=status_filter)
+        orders_qs = orders_qs.order_by('-created_at')
+
+        from django.core.paginator import Paginator
+        paginator = Paginator(orders_qs, 20)
+        page_number = request.GET.get('page')
+        orders = paginator.get_page(page_number)
 
         context = {
             'page_title': 'Customer Orders',

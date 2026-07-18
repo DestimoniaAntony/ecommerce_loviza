@@ -16,22 +16,33 @@
 </div>
 
 <div class="data-card">
-    <div class="table-wrapper">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Name</th>
-                    <th>Contact</th>
-                    <th>Message</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for message in contact_messages %}
-                <tr {% if not message.is_read %}style="background: var(--bg-hover);"{% endif %}>
-                    <td>
+    <form method="post" action="{% url 'crm:message_list' %}">
+        {% csrf_token %}
+        <div class="table-actions-bar" style="padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+            <button type="submit" name="bulk_delete" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete the selected messages?');">Delete Selected</button>
+        </div>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;">
+                            <input type="checkbox" id="select-all" onclick="document.querySelectorAll('input[name=\'message_ids[]\']').forEach(cb => cb.checked = this.checked);">
+                        </th>
+                        <th>Date</th>
+                        <th>Name</th>
+                        <th>Contact</th>
+                        <!-- <th>Message</th> -->
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for message in contact_messages %}
+                    <tr {% if not message.is_read %}style="background: var(--bg-hover);"{% endif %}>
+                        <td>
+                            <input type="checkbox" name="message_ids[]" value="{{ message.id }}">
+                        </td>
+                        <td>
                         {{ message.created_at|date:"M d, Y H:i" }}
                     </td>
                     <td>
@@ -45,11 +56,11 @@
                             {% endif %}
                         </div>
                     </td>
-                    <td>
+                    <!-- <td>
                         <p style="margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; max-width: 300px;" title="{{ message.message }}">
                             {{ message.message }}
                         </p>
-                    </td>
+                    </td> -->
                     <td>
                         {% if message.is_read %}
                             <span class="status-badge" style="background: var(--bg-secondary); color: var(--text-secondary);">Read</span>
@@ -59,19 +70,16 @@
                     </td>
                     <td>
                         <div class="table-actions">
+                            <button type="button" class="btn btn-sm btn-primary" onclick="openMessageModal('{{ message.id }}', '{{ message.name|escapejs }}', '{{ message.email|escapejs }}', '{{ message.message|escapejs }}')">View</button>
                             {% if not message.is_read %}
-                            <form action="{% url 'crm:message_list' %}" method="get" style="display: inline-block;">
-                                <input type="hidden" name="mark_read" value="{{ message.id }}">
-                                <button type="submit" class="btn btn-sm btn-outline">Mark Read</button>
-                            </form>
+                            <a href="?mark_read={{ message.id }}" class="btn btn-sm btn-outline">Mark Read</a>
                             {% endif %}
-                            <a href="mailto:{{ message.email }}" class="btn btn-sm btn-primary">Reply</a>
                         </div>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6">
+                    <td colspan="7">
                         <div class="table-empty">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
                                 <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
@@ -84,5 +92,60 @@
             </tbody>
         </table>
     </div>
+    </form>
+    
+    {% if contact_messages.has_other_pages %}
+    <div class="pagination-wrapper" style="padding: 16px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+        <div class="pagination-info text-secondary">
+            Showing {{ contact_messages.start_index }} to {{ contact_messages.end_index }} of {{ contact_messages.paginator.count }} messages
+        </div>
+        <div class="pagination-controls" style="display: flex; gap: 4px;">
+            {% if contact_messages.has_previous %}
+            <a href="?page={{ contact_messages.previous_page_number }}" class="btn btn-sm btn-outline">Previous</a>
+            {% endif %}
+            
+            {% for i in contact_messages.paginator.page_range %}
+                {% if contact_messages.number == i %}
+                <span class="btn btn-sm btn-primary">{{ i }}</span>
+                {% else %}
+                <a href="?page={{ i }}" class="btn btn-sm btn-outline">{{ i }}</a>
+                {% endif %}
+            {% endfor %}
+            
+            {% if contact_messages.has_next %}
+            <a href="?page={{ contact_messages.next_page_number }}" class="btn btn-sm btn-outline">Next</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
 </div>
+
+<!-- Message Modal -->
+<div id="messageModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+    <div style="background: var(--bg-card); width: 100%; max-width: 600px; border-radius: var(--radius); padding: 24px; position: relative; box-shadow: var(--shadow-lg);">
+        <h3 id="modalName" style="margin-top: 0; margin-bottom: 8px;">Name</h3>
+        <p id="modalEmail" style="color: var(--text-secondary); margin-bottom: 20px; font-size: 0.9em;">email</p>
+        
+        <div style="background: var(--bg-body); padding: 16px; border-radius: var(--radius); max-height: 400px; overflow-y: auto; line-height: 1.6;">
+            <p id="modalMessage" style="white-space: pre-wrap; margin: 0;"></p>
+        </div>
+        
+        <div style="margin-top: 24px; text-align: right;">
+            <button type="button" class="btn btn-outline" onclick="closeMessageModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openMessageModal(id, name, email, message) {
+        document.getElementById('modalName').textContent = name;
+        document.getElementById('modalEmail').textContent = email;
+        document.getElementById('modalMessage').textContent = message;
+        document.getElementById('messageModal').style.display = 'flex';
+    }
+
+    function closeMessageModal() {
+        document.getElementById('messageModal').style.display = 'none';
+    }
+</script>
 {% endblock %}

@@ -368,6 +368,18 @@ class ContactMessageListView(VendorLoginRequiredMixin, View):
     """
     template_name = 'vendor/crm/messages/list.html'
 
+    def post(self, request):
+        vendor = request.user.vendor
+        if 'bulk_delete' in request.POST:
+            message_ids = request.POST.getlist('message_ids[]')
+            if message_ids:
+                from storefront.models import ContactMessage
+                deleted_count, _ = ContactMessage.objects.filter(vendor=vendor, id__in=message_ids).delete()
+                messages.success(request, f"{deleted_count} message(s) deleted successfully.")
+            else:
+                messages.warning(request, "No messages selected for deletion.")
+        return redirect('crm:message_list')
+
     def get(self, request):
         vendor = request.user.vendor
         
@@ -385,7 +397,12 @@ class ContactMessageListView(VendorLoginRequiredMixin, View):
             return redirect('crm:message_list')
 
         from storefront.models import ContactMessage
-        contact_messages = ContactMessage.objects.filter(vendor=vendor)
+        from django.core.paginator import Paginator
+        contact_messages_qs = ContactMessage.objects.filter(vendor=vendor).order_by('-created_at')
+        
+        paginator = Paginator(contact_messages_qs, 10)
+        page_number = request.GET.get('page')
+        contact_messages = paginator.get_page(page_number)
         
         context = {
             'page_title': 'Contact Messages',
@@ -398,10 +415,27 @@ class ContactMessageListView(VendorLoginRequiredMixin, View):
 class NewsletterSubscriberListView(VendorLoginRequiredMixin, View):
     template_name = 'vendor/crm/subscribers/list.html'
 
+    def post(self, request):
+        vendor = request.user.vendor
+        if 'bulk_delete' in request.POST:
+            subscriber_ids = request.POST.getlist('subscriber_ids[]')
+            if subscriber_ids:
+                from crm.models import NewsletterSubscriber
+                deleted_count, _ = NewsletterSubscriber.objects.filter(vendor=vendor, id__in=subscriber_ids).delete()
+                messages.success(request, f"{deleted_count} subscriber(s) deleted successfully.")
+            else:
+                messages.warning(request, "No subscribers selected for deletion.")
+        return redirect(request.path)
+
     def get(self, request):
         from crm.models import NewsletterSubscriber
+        from django.core.paginator import Paginator
         vendor = request.user.vendor
-        subscribers = NewsletterSubscriber.objects.filter(vendor=vendor).select_related('coupon').order_by('-created_at')
+        subscribers_qs = NewsletterSubscriber.objects.filter(vendor=vendor).select_related('coupon').order_by('-created_at')
+        
+        paginator = Paginator(subscribers_qs, 10)
+        page_number = request.GET.get('page')
+        subscribers = paginator.get_page(page_number)
         
         context = {
             'page_title': 'Newsletter Subscribers',

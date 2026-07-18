@@ -162,8 +162,8 @@
                     {% for section in product.info_sections.all %}
                         <div class="info-section-item" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; position: relative;">
                             <input type="hidden" name="info_id[]" value="{{ section.id }}">
-                            <button type="button" onclick="this.parentElement.remove()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--color-danger); cursor: pointer; display: flex; align-items: center; gap: 4px;">
-                                <span class="material-symbols-outlined" style="font-size: 18px;">delete</span> Remove
+                            <button type="button" class="btn btn-sm btn-ghost text-danger" onclick="this.parentElement.remove()" style="position: absolute; top: 16px; right: 16px; display: flex; align-items: center; gap: 4px;">
+                                Remove
                             </button>
                             <div class="form-group" style="margin-bottom: 12px; padding-right: 80px;">
                                 <label class="form-label">Heading</label>
@@ -171,13 +171,17 @@
                             </div>
                             <div class="form-group" style="margin-bottom: 12px;">
                                 <label class="form-label">Content</label>
-                                <textarea name="info_content[]" class="form-input" rows="3" placeholder="Enter the content for this section...">{{ section.content }}</textarea>
+                                <textarea name="info_content[]" class="form-input rich-editor" rows="3" placeholder="Enter the content for this section...">{{ section.content }}</textarea>
                             </div>
                             <div class="form-group" style="margin-bottom: 0;">
                                 <label class="form-label">Image (Optional)</label>
                                 {% if section.image %}
                                 <div style="margin-bottom: 8px;">
-                                    <img src="{{ section.image.url }}" alt="Current image" style="max-height: 100px; border-radius: 4px;">
+                                    <img src="{{ section.image.url }}" alt="Current image" style="max-height: 100px; border-radius: 4px; display: block; margin-bottom: 8px;">
+                                    <label style="display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--color-danger); cursor: pointer; user-select: none;">
+                                        <input type="checkbox" name="delete_info_image_{{ section.id }}" value="true" style="accent-color: var(--color-danger); width: 14px; height: 14px;">
+                                        Remove current image
+                                    </label>
                                 </div>
                                 {% endif %}
                                 <input type="file" name="info_image_{{ section.id }}" class="form-input" accept="image/*">
@@ -619,8 +623,8 @@
         
         sectionDiv.innerHTML = `
             <input type="hidden" name="info_id[]" value="${sectionId}">
-            <button type="button" onclick="this.parentElement.remove()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--color-danger); cursor: pointer; display: flex; align-items: center; gap: 4px;">
-                <span class="material-symbols-outlined" style="font-size: 18px;">delete</span> Remove
+            <button type="button" class="btn btn-sm btn-ghost text-danger" onclick="this.parentElement.remove()" style="position: absolute; top: 16px; right: 16px; display: flex; align-items: center; gap: 4px;">
+                Remove
             </button>
             <div class="form-group" style="margin-bottom: 12px; padding-right: 80px;">
                 <label class="form-label">Heading</label>
@@ -628,7 +632,7 @@
             </div>
             <div class="form-group" style="margin-bottom: 12px;">
                 <label class="form-label">Content</label>
-                <textarea name="info_content[]" class="form-input" rows="3" placeholder="Enter the content for this section..."></textarea>
+                <textarea name="info_content[]" class="form-input rich-editor" rows="3" placeholder="Enter the content for this section..."></textarea>
             </div>
             <div class="form-group" style="margin-bottom: 0;">
                 <label class="form-label">Image (Optional)</label>
@@ -638,6 +642,9 @@
         `;
         
         container.appendChild(sectionDiv);
+        if (typeof initEditors === 'function') {
+            initEditors();
+        }
     }
     // Image Cropper Logic
     let cropper;
@@ -721,8 +728,8 @@
         cropperModal.style.display = 'flex';
         
         let isInfoImage = currentFileInput.name && currentFileInput.name.startsWith('info_image_');
-        let ratioStr = isInfoImage ? '(1:1 Ratio)' : '(3:4 Ratio)';
-        let aspectRatioVal = isInfoImage ? 1 : 3/4;
+        let ratioStr = isInfoImage ? '(Freeform)' : '(3:4 Ratio)';
+        let aspectRatioVal = isInfoImage ? NaN : 3/4;
         
         // Update title to show progress if multiple
         const titleEl = cropperModal.querySelector('h3');
@@ -897,5 +904,27 @@
         }
     });
 
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js"></script>
+<script>
+    function initEditors() {
+        tinymce.init({
+            selector: 'textarea.rich-editor',
+            plugins: 'advlist autolink lists link image charmap preview anchor pagebreak searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media nonbreaking table emoticons template help',
+            toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | outdent indent | numlist bullist | forecolor backcolor removeformat | table image media link | charmap emoticons | fullscreen preview code',
+            menubar: 'file edit view insert format tools table help',
+            branding: false,
+            promotion: false,
+            min_height: 250,
+            setup: function (editor) {
+                editor.on('change', function () {
+                    editor.save();
+                });
+            }
+        });
+    }
+    
+    document.addEventListener("DOMContentLoaded", initEditors);
 </script>
 {% endblock %}

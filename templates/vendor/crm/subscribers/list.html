@@ -9,10 +9,19 @@
 </div>
 
 <div class="data-card">
-    <div class="table-wrapper">
-        <table class="data-table">
-            <thead>
-                <tr>
+    <form method="post" action="">
+        {% csrf_token %}
+        <div class="table-actions-bar" style="padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+            <button type="submit" name="bulk_delete" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete the selected subscribers?');">Delete Selected</button>
+        </div>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;">
+                            <input type="checkbox" id="select-all" onclick="document.querySelectorAll('input[name=\'subscriber_ids[]\']').forEach(cb => cb.checked = this.checked);">
+                        </th>
+                        <th style="width: 60px;">SL No</th>
                     <th>Email Address</th>
                     <th>First Name</th>
                     <th>Coupon Assigned</th>
@@ -23,6 +32,10 @@
             <tbody>
                 {% for sub in subscribers %}
                 <tr>
+                    <td>
+                        <input type="checkbox" name="subscriber_ids[]" value="{{ sub.id }}">
+                    </td>
+                    <td class="text-secondary">{{ subscribers.start_index|add:forloop.counter0 }}</td>
                     <td><strong>{{ sub.email }}</strong></td>
                     <td>{{ sub.first_name|default:"-" }}</td>
                     <td>
@@ -47,7 +60,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5" style="text-align: center; padding: 40px 0;">
+                    <td colspan="7" style="text-align: center; padding: 40px 0;">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 48px; height: 48px; color: var(--text-muted); margin-bottom: 16px;">
                             <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
                             <polyline points="22,6 12,13 2,6"></polyline>
@@ -60,5 +73,31 @@
             </tbody>
         </table>
     </div>
+    </form>
+
+    {% if subscribers.has_other_pages %}
+    <div class="pagination-wrapper" style="padding: 16px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+        <div class="pagination-info text-secondary">
+            Showing {{ subscribers.start_index }} to {{ subscribers.end_index }} of {{ subscribers.paginator.count }} subscribers
+        </div>
+        <div class="pagination-controls" style="display: flex; gap: 4px;">
+            {% if subscribers.has_previous %}
+            <a href="?page={{ subscribers.previous_page_number }}" class="btn btn-sm btn-outline">Previous</a>
+            {% endif %}
+            
+            {% for i in subscribers.paginator.page_range %}
+                {% if subscribers.number == i %}
+                <span class="btn btn-sm btn-primary">{{ i }}</span>
+                {% else %}
+                <a href="?page={{ i }}" class="btn btn-sm btn-outline">{{ i }}</a>
+                {% endif %}
+            {% endfor %}
+            
+            {% if subscribers.has_next %}
+            <a href="?page={{ subscribers.next_page_number }}" class="btn btn-sm btn-outline">Next</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
