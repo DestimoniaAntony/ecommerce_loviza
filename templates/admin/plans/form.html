@@ -203,6 +203,16 @@
                         </label>
                         
                         <label style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: var(--transition);">
+                            <input type="checkbox" name="has_otp_login" style="margin-top: 4px; scale: 1.1;" {% if plan.has_otp_login %}checked{% endif %}>
+                            <div>
+                                <strong style="display: block; font-size: 14px; color: var(--text-primary);">OTP Login</strong>
+                                <span style="display: block; font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">
+                                    Allow vendor staff to log in using OTP SMS
+                                </span>
+                            </div>
+                        </label>
+                        
+                        <label style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: var(--transition);">
                             <input type="checkbox" name="has_white_label" style="margin-top: 4px; scale: 1.1;" {% if plan.has_white_label %}checked{% endif %}>
                             <div>
                                 <strong style="display: block; font-size: 14px; color: var(--text-primary);">White Label Branding</strong>

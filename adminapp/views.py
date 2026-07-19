@@ -599,6 +599,7 @@ class PlanCreateView(SuperAdminRequiredMixin, View):
                 has_crm=request.POST.get('has_crm') == 'on',
                 has_marketing=request.POST.get('has_marketing') == 'on',
                 has_api_access=request.POST.get('has_api_access') == 'on',
+                has_otp_login=request.POST.get('has_otp_login') == 'on',
                 has_white_label=request.POST.get('has_white_label') == 'on',
                 has_advanced_reports=request.POST.get('has_advanced_reports') == 'on',
                 has_analytics=request.POST.get('has_analytics') == 'on',
@@ -655,6 +656,7 @@ class PlanEditView(SuperAdminRequiredMixin, View):
         plan.has_crm = request.POST.get('has_crm') == 'on'
         plan.has_marketing = request.POST.get('has_marketing') == 'on'
         plan.has_api_access = request.POST.get('has_api_access') == 'on'
+        plan.has_otp_login = request.POST.get('has_otp_login') == 'on'
         plan.has_white_label = request.POST.get('has_white_label') == 'on'
         plan.has_advanced_reports = request.POST.get('has_advanced_reports') == 'on'
 

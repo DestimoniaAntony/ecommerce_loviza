@@ -600,6 +600,7 @@
 {% endblock %}
 
 {% block extra_js %}
+{{ block.super }}
 <script>
 // Image preview on file select
 function setupImagePreview(inputId, previewId, zoneId) {

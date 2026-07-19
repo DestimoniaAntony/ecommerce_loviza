@@ -15,15 +15,7 @@
     <aside class="sidebar vendor-sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="sidebar-logo">
-                <div class="logo-icon">
-                    {% if request.user.vendor.logo %}
-                        <img src="{{ request.user.vendor.logo.url }}" alt="logo" style="width: 100%; height: 100%; object-fit: cover;">
-                    {% else %}
-                        <div class="vendor-logo-placeholder" style="background: linear-gradient(135deg, {{ request.user.vendor.primary_color|default:'#6366f1' }}, {{ request.user.vendor.secondary_color|default:'#8b5cf6' }}); width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white;">
-                            {{ request.user.vendor.business_name|first|upper }}
-                        </div>
-                    {% endif %}
-                </div>
+
                 <div class="logo-text">
                     <span class="logo-name">{{ request.user.vendor.business_name|default:"My Store" }}</span>
                     <span class="logo-badge">Vendor Panel</span>

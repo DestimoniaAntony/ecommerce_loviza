@@ -58,6 +58,7 @@ class SubscriptionPlan(TimestampModel):
     has_crm = models.BooleanField(default=False)
     has_marketing = models.BooleanField(default=False)
     has_api_access = models.BooleanField(default=False)
+    has_otp_login = models.BooleanField(default=False)
     has_white_label = models.BooleanField(default=False)
     has_advanced_reports = models.BooleanField(default=False)
 

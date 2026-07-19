@@ -592,6 +592,7 @@
 {% endblock %}
 
 {% block extra_js %}
+{{ block.super }}
 <script>
 // Tab switching
 document.querySelectorAll('.detail-tab').forEach(tab => {

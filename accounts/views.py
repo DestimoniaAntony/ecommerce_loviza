@@ -79,35 +79,49 @@ class VendorLoginView(View):
     template_name = 'auth/vendor_login.html'
 
     def get(self, request):
-        if request.user.is_authenticated and not request.user.is_super_admin:
-            return redirect('commercehub_app:dashboard')
-        return render(request, self.template_name)
+        if request.user.is_authenticated:
+            if request.user.is_super_admin:
+                return redirect('adminapp:dashboard')
+            elif request.user.user_type == 'vendor_staff':
+                return redirect('commercehub_app:dashboard')
+            elif request.user.user_type == 'customer':
+                return redirect('storefront:home')
+                
+        allow_otp = True
+        if hasattr(request, 'tenant') and request.tenant and request.tenant.active_plan:
+            allow_otp = request.tenant.active_plan.has_otp_login
+            
+        return render(request, self.template_name, {'allow_otp': allow_otp})
 
     def post(self, request):
+        allow_otp = True
+        if hasattr(request, 'tenant') and request.tenant and request.tenant.active_plan:
+            allow_otp = request.tenant.active_plan.has_otp_login
+
         phone = request.POST.get('phone', '').strip()
         password = request.POST.get('password', '').strip()
-        login_method = request.POST.get('login_method', 'otp') # 'otp' or 'password'
+        login_method = request.POST.get('login_method', 'otp' if allow_otp else 'password')
         ip = get_client_ip(request)
         ua = get_user_agent(request)
 
         if not phone:
             messages.error(request, 'Please enter your phone number.')
-            return render(request, self.template_name)
+            return render(request, self.template_name, {'allow_otp': allow_otp})
 
         try:
             user = User.objects.get(phone=phone, is_active=True)
         except User.DoesNotExist:
             messages.error(request, 'No active account found with this phone number.')
-            return render(request, self.template_name)
+            return render(request, self.template_name, {'allow_otp': allow_otp})
 
         if user.is_locked:
             messages.error(request, 'Account is temporarily locked. Please contact support.')
-            return render(request, self.template_name)
+            return render(request, self.template_name, {'allow_otp': allow_otp})
 
         if login_method == 'password':
             if not password:
                 messages.error(request, 'Please enter your password.')
-                return render(request, self.template_name)
+                return render(request, self.template_name, {'allow_otp': allow_otp})
 
             auth_user = authenticate(request, phone=phone, password=password)
             if auth_user:
@@ -123,8 +137,14 @@ class VendorLoginView(View):
                 LoginHistory.objects.create(user=user, phone=phone, status='failed', ip_address=ip, user_agent=ua)
                 remaining = getattr(settings, 'LOGIN_MAX_ATTEMPTS', 5) - user.failed_login_attempts
                 messages.error(request, f'Invalid password. {max(0, remaining)} attempt(s) remaining.')
-                return render(request, self.template_name)
+                return render(request, self.template_name, {'allow_otp': allow_otp})
         else:
+            # Enforce OTP permission
+            if hasattr(request, 'tenant') and request.tenant and request.tenant.active_plan:
+                if not request.tenant.active_plan.has_otp_login:
+                    messages.error(request, 'OTP Login is not included in your current subscription plan. Please login with a password.')
+                    return render(request, self.template_name, {'allow_otp': allow_otp})
+
             # Generate and send OTP
             otp = generate_otp()
             expiry_minutes = getattr(settings, 'OTP_EXPIRY_MINUTES', 10)

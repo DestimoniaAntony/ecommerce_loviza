@@ -70,7 +70,7 @@
 
             <form method="post" class="auth-form" id="vendorLoginForm" novalidate>
                 {% csrf_token %}
-                <input type="hidden" name="login_method" id="loginMethod" value="otp">
+                <input type="hidden" name="login_method" id="loginMethod" value="{% if allow_otp %}otp{% else %}password{% endif %}">
 
                 <div class="form-group">
                     <label for="id_phone" class="form-label">Phone Number</label>
@@ -82,10 +82,10 @@
                                placeholder="+91 98765 43210" required autocomplete="tel"
                                value="{{ request.POST.phone }}">
                     </div>
-                    <p class="form-hint" id="phoneHint">We'll send a 6-digit OTP to this number</p>
+                    <p class="form-hint" id="phoneHint" {% if not allow_otp %}style="display: none;"{% endif %}>We'll send a 6-digit OTP to this number</p>
                 </div>
 
-                <div class="form-group" id="passwordGroup" style="display: none;">
+                <div class="form-group" id="passwordGroup" {% if allow_otp %}style="display: none;"{% endif %}>
                     <label for="id_password" class="form-label">Password</label>
                     <div class="input-wrapper">
                         <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -93,16 +93,18 @@
                             <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                         </svg>
                         <input type="password" id="id_password" name="password" class="form-input"
-                               placeholder="••••••••" autocomplete="current-password">
+                               placeholder="••••••••" autocomplete="current-password" {% if not allow_otp %}required{% endif %}>
                     </div>
                 </div>
 
+                {% if allow_otp %}
                 <div class="form-group" style="text-align: right; margin-top: -10px; margin-bottom: 20px;">
                     <button type="button" id="toggleLoginMethod" class="btn-link" style="font-size: 13px;">Login with Password instead</button>
                 </div>
+                {% endif %}
 
                 <button type="submit" class="btn btn-primary btn-full" id="otpBtn">
-                    <span class="btn-text">Send OTP</span>
+                    <span class="btn-text">{% if allow_otp %}Send OTP{% else %}Log In{% endif %}</span>
                     <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M5 12h14M12 5l7 7-7 7"/>
                     </svg>
@@ -127,6 +129,7 @@ const phoneHint = document.getElementById('phoneHint');
 const submitBtn = document.getElementById('otpBtn');
 const btnText = submitBtn.querySelector('.btn-text');
 
+{% if allow_otp %}
 toggleBtn.addEventListener('click', function(e) {
     e.preventDefault();
     if (loginMethodInput.value === 'otp') {
@@ -145,6 +148,7 @@ toggleBtn.addEventListener('click', function(e) {
         toggleBtn.textContent = 'Login with Password instead';
     }
 });
+{% endif %}
 
 document.getElementById('vendorLoginForm').addEventListener('submit', function() {
     submitBtn.disabled = true;

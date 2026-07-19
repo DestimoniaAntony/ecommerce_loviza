@@ -39,6 +39,12 @@ class VendorLoginRequiredMixin(LoginRequiredMixin):
             messages.warning(request, 'Please use the admin panel.')
             return redirect('adminapp:dashboard')
             
+        if request.user.user_type != 'vendor_staff':
+            from django.contrib.auth import logout
+            logout(request)
+            messages.error(request, 'Access denied. Vendor staff privileges required.')
+            return redirect('accounts:vendor_login')
+            
         vendor = getattr(request.user, 'vendor', None)
         if vendor:
             if not vendor.is_active or vendor.status != 'approved':
