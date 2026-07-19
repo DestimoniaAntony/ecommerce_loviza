@@ -275,6 +275,8 @@ class LogoutView(View):
     def get(self, request):
         logout(request)
         messages.success(request, 'You have been logged out successfully.')
+        if hasattr(request, 'tenant') and request.tenant:
+            return redirect('accounts:vendor_login')
         return redirect('accounts:admin_login')
 
 
