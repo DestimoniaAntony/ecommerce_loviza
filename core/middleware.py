@@ -161,3 +161,49 @@ class GeoCurrencyMiddleware(MiddlewareMixin):
                     request.session['currency_code'] = target_currency
 
 
+from django.utils import timezone
+
+class TimezoneMiddleware(MiddlewareMixin):
+    """
+    Sets the active timezone based on the user's session.
+    If no timezone is set, falls back to IP geolocation to find and set it.
+    """
+    def process_request(self, request):
+        tzname = request.session.get('django_timezone')
+        
+        if not tzname:
+            # Extract Client IP
+            ip = request.META.get('HTTP_CF_CONNECTING_IP')
+            if not ip:
+                x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+                if x_forwarded_for:
+                    ip = x_forwarded_for.split(',')[0].strip()
+                else:
+                    ip = request.META.get('REMOTE_ADDR')
+                    
+            if ip and ip not in ('127.0.0.1', 'localhost', '::1'):
+                cache_key = f'geoip_tz_{ip}'
+                tzname = cache.get(cache_key)
+                
+                if not tzname:
+                    try:
+                        resp = requests.get(f'https://get.geojs.io/v1/ip/geo/{ip}.json', timeout=2)
+                        if resp.status_code == 200:
+                            tzname = resp.json().get('timezone')
+                            if tzname:
+                                cache.set(cache_key, tzname, 86400 * 7) # Cache for 7 days
+                    except Exception as e:
+                        logger.error(f"GeoIP TZ fallback failed for {ip}: {e}")
+                        
+                if tzname:
+                    request.session['django_timezone'] = tzname
+
+        if tzname:
+            try:
+                timezone.activate(tzname)
+            except Exception:
+                timezone.deactivate()
+        else:
+            timezone.deactivate()
+
+

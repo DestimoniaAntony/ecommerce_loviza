@@ -1549,6 +1549,39 @@ class CustomerAddressCreateView(CustomerRequiredMixin, View):
 
         return redirect('storefront:profile')
 
+class CustomerAddressUpdateView(CustomerRequiredMixin, View):
+    def post(self, request, pk):
+        try:
+            addr = CustomerAddress.objects.get(pk=pk, customer=request.user)
+            addr.recipient_name = request.POST.get('recipient_name', '').strip()
+            addr.phone = request.POST.get('phone', '').strip()
+            addr.address_line1 = request.POST.get('address_line1', '').strip()
+            addr.address_line2 = request.POST.get('address_line2', '').strip()
+            addr.city = request.POST.get('city', '').strip()
+            addr.state = request.POST.get('state', '').strip()
+            addr.pincode = request.POST.get('pincode', '').strip()
+            
+            if request.POST.get('is_default') == 'on':
+                CustomerAddress.objects.filter(customer=request.user).update(is_default=False)
+                addr.is_default = True
+            
+            addr.save()
+            messages.success(request, 'Address updated successfully.')
+        except CustomerAddress.DoesNotExist:
+            messages.error(request, 'Address not found.')
+            
+        return redirect('storefront:profile')
+
+class CustomerAddressDeleteView(CustomerRequiredMixin, View):
+    def post(self, request, pk):
+        try:
+            addr = CustomerAddress.objects.get(pk=pk, customer=request.user)
+            addr.delete()
+            messages.success(request, 'Address deleted successfully.')
+        except CustomerAddress.DoesNotExist:
+            messages.error(request, 'Address not found.')
+        return redirect('storefront:profile')
+
 
 # ─────────────────────────────────────────────────────────────
 # NEWSLETTER SUBSCRIPTION

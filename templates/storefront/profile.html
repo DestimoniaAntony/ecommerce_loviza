@@ -3,7 +3,7 @@
 {% load currency_tags %}
 
 {% block content %}
-<main style="padding: 3rem var(--margin-desktop); max-width: var(--max-width-desktop); margin: 0 auto; width: 100%; min-height: 60vh;">
+<main class="profile-page-main">
     <!-- Account Title -->
     <div style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem;">
       <h1 class="text-display-lg" style="margin-bottom: 0.25rem;">My Account</h1>
@@ -20,7 +20,7 @@
         <button class="profile-sidebar-item" onclick="switchTab(this, 'details')">Profile Details</button>
         <button class="profile-sidebar-item" onclick="switchTab(this, 'addresses')">Address Book</button>
         <button class="profile-sidebar-item" onclick="switchTab(this, 'password')">Password Reset</button>
-        <button class="profile-sidebar-item" onclick="location.href='{% url 'storefront:logout' %}'" style="margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">Logout</button>
+        <button class="profile-sidebar-item profile-logout-btn" onclick="location.href='{% url 'storefront:logout' %}'">Logout</button>
       </aside>
 
       <!-- Right Tab Content Pane -->
@@ -72,7 +72,8 @@
           <h2 class="font-serif text-display-md" style="margin-bottom: 0.5rem; font-weight: 400;">Order History</h2>
           <p class="text-caption text-secondary">Track and view invoices for all purchases.</p>
           
-          <table class="orders-table">
+          <div class="table-responsive" style="overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 1.5rem;">
+            <table class="orders-table" style="margin-top: 0;">
             <thead>
               <tr>
                 <th class="text-label-caps">Order</th>
@@ -106,6 +107,7 @@
               {% endfor %}
             </tbody>
           </table>
+          </div>
         </div>
 
         <!-- Details Pane -->
@@ -125,7 +127,7 @@
               </div>
               <div class="form-group full-width">
                 <label class="text-label-caps" style="font-size: 10px; margin-bottom: 0.5rem; display: block;" for="email">Email Address</label>
-                <input id="email" type="email" value="{{ request.user.email }}" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 13px;"/>
+                <input id="email" type="email" value="{{ request.user.email|default_if_none:'' }}" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 13px;"/>
               </div>
               <div class="form-group full-width">
                 <label class="text-label-caps" style="font-size: 10px; margin-bottom: 0.5rem; display: block;" for="phone">Phone Number</label>
@@ -157,7 +159,7 @@
         <div class="profile-content-pane" id="pane-addresses">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
             <h2 class="font-serif text-display-md" style="margin: 0; font-weight: 400;">Address Book</h2>
-            <button class="hero-btn text-label-caps" onclick="alert('Add address form opening...');" style="border: 1px solid var(--primary-color); padding: 0.5rem 1.5rem; font-size: 10px;">Add New</button>
+            <button class="hero-btn text-label-caps" onclick="openAddressModal(false)" style="border: 1px solid var(--primary-color); padding: 0.5rem 1.5rem; font-size: 10px;">Add New</button>
           </div>
           <p class="text-caption text-secondary">Manage your delivery and billing coordinates.</p>
           
@@ -179,8 +181,9 @@
                 Phone: {{ addr.phone }}
               </p>
               <div class="address-card-actions">
-                <button onclick="alert('Editing address...');">Edit</button>
-                <button onclick="if(confirm('Delete address?')) this.closest('.address-card').remove();" style="color: var(--accent-color);">Delete</button>
+                <button onclick="openAddressModal(true, '{{ addr.id }}', '{{ addr.recipient_name|escapejs }}', '{{ addr.phone|escapejs }}', '{{ addr.address_line1|escapejs }}', '{{ addr.address_line2|escapejs }}', '{{ addr.city|escapejs }}', '{{ addr.state|escapejs }}', '{{ addr.pincode|escapejs }}', {% if addr.is_default %}true{% else %}false{% endif %});">Edit</button>
+                <button onclick="if(confirm('Delete address?')) { document.getElementById('delete-addr-{{ addr.id }}').submit(); }" style="color: var(--accent-color);">Delete</button>
+                <form id="delete-addr-{{ addr.id }}" action="{% url 'storefront:address_delete' addr.id %}" method="post" style="display: none;">{% csrf_token %}</form>
               </div>
             </div>
             {% empty %}
@@ -193,6 +196,56 @@
 
     </div>
   </main>
+
+  <!-- Address Modal -->
+  <div id="address-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 1rem;">
+    <div style="background: var(--surface-lowest); padding: 2rem; border-radius: 8px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto;">
+      <h2 id="address-modal-title" class="font-serif text-headline-lg" style="margin-bottom: 1rem;">Add Address</h2>
+      <form id="address-form" method="post" action="{% url 'storefront:address_create' %}">
+        {% csrf_token %}
+        <div class="profile-form-grid" style="grid-template-columns: 1fr; gap: 1rem; margin-top: 0;">
+          <div class="form-group">
+            <label class="text-label-caps" style="font-size: 10px; margin-bottom: 0.5rem; display: block;">Recipient Name</label>
+            <input id="addr-name" name="recipient_name" type="text" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 13px;"/>
+          </div>
+          <div class="form-group">
+            <label class="text-label-caps" style="font-size: 10px; margin-bottom: 0.5rem; display: block;">Phone Number</label>
+            <input id="addr-phone" name="phone" type="text" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 13px;"/>
+          </div>
+          <div class="form-group">
+            <label class="text-label-caps" style="font-size: 10px; margin-bottom: 0.5rem; display: block;">Address Line 1</label>
+            <input id="addr-line1" name="address_line1" type="text" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 13px;"/>
+          </div>
+          <div class="form-group">
+            <label class="text-label-caps" style="font-size: 10px; margin-bottom: 0.5rem; display: block;">Address Line 2 (Optional)</label>
+            <input id="addr-line2" name="address_line2" type="text" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 13px;"/>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+              <label class="text-label-caps" style="font-size: 10px; margin-bottom: 0.5rem; display: block;">City</label>
+              <input id="addr-city" name="city" type="text" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 13px;"/>
+            </div>
+            <div class="form-group">
+              <label class="text-label-caps" style="font-size: 10px; margin-bottom: 0.5rem; display: block;">State</label>
+              <input id="addr-state" name="state" type="text" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 13px;"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="text-label-caps" style="font-size: 10px; margin-bottom: 0.5rem; display: block;">Pincode / ZIP</label>
+            <input id="addr-pincode" name="pincode" type="text" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); font-family: inherit; font-size: 13px;"/>
+          </div>
+          <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem;">
+            <input id="addr-default" name="is_default" type="checkbox" />
+            <label for="addr-default" class="text-body-md" style="font-size: 13px;">Set as default address</label>
+          </div>
+        </div>
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+          <button class="checkout-btn text-label-caps" type="submit" style="flex: 1; padding: 1rem;">Save Address</button>
+          <button class="hero-btn text-label-caps" type="button" onclick="closeAddressModal()" style="flex: 1; border: 1px solid var(--border-color); padding: 1rem;">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <script>
     function switchTab(btn, paneId) {
@@ -214,6 +267,35 @@
       if (targetPane) {
         targetPane.classList.add('active');
       }
+    }
+
+    function openAddressModal(isEdit, id='', name='', phone='', line1='', line2='', city='', state='', pincode='', isDefault=false) {
+      const modal = document.getElementById('address-modal');
+      const form = document.getElementById('address-form');
+      const title = document.getElementById('address-modal-title');
+      
+      if (isEdit) {
+        title.innerText = 'Edit Address';
+        form.action = `/profile/address/${id}/edit/`;
+      } else {
+        title.innerText = 'Add Address';
+        form.action = "{% url 'storefront:address_create' %}";
+      }
+      
+      document.getElementById('addr-name').value = name;
+      document.getElementById('addr-phone').value = phone;
+      document.getElementById('addr-line1').value = line1;
+      document.getElementById('addr-line2').value = line2;
+      document.getElementById('addr-city').value = city;
+      document.getElementById('addr-state').value = state;
+      document.getElementById('addr-pincode').value = pincode;
+      document.getElementById('addr-default').checked = isDefault;
+      
+      modal.style.display = 'flex';
+    }
+
+    function closeAddressModal() {
+      document.getElementById('address-modal').style.display = 'none';
     }
   </script>
 {% endblock %}

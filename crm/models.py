@@ -39,10 +39,10 @@ class Coupon(models.Model):
 
 class Wallet(models.Model):
     vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name='wallets')
-    customer = models.OneToOneField(
+    customer = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='wallet'
+        related_name='wallets'
     )
     balance = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -2576,6 +2576,14 @@ header {
 }
 
 /* Profile / Account Page Styling */
+.profile-page-main {
+  padding: 3rem var(--margin-desktop);
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  min-height: 60vh;
+}
+
 .profile-container {
   display: grid;
   grid-template-columns: 240px 1fr;
@@ -2613,6 +2621,17 @@ header {
   color: var(--primary-color);
   font-weight: 600;
   border-bottom: 1px solid var(--primary-color);
+}
+
+.profile-logout-btn {
+  margin-top: auto;
+  border-top: 1px solid var(--border-color);
+  padding-top: 1.5rem;
+}
+
+.profile-content {
+  min-width: 0;
+  width: 100%;
 }
 
 .profile-content-pane {
@@ -2656,6 +2675,7 @@ header {
   padding: 1.25rem 1rem;
   text-align: left;
   border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
 }
 
 .orders-table th {
@@ -2760,6 +2780,10 @@ header {
 }
 
 @media (max-width: 768px) {
+  .profile-page-main {
+    padding: 2rem var(--margin-mobile);
+  }
+
   .profile-container {
     grid-template-columns: 1fr;
     gap: 2rem;
@@ -2774,10 +2798,18 @@ header {
     overflow-x: auto;
     white-space: nowrap;
     gap: 1.5rem;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
   
   .profile-sidebar-item {
     padding: 0.5rem 0;
+  }
+  
+  .profile-logout-btn {
+    margin-top: 0;
+    border-top: none;
+    padding-top: 0.5rem;
   }
   
   .dashboard-summary-cards {
@@ -2799,9 +2831,12 @@ header {
   }
   
   .orders-table {
-    display: block;
-    overflow-x: auto;
+    min-width: 600px;
   }
+}
+
+.profile-sidebar::-webkit-scrollbar {
+  display: none;
 }
 
 /* Card Wishlist Icon Button Styling */

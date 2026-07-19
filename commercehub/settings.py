@@ -63,6 +63,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'core.middleware.TenantMiddleware',
     'core.middleware.GeoCurrencyMiddleware',
+    'core.middleware.TimezoneMiddleware',
 ]
 
 ROOT_URLCONF = 'commercehub.urls'

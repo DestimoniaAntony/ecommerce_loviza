@@ -49,6 +49,8 @@ urlpatterns = [
     path('profile/', views.CustomerProfileView.as_view(), name='profile'),
     path('profile/password-reset/', views.CustomerPasswordResetView.as_view(), name='password_reset'),
     path('profile/address/create/', views.CustomerAddressCreateView.as_view(), name='address_create'),
+    path('profile/address/<int:pk>/edit/', views.CustomerAddressUpdateView.as_view(), name='address_update'),
+    path('profile/address/<int:pk>/delete/', views.CustomerAddressDeleteView.as_view(), name='address_delete'),
     
     # Currency
     path('set-currency/', views.SetCurrencyView.as_view(), name='set_currency'),
