@@ -240,3 +240,28 @@ class ContactMessage(models.Model):
 
     def __str__(self):
         return f"Message from {self.name} to {self.vendor.business_name}"
+
+class CarouselSlide(models.Model):
+    """
+    Dynamic slides for the storefront hero section.
+    """
+    vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name='carousel_slides')
+    label = models.CharField(max_length=100, blank=True, help_text="e.g. MAISON ATELIER — NEW COLLECTION")
+    title = models.CharField(max_length=255, help_text="Main heading. You can use HTML like <br> and <span>.")
+    description = models.TextField(blank=True)
+    button_text = models.CharField(max_length=50, blank=True, default="Explore Details")
+    button_link = models.CharField(max_length=255, blank=True, default="#")
+    image = models.ImageField(upload_to='carousel_images/', help_text="Recommended size: 1920x1080px (16:9 Aspect Ratio) or 2000x1200px")
+    order = models.PositiveIntegerField(default=0, help_text="Sequence order of the slide")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'ch_carousel_slides'
+        verbose_name = 'Carousel Slide'
+        verbose_name_plural = 'Carousel Slides'
+        ordering = ['order']
+
+    def __str__(self):
+        return f"Slide {self.order} ({self.vendor.business_name})"

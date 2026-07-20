@@ -250,11 +250,30 @@ class CRMCustomerListView(VendorLoginRequiredMixin, View):
             ).aggregate(total=models.Sum('points'))
             customer.loyalty_points = points_agg['total'] or 0
 
+        from django.core.paginator import Paginator
+        paginator = Paginator(customers, 20)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
         context = {
             'page_title': 'CRM Customers',
-            'customers': customers
+            'customers': page_obj
         }
         return render(request, self.template_name, context)
+
+    def post(self, request):
+        vendor = request.user.vendor
+        action = request.POST.get('action')
+        
+        if action == 'bulk_delete':
+            customer_ids = request.POST.getlist('customer_ids')
+            if customer_ids:
+                User.objects.filter(user_type='customer', vendor=vendor, id__in=customer_ids).delete()
+                messages.success(request, f'Successfully deleted {len(customer_ids)} customer(s).')
+            else:
+                messages.warning(request, 'No customers selected for deletion.')
+                
+        return redirect('crm:customer_list')
 
 
 class CRMCustomerDetailView(VendorLoginRequiredMixin, View):

@@ -393,12 +393,32 @@ class ProductListView(PermissionRequiredMixin, View):
     template_name = 'vendor/catalog/product_list.html'
 
     def get(self, request):
-        products = Product.objects.filter(vendor=request.user.vendor).select_related('category').prefetch_related('variants')
+        products = Product.objects.filter(vendor=request.user.vendor).select_related('category').prefetch_related('variants').order_by('-created_at')
+        
+        from django.core.paginator import Paginator
+        paginator = Paginator(products, 20)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
         context = {
-            'products': products,
+            'products': page_obj,
             'page_title': 'Product Catalog',
         }
         return render(request, self.template_name, context)
+
+    def post(self, request):
+        vendor = request.user.vendor
+        action = request.POST.get('action')
+        
+        if action == 'bulk_delete':
+            product_ids = request.POST.getlist('product_ids')
+            if product_ids:
+                Product.objects.filter(vendor=vendor, id__in=product_ids).delete()
+                messages.success(request, f'Successfully deleted {len(product_ids)} product(s).')
+            else:
+                messages.warning(request, 'No products selected for deletion.')
+                
+        return redirect('catalog:product_list')
 
 
 class ProductCreateView(PermissionRequiredMixin, View):

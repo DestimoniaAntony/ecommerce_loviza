@@ -16,11 +16,25 @@
     </div>
 </div>
 
+<form method="post" action="{% url 'crm:customer_list' %}">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="bulk_delete">
+    
+    <div style="margin-bottom: 16px; display: flex; justify-content: flex-end;">
+        <button type="submit" class="btn btn-sm" style="background: rgba(239, 68, 68, 0.12); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px 16px; border-radius: 6px; display: flex; align-items: center; cursor: pointer; font-weight: 500; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'; this.style.borderColor='rgba(239, 68, 68, 0.5)';" onmouseout="this.style.background='rgba(239, 68, 68, 0.12)'; this.style.borderColor='rgba(239, 68, 68, 0.3)';" onclick="return confirm('Are you sure you want to delete the selected customers? This action cannot be undone.');">
+            <span class="material-symbols-outlined" style="font-size: 1.1rem; margin-right: 6px;"></span>
+            Delete Selected
+        </button>
+    </div>
+
 <div class="data-card">
     <div class="table-wrapper">
         <table class="data-table">
             <thead>
                 <tr>
+                    <th style="width: 40px; text-align: center;">
+                        <input type="checkbox" id="select-all" onclick="toggleAllCheckboxes(this)">
+                    </th>
                     <th>Customer Name</th>
                     <th>Contact Phone</th>
                     <th>Email Address</th>
@@ -33,6 +47,9 @@
             <tbody>
                 {% for customer in customers %}
                 <tr>
+                    <td style="text-align: center;">
+                        <input type="checkbox" name="customer_ids" value="{{ customer.pk }}" class="customer-checkbox">
+                    </td>
                     <td>
                         <div class="table-entity">
                             <div class="entity-avatar" style="background: linear-gradient(135deg, {{ request.user.vendor.primary_color|default:'#6366f1' }}, {{ request.user.vendor.secondary_color|default:'#8b5cf6' }});">
@@ -70,7 +87,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7">
+                    <td colspan="8">
                         <div class="table-empty">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
                                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -84,5 +101,40 @@
             </tbody>
         </table>
     </div>
+
+    {% if customers.has_other_pages %}
+    <div class="pagination-wrapper" style="padding: 16px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+        <div class="pagination-info text-secondary">
+            Showing {{ customers.start_index }} to {{ customers.end_index }} of {{ customers.paginator.count }} customers
+        </div>
+        <div class="pagination-controls" style="display: flex; gap: 4px;">
+            {% if customers.has_previous %}
+            <a href="?page={{ customers.previous_page_number }}" class="btn btn-sm btn-outline">Previous</a>
+            {% endif %}
+            
+            {% for i in customers.paginator.page_range %}
+                {% if customers.number == i %}
+                <span class="btn btn-sm btn-primary">{{ i }}</span>
+                {% else %}
+                <a href="?page={{ i }}" class="btn btn-sm btn-outline">{{ i }}</a>
+                {% endif %}
+            {% endfor %}
+            
+            {% if customers.has_next %}
+            <a href="?page={{ customers.next_page_number }}" class="btn btn-sm btn-outline">Next</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
 </div>
+</form>
+
+<script>
+function toggleAllCheckboxes(source) {
+    const checkboxes = document.querySelectorAll('.customer-checkbox');
+    checkboxes.forEach(cb => {
+        cb.checked = source.checked;
+    });
+}
+</script>
 {% endblock %}

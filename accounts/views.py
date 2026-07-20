@@ -297,15 +297,23 @@ def get_vendor_allowed_permissions(vendor):
     if plan.has_store_settings: allowed.append('manage_store_settings')
     if plan.has_catalog_management: allowed.append('manage_catalog')
     if plan.has_order_management: allowed.append('manage_orders')
-    if plan.has_inventory_management: allowed.append('manage_inventory')
+    
+    if plan.has_inventory_management and vendor.track_inventory: 
+        allowed.append('manage_inventory')
+        
     if plan.has_organization_management: allowed.append('manage_organization')
-    if plan.has_whatsapp: allowed.append('manage_whatsapp')
+    
+    # if plan.has_whatsapp and vendor.whatsapp_number: 
+    #     allowed.append('manage_whatsapp')
+    
     if plan.has_loyalty: allowed.append('manage_loyalty')
     if plan.has_crm: allowed.append('manage_crm')
     if plan.has_marketing: allowed.append('manage_marketing')
-    if plan.has_api_access: allowed.append('manage_api')
-    if plan.has_white_label: allowed.append('manage_white_label')
-    if plan.has_advanced_reports: allowed.append('manage_advanced_reports')
+    
+    # Hidden for now as they are not fully integrated into the UI
+    # if plan.has_api_access: allowed.append('manage_api')
+    # if plan.has_white_label: allowed.append('manage_white_label')
+    # if plan.has_advanced_reports: allowed.append('manage_advanced_reports')
     
     return ModulePermission.objects.filter(codename__in=allowed).order_by('name')
 
@@ -418,6 +426,17 @@ class RoleEditView(PermissionRequiredMixin, View):
                 role.permissions.clear()
 
         messages.success(request, f'Role "{name}" updated successfully!')
+        return redirect('accounts:role_list')
+
+
+class RoleDeleteView(PermissionRequiredMixin, View):
+    permission_codename = 'manage_roles'
+
+    def post(self, request, role_id):
+        role = get_object_or_404(Role, pk=role_id, vendor=request.user.vendor, is_custom=True)
+        role_name = role.name
+        role.delete()
+        messages.success(request, f'Role "{role_name}" deleted successfully.')
         return redirect('accounts:role_list')
 
 

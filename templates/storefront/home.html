@@ -6,53 +6,81 @@
     <!-- Hero Section: Editorial Carousel -->
     <section class="hero-section">
       <div class="hero-carousel">
+        {% if carousel_slides %}
+            {% for slide in carousel_slides %}
+            <div class="hero-carousel-item {% if forloop.first %}active{% endif %}">
+              <div class="hero-carousel-bg" style="background-image: url('{% if slide.image %}{{ slide.image.url }}{% else %}{% static 'storefront/images/hero_1.png' %}{% endif %}')"></div>
+              <div class="hero-overlay"></div>
+              <div class="hero-content">
+                {% if slide.label %}
+                <span class="text-label-caps" style="letter-spacing: 0.2em; font-size: 10px; color: var(--text-secondary); margin-bottom: 1.5rem; display: block;">{{ slide.label }}</span>
+                {% endif %}
+                <h2 class="text-display-lg" style="line-height: 1.1; margin-bottom: 1.5rem; font-weight: 400;">
+                  {{ slide.title|safe }}
+                </h2>
+                {% if slide.description %}
+                <p class="font-serif text-secondary" style="font-size: 1.125rem; line-height: 1.6; max-width: 24rem; margin-bottom: 2.5rem; font-weight: 300;">
+                  {{ slide.description }}
+                </p>
+                {% endif %}
+                {% if slide.button_text %}
+                <a class="hero-btn text-label-caps" href="{{ slide.button_link }}">{{ slide.button_text }}</a>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <!-- Fallback Static Slides -->
+            <div class="hero-carousel-item active">
+              <div class="hero-carousel-bg" style="background-image: url('{% static 'storefront/images/hero_1.png' %}')"></div>
+              <div class="hero-overlay"></div>
+              <div class="hero-content">
+                <span class="text-label-caps" style="letter-spacing: 0.2em; font-size: 10px; color: var(--text-secondary); margin-bottom: 1.5rem; display: block;">MAISON ATELIER — NEW COLLECTION</span>
+                <h2 class="text-display-lg" style="line-height: 1.1; margin-bottom: 1.5rem; font-weight: 400;">
+                  The Poetry <br>
+                  <span style="font-family: 'EB Garamond', serif; font-style: italic; font-weight: 300; font-size: 1.15em; color: var(--accent-color);">of</span> Silence
+                </h2>
+                <p class="font-serif text-secondary" style="font-size: 1.125rem; line-height: 1.6; max-width: 24rem; margin-bottom: 2.5rem; font-weight: 300;">
+                  A study in architectural form, drape, and fluid movement. Crafted from fine crepe and silk.
+                </p>
+                <a class="hero-btn text-label-caps" href="{% url 'storefront:collections' %}">Shop Collection</a>
+              </div>
+            </div>
 
-        <!-- Slide 1 -->
-        <!-- Recommended Admin Upload Size: 1920x1080px (16:9 Aspect Ratio) or 2000x1200px -->
-        <div class="hero-carousel-item active">
-          <div class="hero-carousel-bg" style="background-image: url('{% static 'storefront/images/hero_1.png' %}')"></div>
-          <div class="hero-overlay"></div>
-          <div class="hero-content">
-            <span class="text-label-caps" style="letter-spacing: 0.2em; font-size: 10px; color: var(--text-secondary); margin-bottom: 1.5rem; display: block;">MAISON ATELIER — NEW COLLECTION</span>
-            <h2 class="text-display-lg" style="line-height: 1.1; margin-bottom: 1.5rem; font-weight: 400;">
-              The Poetry <br>
-              <span style="font-family: 'EB Garamond', serif; font-style: italic; font-weight: 300; font-size: 1.15em; color: var(--accent-color);">of</span> Silence
-            </h2>
-            <p class="font-serif text-secondary" style="font-size: 1.125rem; line-height: 1.6; max-width: 24rem; margin-bottom: 2.5rem; font-weight: 300;">
-              A study in architectural form, drape, and fluid movement. Crafted from fine crepe and silk.
-            </p>
-            <a class="hero-btn text-label-caps" href="{% url 'storefront:collections' %}">Shop Collection</a>
-          </div>
-        </div>
-
-        <!-- Slide 2 -->
-        <!-- Recommended Admin Upload Size: 1920x1080px (16:9 Aspect Ratio) or 2000x1200px -->
-        <div class="hero-carousel-item">
-          <div class="hero-carousel-bg" style="background-image: url('{% static 'storefront/images/hero_2.png' %}')"></div>
-          <div class="hero-overlay"></div>
-          <div class="hero-content">
-            <span class="text-label-caps" style="letter-spacing: 0.2em; font-size: 10px; color: var(--text-secondary); margin-bottom: 1.5rem; display: block;">LIMITED EDITION — ACCESSORIES</span>
-            <h2 class="text-display-lg" style="line-height: 1.1; margin-bottom: 1.5rem; font-weight: 400;">
-              Structured <br>
-              <span style="font-family: 'EB Garamond', serif; font-style: italic; font-weight: 300; font-size: 1.15em; color: var(--accent-color);">Elegance</span>
-            </h2>
-            <p class="font-serif text-secondary" style="font-size: 1.125rem; line-height: 1.6; max-width: 24rem; margin-bottom: 2.5rem; font-weight: 300;">
-              Handcrafted in Florence from fine vegetable-tanned leather, defining structured luxury.
-            </p>
-            <a class="hero-btn text-label-caps" href="{% url 'storefront:collections' %}">Explore Details</a>
-          </div>
-        </div>
-
+            <div class="hero-carousel-item">
+              <div class="hero-carousel-bg" style="background-image: url('{% static 'storefront/images/hero_2.png' %}')"></div>
+              <div class="hero-overlay"></div>
+              <div class="hero-content">
+                <span class="text-label-caps" style="letter-spacing: 0.2em; font-size: 10px; color: var(--text-secondary); margin-bottom: 1.5rem; display: block;">LIMITED EDITION — ACCESSORIES</span>
+                <h2 class="text-display-lg" style="line-height: 1.1; margin-bottom: 1.5rem; font-weight: 400;">
+                  Structured <br>
+                  <span style="font-family: 'EB Garamond', serif; font-style: italic; font-weight: 300; font-size: 1.15em; color: var(--accent-color);">Elegance</span>
+                </h2>
+                <p class="font-serif text-secondary" style="font-size: 1.125rem; line-height: 1.6; max-width: 24rem; margin-bottom: 2.5rem; font-weight: 300;">
+                  Handcrafted in Florence from fine vegetable-tanned leather, defining structured luxury.
+                </p>
+                <a class="hero-btn text-label-caps" href="{% url 'storefront:collections' %}">Explore Details</a>
+              </div>
+            </div>
+        {% endif %}
       </div>
 
       <!-- Carousel Indicators -->
       <div class="hero-controls">
-        <button class="hero-control-btn" onclick="setSlide(0)">
-          <div class="hero-control-progress" id="progress-0"></div>
-        </button>
-        <button class="hero-control-btn" onclick="setSlide(1)">
-          <div class="hero-control-progress" id="progress-1"></div>
-        </button>
+        {% if carousel_slides %}
+            {% for slide in carousel_slides %}
+            <button class="hero-control-btn" onclick="setSlide({{ forloop.counter0 }})">
+              <div class="hero-control-progress" id="progress-{{ forloop.counter0 }}"></div>
+            </button>
+            {% endfor %}
+        {% else %}
+            <button class="hero-control-btn" onclick="setSlide(0)">
+              <div class="hero-control-progress" id="progress-0"></div>
+            </button>
+            <button class="hero-control-btn" onclick="setSlide(1)">
+              <div class="hero-control-progress" id="progress-1"></div>
+            </button>
+        {% endif %}
       </div>
     </section>
 
@@ -159,8 +187,8 @@
     <section class="newsletter-section">
       <div class="newsletter-container">
         <span class="text-label-caps text-secondary"
-          style="letter-spacing: 0.3em; display: block; margin-bottom: 1.5rem;">STAY INFORMED</span>
-        <h3 class="text-display-md">Join the Maison Inner Circle</h3>
+          style="letter-spacing: 0.3em; display: block; margin-bottom: 1.5rem;">JOIN THE INNER CIRCLE</span>
+        <h3 class="text-display-md">Exclusive Access & Early Arrivals</h3>
         <form class="newsletter-form">
           <div class="newsletter-input-wrapper">
             <input class="editorial-input" name="email" placeholder="Email Address" type="email" required />

@@ -19,6 +19,7 @@ urlpatterns = [
     path('roles/', views.RoleListView.as_view(), name='role_list'),
     path('roles/create/', views.RoleCreateView.as_view(), name='role_create'),
     path('roles/<int:role_id>/edit/', views.RoleEditView.as_view(), name='role_edit'),
+    path('roles/<int:role_id>/delete/', views.RoleDeleteView.as_view(), name='role_delete'),
 
     # Staff Management
     path('staff/', views.StaffListView.as_view(), name='staff_list'),

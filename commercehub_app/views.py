@@ -15,6 +15,7 @@ from core.mixins import VendorLoginRequiredMixin
 from storefront.models import Order, OrderItem
 from inventory.models import BranchInventory, StockAdjustmentLog
 from branches.models import Branch
+from catalog.models import Product, Category
 
 
 # ────────────────────────────────────────────────────────────────
@@ -133,6 +134,8 @@ def _build_dashboard_context(vendor, range_param='30d'):
         .order_by('stock_qty')[:20]
     )
 
+    total_products_count = Product.objects.filter(vendor=vendor).count()
+
     return {
         # Meta
         'range_param': range_param,
@@ -156,6 +159,7 @@ def _build_dashboard_context(vendor, range_param='30d'):
         'top_products': list(top_products),
         'recent_orders': recent_orders,
         'low_stock_items': low_stock_items,
+        'total_products_count': total_products_count,
         # CRM
         **crm_context,
     }
@@ -332,6 +336,20 @@ class VendorOrderListView(VendorLoginRequiredMixin, View):
         }
         return render(request, self.template_name, context)
 
+    def post(self, request):
+        vendor = request.user.vendor
+        action = request.POST.get('action')
+        
+        if action == 'bulk_delete':
+            order_ids = request.POST.getlist('order_ids')
+            if order_ids:
+                Order.objects.filter(vendor=vendor, id__in=order_ids).delete()
+                messages.success(request, f'Successfully deleted {len(order_ids)} order(s).')
+            else:
+                messages.warning(request, 'No orders selected for deletion.')
+                
+        return redirect('commercehub_app:order_list')
+
 
 class VendorOrderDetailView(VendorLoginRequiredMixin, View):
     template_name = 'vendor/orders/detail.html'
@@ -466,3 +484,112 @@ class VendorEmailSettingsView(VendorLoginRequiredMixin, View):
         settings_obj.save()
         messages.success(request, 'Email settings updated successfully.')
         return redirect('commercehub_app:email_settings')
+
+
+# ────────────────────────────────────────────────────────────────
+# CAROUSEL SETTINGS
+# ────────────────────────────────────────────────────────────────
+
+from storefront.models import CarouselSlide
+
+class VendorCarouselListView(VendorLoginRequiredMixin, View):
+    template_name = 'vendor/settings/carousel_list.html'
+
+    def get(self, request):
+        slides = CarouselSlide.objects.filter(vendor=request.user.vendor)
+        return render(request, self.template_name, {
+            'page_title': 'Carousel Settings',
+            'slides': slides
+        })
+
+
+class VendorCarouselCreateView(VendorLoginRequiredMixin, View):
+    template_name = 'vendor/settings/carousel_form.html'
+
+    def get(self, request):
+        categories = Category.objects.filter(vendor=request.user.vendor, is_active=True).order_by('name')
+        products = Product.objects.filter(vendor=request.user.vendor, status='published').order_by('name')
+        return render(request, self.template_name, {
+            'page_title': 'Add Carousel Slide',
+            'categories': categories,
+            'products': products
+        })
+
+    def post(self, request):
+        vendor = request.user.vendor
+        label = request.POST.get('label', '').strip()
+        title = request.POST.get('title', '').strip()
+        description = request.POST.get('description', '').strip()
+        button_text = request.POST.get('button_text', '').strip()
+        button_link = request.POST.get('button_link', '').strip()
+        order = request.POST.get('order', 0)
+        is_active = request.POST.get('is_active') == 'on'
+        
+        image = request.FILES.get('image')
+        if not image:
+            messages.error(request, 'Image is required for a carousel slide.')
+            return redirect('commercehub_app:carousel_create')
+            
+        try:
+            order = int(order)
+        except ValueError:
+            order = 0
+
+        CarouselSlide.objects.create(
+            vendor=vendor,
+            label=label,
+            title=title,
+            description=description,
+            button_text=button_text,
+            button_link=button_link,
+            order=order,
+            is_active=is_active,
+            image=image
+        )
+        messages.success(request, 'Carousel slide created successfully.')
+        return redirect('commercehub_app:carousel_list')
+
+
+class VendorCarouselEditView(VendorLoginRequiredMixin, View):
+    template_name = 'vendor/settings/carousel_form.html'
+
+    def get(self, request, pk):
+        slide = get_object_or_404(CarouselSlide, pk=pk, vendor=request.user.vendor)
+        categories = Category.objects.filter(vendor=request.user.vendor, is_active=True).order_by('name')
+        products = Product.objects.filter(vendor=request.user.vendor, status='published').order_by('name')
+        return render(request, self.template_name, {
+            'page_title': 'Edit Carousel Slide',
+            'slide': slide,
+            'categories': categories,
+            'products': products
+        })
+
+    def post(self, request, pk):
+        slide = get_object_or_404(CarouselSlide, pk=pk, vendor=request.user.vendor)
+        
+        slide.label = request.POST.get('label', '').strip()
+        slide.title = request.POST.get('title', '').strip()
+        slide.description = request.POST.get('description', '').strip()
+        slide.button_text = request.POST.get('button_text', '').strip()
+        slide.button_link = request.POST.get('button_link', '').strip()
+        slide.is_active = request.POST.get('is_active') == 'on'
+        
+        try:
+            slide.order = int(request.POST.get('order', slide.order))
+        except ValueError:
+            pass
+            
+        if 'image' in request.FILES:
+            slide.image = request.FILES['image']
+            
+        slide.save()
+        messages.success(request, 'Carousel slide updated successfully.')
+        return redirect('commercehub_app:carousel_list')
+
+
+class VendorCarouselDeleteView(VendorLoginRequiredMixin, View):
+    def post(self, request, pk):
+        slide = get_object_or_404(CarouselSlide, pk=pk, vendor=request.user.vendor)
+        slide.delete()
+        messages.success(request, 'Carousel slide deleted successfully.')
+        return redirect('commercehub_app:carousel_list')

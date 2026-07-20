@@ -462,12 +462,10 @@
         <input class="laha-search-input" id="global-search-input" data-search-url="{% url 'storefront:api_search' %}"
           placeholder="Search..." type="text" autocomplete="off" />
         <div class="search-modal-actions">
-          <button class="search-clear-btn" onclick="document.querySelector('.laha-search-input').value = ''">
+          <button class="search-clear-btn" onclick="toggleSearch()">
             <span class="material-symbols-outlined">close</span>
           </button>
-          <button class="search-submit-btn">
-            <span class="material-symbols-outlined">search</span>
-          </button>
+          
         </div>
       </div>
 

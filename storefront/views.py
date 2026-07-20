@@ -98,11 +98,14 @@ class StorefrontHomeView(View):
 
         categories = Category.objects.filter(vendor=vendor, is_active=True).order_by('name')[:6]
         featured_products = Product.objects.filter(vendor=vendor, status='published').order_by('-created_at')[:8]
+        from .models import CarouselSlide
+        carousel_slides = CarouselSlide.objects.filter(vendor=vendor, is_active=True).order_by('order')
 
         context = {
             'page_title': vendor.business_name,
             'categories': categories,
             'featured_products': featured_products,
+            'carousel_slides': carousel_slides,
             'cart': get_or_create_cart(request),
         }
         return render(request, self.template_name, context)
