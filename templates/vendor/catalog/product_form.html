@@ -335,11 +335,12 @@
                     <tbody id="variants-tbody">
                         {% if product.has_variants %}
                             {% for variant in variants %}
-                            <tr data-existing="true">
+                            <tr>
+                                <input type="hidden" name="variant_id[]" value="{{ variant.id }}">
+                                <input type="hidden" name="variant_attributes_json[]" value="{{ variant.attributes_data_json }}">
+                                <input type="hidden" name="variant_row_index[]" value="{{ forloop.counter0 }}">
                                 <td>
                                     <strong>{{ variant.name }}</strong>
-                                    <input type="hidden" name="variant_id[]" value="{{ variant.pk }}">
-                                    <input type="hidden" name="variant_attributes_json[]" value="{{ variant.attributes_data_json }}" class="v-json-data">
                                 </td>
                                 <td>
                                     <input type="text" name="variant_sku[]" class="form-input" style="padding: 6px; font-size: 13px;" value="{{ variant.sku }}" required>
@@ -358,7 +359,7 @@
                                 <input type="hidden" name="variant_stock_qty[]" value="0.00">
                                 {% endif %}
                                 <td>
-                                    <input type="file" name="variant_image[]" class="form-input" style="padding: 6px; font-size: 11px; max-width: 160px;" accept="image/*">
+                                    <input type="file" name="variant_image_{{ forloop.counter0 }}" class="form-input" style="padding: 6px; font-size: 11px; max-width: 160px;" accept="image/*">
                                     <p class="form-hint" style="font-size: 10px; margin: 0;">Rec: 900x1200px (3:4)</p>
                                     {% if variant.image %}
                                         <div style="margin-top: 4px;"><img src="{{ variant.image.url }}" style="width: 32px; height: 32px; object-fit: cover; border-radius: 3px;"></div>
@@ -535,14 +536,11 @@
                 const prodName = document.getElementById("name").value.trim() || "PRODUCT";
                 const baseSku = prodName.replace(/[^a-zA-Z0-9]/g, "-").toUpperCase().slice(0, 15);
 
-                let addedCount = 0;
+                let nextRowIndex = 1000;
 
                 combinations.forEach((combo, comboIdx) => {
-                    // combo is an array of values, e.g. ["Red", "L"]
-                    // Build representation name
                     const varName = combo.join(", ");
                     
-                    // Skip if variant already exists
                     if (existingVariants.has(varName)) {
                         return;
                     }
@@ -553,17 +551,17 @@
                         varAttrsData[code] = val;
                     });
 
-                    // Build dynamic SKU code
                     const skuSuffix = combo.map(v => v.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 3)).join("-");
                     const generatedSku = `${baseSku}-${skuSuffix}`;
+                    const rowIdx = nextRowIndex++;
 
                     const row = document.createElement("tr");
-                    addedCount++;
                     row.innerHTML = `
+                        <input type="hidden" name="variant_id[]" value="">
+                        <input type="hidden" name="variant_attributes_json[]" value='${JSON.stringify(varAttrsData)}'>
+                        <input type="hidden" name="variant_row_index[]" value="${rowIdx}">
                         <td>
                             <strong>${varName}</strong>
-                            <input type="hidden" name="variant_id[]" value="">
-                            <input type="hidden" name="variant_attributes_json[]" value='${JSON.stringify(varAttrsData)}'>
                         </td>
                         <td>
                             <input type="text" name="variant_sku[]" class="form-input" style="padding: 6px; font-size: 13px;" value="${generatedSku}" required>
@@ -582,7 +580,7 @@
                         <input type="hidden" name="variant_stock_qty[]" value="0.00">
                         {% endif %}
                         <td>
-                            <input type="file" name="variant_image[]" class="form-input" style="padding: 6px; font-size: 11px; max-width: 160px; margin-bottom: 4px;" accept="image/*">
+                            <input type="file" name="variant_image_${rowIdx}" class="form-input" style="padding: 6px; font-size: 11px; max-width: 160px; margin-bottom: 4px;" accept="image/*">
                             <p class="form-hint" style="font-size: 10px; margin: 0;">Rec: 900x1200px (3:4)</p>
                         </td>
                         <td>

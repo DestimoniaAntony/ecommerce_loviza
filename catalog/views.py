@@ -545,7 +545,7 @@ class ProductCreateView(PermissionRequiredMixin, View):
                 variant_compare_at_prices = request.POST.getlist('variant_compare_at_price[]')
                 variant_stock_qtys = request.POST.getlist('variant_stock_qty[]')
                 variant_attrs_jsons = request.POST.getlist('variant_attributes_json[]')
-                variant_images = request.FILES.getlist('variant_image[]')
+                variant_row_indices = request.POST.getlist('variant_row_index[]')
 
                 for idx, sku in enumerate(variant_skus):
                     if not sku:
@@ -567,7 +567,11 @@ class ProductCreateView(PermissionRequiredMixin, View):
                         attrs_data = {}
 
                     variant_name = ", ".join(attrs_data.values())
-                    img = variant_images[idx] if idx < len(variant_images) else None
+                    
+                    row_idx = variant_row_indices[idx] if idx < len(variant_row_indices) else None
+                    img = None
+                    if row_idx is not None:
+                        img = request.FILES.get(f'variant_image_{row_idx}')
 
                     sku_clean = sku.upper().strip()
                     import uuid
@@ -772,7 +776,7 @@ class ProductEditView(PermissionRequiredMixin, View):
                 variant_stock_qtys = request.POST.getlist('variant_stock_qty[]')
                 variant_attrs_jsons = request.POST.getlist('variant_attributes_json[]')
                 variant_ids = request.POST.getlist('variant_id[]')
-                variant_images = request.FILES.getlist('variant_image[]')
+                variant_row_indices = request.POST.getlist('variant_row_index[]')
 
                 keep_variant_ids = []
 
@@ -797,7 +801,11 @@ class ProductEditView(PermissionRequiredMixin, View):
                         variant_attrs = {}
 
                     variant_name = ", ".join(variant_attrs.values())
-                    img = variant_images[idx] if idx < len(variant_images) else None
+                    
+                    row_idx = variant_row_indices[idx] if idx < len(variant_row_indices) else None
+                    img = None
+                    if row_idx is not None:
+                        img = request.FILES.get(f'variant_image_{row_idx}')
 
                     sku_clean = sku.upper().strip()
                     v = None
