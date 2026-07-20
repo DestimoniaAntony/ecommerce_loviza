@@ -1008,7 +1008,8 @@ class PlaceOrderView(View):
                         password=random_password, 
                         user_type='customer', 
                         first_name=recipient_name,
-                        email=email
+                        email=email,
+                        vendor=vendor
                     )
                     
                     # Automatically log the NEW guest user in so they can view the success page

@@ -192,3 +192,9 @@ LOGIN_LOCKOUT_MINUTES = 30
 PLATFORM_NAME = 'CommerceHub'
 PLATFORM_DOMAIN = config('PLATFORM_DOMAIN', default='localhost')
 TRIAL_DAYS = 14
+
+# ─────────────────────────────────────────────
+# UPLOAD SETTINGS
+# ─────────────────────────────────────────────
+DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600  # 100 MB in bytes
+FILE_UPLOAD_MAX_MEMORY_SIZE = 104857600  # 100 MB in bytes
