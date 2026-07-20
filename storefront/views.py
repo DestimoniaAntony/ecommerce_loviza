@@ -1454,11 +1454,11 @@ class StripeWebhookView(View):
 
         return HttpResponse(status=200)
 
-class OrderSuccessView(CustomerRequiredMixin, View):
+class OrderSuccessView(View):
     template_name = 'storefront/success.html'
 
     def get(self, request, token):
-        order = get_object_or_404(Order, customer=request.user, token=token)
+        order = get_object_or_404(Order, token=token)
         
         cart = get_or_create_cart(request)
         if cart and order.payment_status in ('paid', 'processing', 'pending'):
