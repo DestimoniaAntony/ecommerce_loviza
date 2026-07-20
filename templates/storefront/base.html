@@ -729,10 +729,8 @@
           <p>Subscribe and take {{ request.tenant.email_settings.welcome_discount_value|floatformat:0 }}% OFF on your
             first order.</p>
           {% elif request.tenant.email_settings.welcome_discount_type == 'flat' %}
-          <h2>Save {{ request.tenant.currency_symbol }}{{
-            request.tenant.email_settings.welcome_discount_value|floatformat:0 }}</h2>
-          <p>Subscribe and take {{ request.tenant.currency_symbol }}{{
-            request.tenant.email_settings.welcome_discount_value|floatformat:0 }} OFF on your first order.</p>
+          <h2>Save {{ request.tenant.currency_symbol }}{{ request.tenant.email_settings.welcome_discount_value|floatformat:0 }}</h2>
+          <p>Subscribe and take {{ request.tenant.currency_symbol }}{{ request.tenant.email_settings.welcome_discount_value|floatformat:0 }} OFF on your first order.</p>
           {% else %}
           <h2>Save 10%</h2>
           <p>Subscribe and take 10% OFF on your first order.</p>
