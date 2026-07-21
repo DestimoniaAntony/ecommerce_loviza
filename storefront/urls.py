@@ -10,7 +10,7 @@ urlpatterns = [
     path('collections/', views.CollectionsListView.as_view(), name='collections'),
     path('catalog/', views.ProductCatalogView.as_view(), name='catalog'),
     path('api/search/', views.StorefrontSearchAPIView.as_view(), name='api_search'),
-    path('product/<slug:slug>/', views.ProductDetailView.as_view(), name='product_detail'),
+    path('product/<str:slug>/', views.ProductDetailView.as_view(), name='product_detail'),
     path('contact/', views.ContactView.as_view(), name='contact'),
     
     # Static Pages
