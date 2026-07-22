@@ -64,7 +64,7 @@
                 {% for order in orders %}
                 <tr>
                     <td style="text-align: center;">
-                        <input type="checkbox" name="order_ids" value="{{ order.pk }}" class="order-checkbox">
+                        <input type="checkbox" name="order_ids" value="{{ order.pk }}" class="order-checkbox" {% if order.status != 'pending' %}disabled title="Only pending orders can be deleted"{% endif %}>
                     </td>
                     <td class="text-secondary">{{ orders.start_index|add:forloop.counter0 }}</td>
                     <td>

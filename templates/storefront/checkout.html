@@ -164,7 +164,7 @@
           <div class="cart-item-list" style="gap: 1.5rem;">
             {% for item in cart.items.all %}
             <div class="cart-item" style="gap: 1rem;">
-              <div class="cart-item-img" style="width: 4.5rem; background-image: url('{% if item.product_variant.product.image %}{{ item.product_variant.product.image.url }}{% else %}{% static 'storefront/images/product_main.png' %}{% endif %}')"></div>
+              <div class="cart-item-img" style="width: 4.5rem; background-image: url('{% if item.product_variant.image %}{{ item.product_variant.image.url }}{% elif item.customization_data.image_url %}{{ item.customization_data.image_url }}{% elif item.product_variant.product.images.first %}{{ item.product_variant.product.images.first.image.url }}{% else %}{% static 'storefront/images/product_main.png' %}{% endif %}')"></div>
               <div class="cart-item-details" style="padding: 0;">
                 <div>
                   <div class="cart-item-header" style="margin-bottom: 0.25rem;">

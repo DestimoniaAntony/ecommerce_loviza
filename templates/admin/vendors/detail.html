@@ -358,6 +358,14 @@
                         {% else %}—{% endif %}
                     </dd>
                 </div>
+                <div class="field-row">
+                    <dt>TikTok</dt>
+                    <dd>
+                        {% if vendor.tiktok_url %}
+                        <a href="{{ vendor.tiktok_url }}" target="_blank" class="social-link tiktok-link">{{ vendor.tiktok_url }}</a>
+                        {% else %}—{% endif %}
+                    </dd>
+                </div>
             </dl>
         </div>
 

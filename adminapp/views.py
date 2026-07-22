@@ -214,6 +214,7 @@ class VendorCreateView(SuperAdminRequiredMixin, View):
             instagram_url=request.POST.get('instagram_url', '').strip(),
             twitter_url=request.POST.get('twitter_url', '').strip(),
             youtube_url=request.POST.get('youtube_url', '').strip(),
+            tiktok_url=request.POST.get('tiktok_url', '').strip(),
             # SEO
             meta_title=request.POST.get('meta_title', '').strip(),
             meta_description=request.POST.get('meta_description', '').strip(),
@@ -394,6 +395,7 @@ class VendorEditView(SuperAdminRequiredMixin, View):
         vendor.instagram_url = request.POST.get('instagram_url', '').strip()
         vendor.twitter_url = request.POST.get('twitter_url', '').strip()
         vendor.youtube_url = request.POST.get('youtube_url', '').strip()
+        vendor.tiktok_url = request.POST.get('tiktok_url', '').strip()
 
         vendor.meta_title = request.POST.get('meta_title', '').strip()
         vendor.meta_description = request.POST.get('meta_description', '').strip()

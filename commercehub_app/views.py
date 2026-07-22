@@ -282,9 +282,24 @@ class VendorSettingsView(VendorLoginRequiredMixin, View):
     def post(self, request):
         vendor = request.user.vendor
 
+        new_phone = request.POST.get('phone', vendor.phone).strip()
+        new_email = request.POST.get('email', vendor.email).strip()
+
+        if new_phone != request.user.phone:
+            from accounts.models import User
+            if User.objects.filter(phone=new_phone).exclude(id=request.user.id).exists():
+                messages.error(request, 'This phone number is already registered by another account. Store phone updated, but login phone remains unchanged.')
+            else:
+                request.user.phone = new_phone
+                request.user.save()
+
+        if new_email and new_email != request.user.email:
+            request.user.email = new_email
+            request.user.save()
+
         vendor.business_name = request.POST.get('business_name', vendor.business_name).strip()
-        vendor.email = request.POST.get('email', vendor.email).strip()
-        vendor.phone = request.POST.get('phone', vendor.phone).strip()
+        vendor.email = new_email
+        vendor.phone = new_phone
         vendor.whatsapp_number = request.POST.get('whatsapp_number', vendor.whatsapp_number).strip()
         vendor.currency = request.POST.get('currency', vendor.currency).strip()
         vendor.currency_symbol = request.POST.get('currency_symbol', vendor.currency_symbol).strip()
@@ -343,8 +358,13 @@ class VendorOrderListView(VendorLoginRequiredMixin, View):
         if action == 'bulk_delete':
             order_ids = request.POST.getlist('order_ids')
             if order_ids:
-                Order.objects.filter(vendor=vendor, id__in=order_ids).delete()
-                messages.success(request, f'Successfully deleted {len(order_ids)} order(s).')
+                deleted_count, _ = Order.objects.filter(vendor=vendor, id__in=order_ids, status='pending').delete()
+                if deleted_count == len(order_ids):
+                    messages.success(request, f'Successfully deleted {deleted_count} order(s).')
+                elif deleted_count > 0:
+                    messages.warning(request, f'Deleted {deleted_count} pending order(s). Some orders were not deleted because they are not in Pending status.')
+                else:
+                    messages.error(request, 'Could not delete the selected orders because they are not in Pending status.')
             else:
                 messages.warning(request, 'No orders selected for deletion.')
                 
@@ -398,6 +418,17 @@ class VendorOrderActionView(VendorLoginRequiredMixin, View):
             new_status = request.POST.get('status')
             if new_status in dict(Order.STATUS_CHOICES):
                 old_status = order.status
+                
+                # Prevent backward status flow
+                status_order = ['pending', 'awaiting_approval', 'processing', 'shipped', 'delivered']
+                if new_status != 'cancelled' and old_status != 'cancelled':
+                    old_idx = status_order.index(old_status) if old_status in status_order else -1
+                    new_idx = status_order.index(new_status) if new_status in status_order else -1
+                    
+                    if new_idx < old_idx and new_idx != -1 and old_idx != -1:
+                        messages.error(request, f'Cannot revert order status from {order.get_status_display()} to {dict(Order.STATUS_CHOICES).get(new_status)}.')
+                        return redirect('commercehub_app:order_detail', pk=pk)
+
                 if new_status == 'cancelled' and old_status not in ['cancelled', 'awaiting_approval']:
                     try:
                         with transaction.atomic():

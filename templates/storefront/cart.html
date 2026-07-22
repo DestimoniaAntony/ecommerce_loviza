@@ -74,7 +74,7 @@
                     <td class="product-col" style="padding: 2rem 0;">
                         <div class="product-col-inner" style="display: flex; gap: 1.5rem; align-items: flex-start;">
                             <a href="{% url 'storefront:product_detail' item.product_variant.product.slug %}">
-                                <img src="{% if item.product_variant.image %}{{ item.product_variant.image.url }}{% elif item.product_variant.product.image %}{{ item.product_variant.product.image.url }}{% elif item.product_variant.product.images.first %}{{ item.product_variant.product.images.first.image.url }}{% else %}{% static 'storefront/images/product_main.png' %}{% endif %}" alt="{{ item.product_variant.product.name }}" style="width: 120px; height: 160px; object-fit: cover;">
+                                <img src="{% if item.product_variant.image %}{{ item.product_variant.image.url }}{% elif item.customization_data.image_url %}{{ item.customization_data.image_url }}{% elif item.product_variant.product.images.first %}{{ item.product_variant.product.images.first.image.url }}{% else %}{% static 'storefront/images/product_main.png' %}{% endif %}" alt="{{ item.product_variant.product.name }}" style="width: 120px; height: 160px; object-fit: cover;">
                             </a>
                             <div class="product-details" style="padding-top: 0.5rem;">
                                 <a href="{% url 'storefront:product_detail' item.product_variant.product.slug %}" style="text-decoration: none; color: inherit;">

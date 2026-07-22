@@ -107,6 +107,7 @@
                 {% else %}
                 <input type="hidden" name="variant_id" id="selected-variant-id" value="{{ default_variant.id }}">
                 {% endif %}
+                <input type="hidden" name="custom_image_url" id="selected-image-url" value="">
                 
                 <!-- Custom Option Toggle -->
                 {% if product.attributes_data.custom_option_enabled %}
@@ -321,6 +322,33 @@
     });
     {% endif %}
 
+    document.addEventListener('DOMContentLoaded', () => {
+        const thumbs = document.querySelectorAll('.thumb-item');
+        const hiddenImgInput = document.getElementById('selected-image-url');
+        
+        thumbs.forEach(thumb => {
+            thumb.addEventListener('click', () => {
+                const img = thumb.querySelector('img');
+                if (img && hiddenImgInput) {
+                    try {
+                        hiddenImgInput.value = new URL(img.src, window.location.origin).pathname;
+                    } catch(e) {
+                        hiddenImgInput.value = img.src;
+                    }
+                }
+            });
+        });
+        
+        const mainImage = document.getElementById('main-image');
+        if (mainImage && hiddenImgInput && !hiddenImgInput.value) {
+            try {
+                hiddenImgInput.value = new URL(mainImage.src, window.location.origin).pathname;
+            } catch(e) {
+                hiddenImgInput.value = mainImage.src;
+            }
+        }
+    });
+
     function updateVariantPrice(priceStr, comparePriceStr, discountStr, trackInventoryFlag, stockQty, imageUrl) {
         document.getElementById('display-price').innerText = priceStr;
         const cp = document.getElementById('display-compare-price');
@@ -335,8 +363,16 @@
         }
         
         const mainImage = document.getElementById('main-image');
+        const hiddenImgInput = document.getElementById('selected-image-url');
         if (mainImage && imageUrl) {
             mainImage.src = imageUrl;
+            if (hiddenImgInput) {
+                try {
+                    hiddenImgInput.value = new URL(imageUrl, window.location.origin).pathname;
+                } catch(e) {
+                    hiddenImgInput.value = imageUrl;
+                }
+            }
         }
         
         const addBtn = document.getElementById('add-to-cart-btn');

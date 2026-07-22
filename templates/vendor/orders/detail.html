@@ -39,20 +39,27 @@
                         {% for item in order.items.all %}
                         <tr>
                             <td>
-                                <div class="item-info">
-                                    <strong style="color: var(--text-primary);">{{ item.product_variant.product.name }}</strong>
-                                    {% if item.product_variant.name and item.product_variant.name != "Default" %}
-                                        <span class="text-muted" style="display: block; font-size: 0.85rem; margin-top: 2px;">Variant: {{ item.product_variant.name }}</span>
-                                    {% endif %}
-                                    <span class="text-muted" style="display: block; font-size: 0.8rem; margin-top: 2px;">SKU: {{ item.product_variant.sku }}</span>
-                                    {% if item.customization_data %}
-                                        <div style="margin-top: 8px; padding: 8px; background: rgba(255,255,255,0.02); border: 1px dashed var(--border-color); border-radius: 4px; font-size: 0.8rem;">
-                                            <strong style="color: var(--text-primary); display: block; margin-bottom: 4px;">Customizations:</strong>
-                                            {% for key, val in item.customization_data.items %}
-                                                <span style="display: block; color: var(--text-muted);">{{ key|title }}: <span style="color: var(--text-primary);">{{ val }}</span></span>
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
+                                <div style="display: flex; gap: 15px; align-items: flex-start;">
+                                    <div class="item-image" style="width: 60px; height: 80px; flex-shrink: 0; background-color: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; border: 1px solid var(--border-color);">
+                                        <img src="{% if item.product_variant.image %}{{ item.product_variant.image.url }}{% elif item.customization_data.image_url %}{{ item.customization_data.image_url }}{% elif item.product_variant.product.images.first %}{{ item.product_variant.product.images.first.image.url }}{% else %}{% static 'storefront/images/product_main.png' %}{% endif %}" alt="{{ item.product_variant.product.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                    </div>
+                                    <div class="item-info">
+                                        <strong style="color: var(--text-primary);">{{ item.product_variant.product.name }}</strong>
+                                        {% if item.product_variant.name and item.product_variant.name != "Default" %}
+                                            <span class="text-muted" style="display: block; font-size: 0.85rem; margin-top: 2px;">Variant: {{ item.product_variant.name }}</span>
+                                        {% endif %}
+                                        <span class="text-muted" style="display: block; font-size: 0.8rem; margin-top: 2px;">SKU: {{ item.product_variant.sku }}</span>
+                                        {% if item.customization_data %}
+                                            <div class="customizations-list" style="margin-top: 8px; padding: 8px; background: rgba(255,255,255,0.02); border: 1px dashed var(--border-color); border-radius: 4px; font-size: 0.8rem;">
+                                                <strong style="color: var(--text-primary); display: block; margin-bottom: 4px;">Customizations:</strong>
+                                                {% for key, val in item.customization_data.items %}
+                                                    {% if key != 'image_url' and key != '_base_price' and key != '_custom_fee' and key != 'is_customized' %}
+                                                    <span style="display: block; color: var(--text-muted);">{{ key|title }}: <span style="color: var(--text-primary);">{{ val }}</span></span>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </td>
                             <td class="text-right" style="color: var(--text-primary);">
@@ -184,10 +191,10 @@
                 <div class="form-group" style="margin-bottom: 16px;">
                     <label class="form-label" for="status_select">Update Fulfillment Status</label>
                     <select name="status" id="status_select" class="form-input" style="background: var(--bg-surface, #1e1e2e); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 8px 12px; width: 100%;">
-                        <option value="pending" {% if order.status == 'pending' %}selected{% endif %}>Pending</option>
-                        <option value="processing" {% if order.status == 'processing' %}selected{% endif %}>Processing</option>
-                        <option value="shipped" {% if order.status == 'shipped' %}selected{% endif %}>Shipped</option>
-                        <option value="delivered" {% if order.status == 'delivered' %}selected{% endif %}>Delivered</option>
+                        <option value="pending" {% if order.status == 'pending' %}selected{% else %}disabled{% endif %}>Pending</option>
+                        <option value="processing" {% if order.status == 'processing' %}selected{% elif order.status in 'shipped,delivered,cancelled' %}disabled{% endif %}>Processing</option>
+                        <option value="shipped" {% if order.status == 'shipped' %}selected{% elif order.status in 'delivered,cancelled' %}disabled{% endif %}>Shipped</option>
+                        <option value="delivered" {% if order.status == 'delivered' %}selected{% elif order.status == 'cancelled' %}disabled{% endif %}>Delivered</option>
                         <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
                     </select>
                 </div>
@@ -286,6 +293,16 @@
     </div>
 </div>
 
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll('.customizations-list').forEach(function(el) {
+            // Check if there are any spans inside other than the strong tag
+            if (el.querySelectorAll('span').length === 0) {
+                el.style.display = 'none';
+            }
+        });
+    });
+</script>
 <style>
 /* Layout Grid */
 .detail-grid {

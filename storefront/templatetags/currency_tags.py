@@ -15,15 +15,24 @@ def convert_price(request, price):
     target_currency_code = request.session.get('currency_code', tenant.currency)
     
     if target_currency_code == tenant.currency:
-        return f"{tenant.currency_symbol}{price}"
+        try:
+            rounded_price = int(round(Decimal(str(price))))
+            return f"{tenant.currency_symbol}{rounded_price}"
+        except (ValueError, TypeError, Decimal.InvalidOperation):
+            return f"{tenant.currency_symbol}{price}"
         
     supported = tenant.supported_currencies.filter(code=target_currency_code, is_active=True).first()
     if not supported:
-        return f"{tenant.currency_symbol}{price}"
+        try:
+            rounded_price = int(round(Decimal(str(price))))
+            return f"{tenant.currency_symbol}{rounded_price}"
+        except (ValueError, TypeError, Decimal.InvalidOperation):
+            return f"{tenant.currency_symbol}{price}"
         
     try:
         converted_price = Decimal(str(price)) * supported.exchange_rate
-        return f"{supported.symbol}{converted_price:.2f}"
+        rounded_price = int(round(converted_price))
+        return f"{supported.symbol}{rounded_price}"
     except (ValueError, TypeError, Decimal.InvalidOperation):
         return f"{tenant.currency_symbol}{price}"
 
@@ -39,15 +48,21 @@ def convert_price_raw(request, price):
     target_currency_code = request.session.get('currency_code', tenant.currency)
     
     if target_currency_code == tenant.currency:
-        return Decimal(str(price))
+        try:
+            return Decimal(str(int(round(Decimal(str(price))))))
+        except (ValueError, TypeError, Decimal.InvalidOperation):
+            return Decimal(str(price))
         
     supported = tenant.supported_currencies.filter(code=target_currency_code, is_active=True).first()
     if not supported:
-        return Decimal(str(price))
+        try:
+            return Decimal(str(int(round(Decimal(str(price))))))
+        except (ValueError, TypeError, Decimal.InvalidOperation):
+            return Decimal(str(price))
         
     try:
         converted_price = Decimal(str(price)) * supported.exchange_rate
-        return Decimal(f"{converted_price:.2f}")
+        return Decimal(str(int(round(converted_price))))
     except (ValueError, TypeError, Decimal.InvalidOperation):
         return Decimal(str(price))
 

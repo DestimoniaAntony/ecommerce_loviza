@@ -319,7 +319,7 @@
       </div>
 
       <!-- Column 3: Social -->
-      {% if request.tenant.instagram_url or request.tenant.facebook_url or request.tenant.twitter_url or request.tenant.youtube_url %}
+      {% if request.tenant.instagram_url or request.tenant.facebook_url or request.tenant.twitter_url or request.tenant.youtube_url or request.tenant.tiktok_url %}
       <div class="footer-col accordion-item">
         <div class="accordion-header" onclick="toggleFooterAccordion(this)">
           <span class="text-label-caps">Social Links</span>
@@ -342,6 +342,10 @@
             {% if request.tenant.youtube_url %}
             <li><a class="text-body-md" href="{{ request.tenant.youtube_url }}" target="_blank"
                 rel="noopener noreferrer">YouTube</a></li>
+            {% endif %}
+            {% if request.tenant.tiktok_url %}
+            <li><a class="text-body-md" href="{{ request.tenant.tiktok_url }}" target="_blank"
+                rel="noopener noreferrer">TikTok</a></li>
             {% endif %}
           </ul>
         </div>
@@ -545,7 +549,7 @@
           {% for item in cart.items.all %}
           <div class="cart-item">
             <div class="cart-item-img"
-              style="background-image: url('{% if item.product_variant.image %}{{ item.product_variant.image.url }}{% elif item.product_variant.product.image %}{{ item.product_variant.product.image.url }}{% else %}{% static 'storefront/images/product_main.png' %}{% endif %}');">
+              style="background-image: url('{% if item.product_variant.image %}{{ item.product_variant.image.url }}{% elif item.customization_data.image_url %}{{ item.customization_data.image_url }}{% elif item.product_variant.product.images.first %}{{ item.product_variant.product.images.first.image.url }}{% else %}{% static 'storefront/images/product_main.png' %}{% endif %}');">
             </div>
             <div class="cart-item-details" style="display: flex; flex-direction: column; gap: 0.5rem; flex-grow: 1;">
               <div>
