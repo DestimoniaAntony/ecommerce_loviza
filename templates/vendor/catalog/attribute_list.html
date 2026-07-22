@@ -26,15 +26,15 @@
         </div>
 
         <div class="data-card">
-            <div class="table-wrapper">
-                <table class="data-table">
+            <div class="table-wrapper" style="overflow-x: auto; max-width: 100vw;">
+                <table class="data-table" style="min-width: 650px; white-space: nowrap;">
                     <thead>
                         <tr>
                             <th>Attribute Name</th>
                             <th>Code</th>
                             <th>Type</th>
-                            <th>Group</th>
-                            <th>Properties</th>
+                            <!-- <th>Group</th> -->
+                            <!-- <th>Properties</th> -->
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -50,10 +50,10 @@
                                     {{ attr.get_type_display }}
                                 </span>
                             </td>
-                            <td class="text-secondary" style="font-size: 13px;">
+                            <!-- <td class="text-secondary" style="font-size: 13px;">
                                 {{ attr.group.name|default:"—" }}
-                            </td>
-                            <td>
+                            </td> -->
+                            <!-- <td>
                                 <div style="display: flex; flex-direction: column; gap: 2px;">
                                     {% if attr.is_required %}
                                         <span class="text-danger" style="font-size: 11px; font-weight: 500;">Required</span>
@@ -62,7 +62,7 @@
                                         <span class="text-success" style="font-size: 11px; font-weight: 500;">Filterable</span>
                                     {% endif %}
                                 </div>
-                            </td>
+                            </td> -->
                             <td>
                                 <div class="table-actions" style="display: flex; gap: 6px;">
                                     <a href="{% url 'catalog:attribute_edit' attr.pk %}" class="btn btn-sm btn-outline" style="font-size: 11px; padding: 4px 8px;">
