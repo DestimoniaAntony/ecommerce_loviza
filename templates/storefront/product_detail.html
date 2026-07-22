@@ -422,8 +422,10 @@
             <button class="product-wishlist-btn" onclick="event.stopPropagation(); toggleWishlist(this);" title="Add to Wishlist">
               <span class="material-symbols-outlined">favorite_border</span>
             </button>
-            {% if rel_product.image %}
-            <img alt="{{ rel_product.name }}" src="{{ rel_product.image.url }}"/>
+            {% if rel_product.variants.first.image %}
+            <img alt="{{ rel_product.name }}" src="{{ rel_product.variants.first.image.url }}"/>
+            {% elif rel_product.images.first %}
+            <img alt="{{ rel_product.name }}" src="{{ rel_product.images.first.image.url }}"/>
             {% else %}
             <img alt="{{ rel_product.name }}" src="{% static 'storefront/images/product_main.png' %}"/>
             {% endif %}
