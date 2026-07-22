@@ -41,6 +41,14 @@ class Category(MPTTModel):
     def __str__(self):
         return f"{self.vendor.business_name} — {self.name}"
 
+    def save(self, *args, **kwargs):
+        from django.utils.text import slugify
+        if not self.slug:
+            self.slug = slugify(self.name)
+        else:
+            self.slug = slugify(self.slug)
+        super().save(*args, **kwargs)
+
 
 class AttributeGroup(TimestampModel):
     """
@@ -167,6 +175,14 @@ class Product(TimestampModel):
 
     def __str__(self):
         return f"{self.vendor.business_name} — {self.name}"
+
+    def save(self, *args, **kwargs):
+        from django.utils.text import slugify
+        if not self.slug:
+            self.slug = slugify(self.name)
+        else:
+            self.slug = slugify(self.slug)
+        super().save(*args, **kwargs)
 
     @property
     def total_stock(self):
