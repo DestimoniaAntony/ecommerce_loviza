@@ -498,7 +498,7 @@
           <div class="product-card-details">
             <h3 class="text-body-md">{{ rel_product.name }}</h3>
             <p class="text-label-caps text-secondary">
-              {{ rel_product.price_range }}
+              {% format_price rel_product.price_range %}
               {% if rel_product.max_discount_percentage > 0 %}
                 <span style="color: #d32f2f; font-weight: bold; margin-left: 8px;">{{ rel_product.max_discount_percentage }}% OFF</span>
               {% endif %}
