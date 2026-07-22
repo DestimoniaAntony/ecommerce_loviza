@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 from mptt.models import MPTTModel, TreeForeignKey
 from core.models import TimestampModel
 
@@ -212,6 +213,10 @@ class ProductVariant(TimestampModel):
     Represents a specific sellable stock-keeping unit (SKU) of a product.
     If a product has no variants, a single default variant represents it.
     """
+    def clean(self):
+        super().clean()
+        if self.price is not None and self.price <= 0:
+            raise ValidationError({'price': 'Price must be greater than zero.'})
     product = models.ForeignKey(
         Product,
         on_delete=models.CASCADE,

@@ -100,7 +100,7 @@
             <div class="form-grid-2">
                 <div class="form-group">
                     <label class="form-label" for="base_price">Base Price ({{ request.user.vendor.currency_symbol|default:'AED' }})</label>
-                    <input type="number" step="0.01" min="0" id="base_price" name="base_price" class="form-input" placeholder="0.00" 
+                    <input type="number" step="0.01" min="0.01" id="base_price" name="base_price" class="form-input" placeholder="0.00" 
                            value="{% if product and product.attributes_data.base_price %}{{ product.attributes_data.base_price }}{% elif default_variant %}{{ default_variant.price|floatformat:'2' }}{% endif %}" required>
                 </div>
                 <div class="form-group">
@@ -346,7 +346,7 @@
                                     <input type="text" name="variant_sku[]" class="form-input" style="padding: 6px; font-size: 13px;" value="{{ variant.sku }}" required>
                                 </td>
                                 <td>
-                                    <input type="number" name="variant_price[]" class="form-input" style="padding: 6px; font-size: 13px;" step="0.01" min="0.00" value="{{ variant.price }}" required>
+                                    <input type="number" name="variant_price[]" class="form-input" style="padding: 6px; font-size: 13px;" step="0.01" min="0.01" value="{{ variant.price }}" required>
                                 </td>
                                 <td>
                                     <input type="number" name="variant_compare_at_price[]" class="form-input" style="padding: 6px; font-size: 13px;" step="0.01" min="0.00" value="{{ variant.compare_at_price|default:'' }}">
@@ -567,7 +567,7 @@
                             <input type="text" name="variant_sku[]" class="form-input" style="padding: 6px; font-size: 13px;" value="${generatedSku}" required>
                         </td>
                         <td>
-                            <input type="number" name="variant_price[]" class="form-input" style="padding: 6px; font-size: 13px;" step="0.01" min="0.00" value="0.00" required>
+                            <input type="number" name="variant_price[]" class="form-input" style="padding: 6px; font-size: 13px;" step="0.01" min="0.01" value="" required placeholder="0.01">
                         </td>
                         <td>
                             <input type="number" name="variant_compare_at_price[]" class="form-input" style="padding: 6px; font-size: 13px;" step="0.01" min="0.00" value="">

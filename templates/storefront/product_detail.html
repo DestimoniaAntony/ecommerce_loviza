@@ -156,6 +156,8 @@
                       {% if variants %}
                           {% if request.tenant.track_inventory and default_variant.stock_qty <= 0 %}
                           <button type="submit" id="add-to-cart-btn" class="primary-cta-btn" disabled style="width: 100%; height: 48px; border-radius: 4px; font-weight: 500; text-transform: none; font-size: 1rem; opacity: 0.5; display: flex; align-items: center; justify-content: center; letter-spacing: normal;">Out of stock</button>
+                          {% elif default_variant.price <= 0 %}
+                          <button type="submit" id="add-to-cart-btn" class="primary-cta-btn" disabled style="width: 100%; height: 48px; border-radius: 4px; font-weight: 500; text-transform: none; font-size: 1rem; opacity: 0.5; display: flex; align-items: center; justify-content: center; letter-spacing: normal;">Price Unavailable</button>
                           {% else %}
                           <button type="submit" id="add-to-cart-btn" class="primary-cta-btn" style="width: 100%; height: 48px; border-radius: 4px; font-weight: 500; text-transform: none; font-size: 1rem; display: flex; align-items: center; justify-content: center; letter-spacing: normal;">Add to cart</button>
                           {% endif %}
@@ -169,6 +171,8 @@
         <div class="cta-actions" style="margin-top: 1rem; margin-bottom: 2rem;">
             {% if variants %}
                 {% if request.tenant.track_inventory and default_variant.stock_qty <= 0 %}
+                <button type="button" id="buy-now-btn" class="secondary-cta-btn" disabled style="width: 100%; height: 48px; border-radius: 4px; font-weight: 500; text-transform: none; font-size: 1rem; opacity: 0.5; display: flex; align-items: center; justify-content: center; letter-spacing: normal;">Buy it now</button>
+                {% elif default_variant.price <= 0 %}
                 <button type="button" id="buy-now-btn" class="secondary-cta-btn" disabled style="width: 100%; height: 48px; border-radius: 4px; font-weight: 500; text-transform: none; font-size: 1rem; opacity: 0.5; display: flex; align-items: center; justify-content: center; letter-spacing: normal;">Buy it now</button>
                 {% else %}
                 <button type="button" id="buy-now-btn" class="secondary-cta-btn" onclick="this.form.submit(); setTimeout(()=>location.href='{% url 'storefront:checkout' %}', 500);" style="width: 100%; height: 48px; border-radius: 4px; font-weight: 500; text-transform: none; font-size: 1rem; display: flex; align-items: center; justify-content: center; letter-spacing: normal;">Buy it now</button>
@@ -273,10 +277,17 @@
             }
             
             if (addBtn && buyBtn) {
+                const parsedPrice = parseFloat(variantData.price.replace(/[^\d.]/g, ''));
                 if (trackInventory === 'true' && parseFloat(variantData.stock_qty) <= 0) {
                     addBtn.disabled = true;
                     addBtn.style.opacity = '0.5';
                     addBtn.innerText = 'Out of stock';
+                    buyBtn.disabled = true;
+                    buyBtn.style.opacity = '0.5';
+                } else if (!isNaN(parsedPrice) && parsedPrice <= 0) {
+                    addBtn.disabled = true;
+                    addBtn.style.opacity = '0.5';
+                    addBtn.innerText = 'Price Unavailable';
                     buyBtn.disabled = true;
                     buyBtn.style.opacity = '0.5';
                 } else {
@@ -331,10 +342,17 @@
         const addBtn = document.getElementById('add-to-cart-btn');
         const buyBtn = document.getElementById('buy-now-btn');
         if (addBtn && buyBtn) {
+            const parsedPrice = parseFloat(priceStr.replace(/[^\d.]/g, ''));
             if (trackInventoryFlag === 'true' && parseFloat(stockQty) <= 0) {
                 addBtn.disabled = true;
                 addBtn.style.opacity = '0.5';
                 addBtn.innerText = 'Out of stock';
+                buyBtn.disabled = true;
+                buyBtn.style.opacity = '0.5';
+            } else if (!isNaN(parsedPrice) && parsedPrice <= 0) {
+                addBtn.disabled = true;
+                addBtn.style.opacity = '0.5';
+                addBtn.innerText = 'Price Unavailable';
                 buyBtn.disabled = true;
                 buyBtn.style.opacity = '0.5';
             } else {
