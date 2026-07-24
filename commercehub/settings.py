@@ -20,7 +20,7 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*', cast=Csv())
 # ─────────────────────────────────────────────
 # CUSTOM USER MODEL
 # ─────────────────────────────────────────────
-AUTH_USER_MODEL = 'accounts.User'
+AUTH_USER_MODEL = 'accounts.User' 
 
 # ─────────────────────────────────────────────
 # INSTALLED APPS
