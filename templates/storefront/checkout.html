@@ -51,10 +51,11 @@
             <div style="margin-bottom: 1.5rem;">
                 <p class="text-caption text-secondary" style="margin-bottom: 0.5rem;">Select saved address:</p>
                 {% for addr in addresses %}
-                <label style="display: block; padding: 1rem; border: 1px solid var(--border-color); margin-bottom: 0.5rem; cursor: pointer;" onclick="document.getElementById('new-address-form').style.display='none'; updateShipping('{{ addr.country }}');">
+                <label style="display: block; padding: 1rem; border: 1px solid var(--border-color); margin-bottom: 0.5rem; cursor: pointer; position: relative;" onclick="document.getElementById('new-address-form').style.display='none'; updateShipping('{{ addr.country }}');">
                     <input type="radio" name="address_id" value="{{ addr.id }}" {% if forloop.first %}checked{% endif %} style="margin-right: 0.5rem;" data-country="{{ addr.country }}">
                     <strong>{{ addr.recipient_name }}</strong> - {{ addr.phone }}<br>
                     {{ addr.address_line1 }}, {{ addr.city }}
+                    <button type="submit" formaction="{% url 'storefront:address_delete' addr.id %}?next={{ request.path }}" formnovalidate onclick="event.stopPropagation(); return confirm('Remove this address?');" style="position: absolute; right: 1rem; top: 1rem; background: none; border: none; color: #d32f2f; text-decoration: underline; font-size: 0.85rem; cursor: pointer; padding: 0;">Remove</button>
                 </label>
                 {% endfor %}
                 <label style="display: block; padding: 1rem; border: 1px solid var(--border-color); margin-bottom: 0.5rem; cursor: pointer;" onclick="document.getElementById('new-address-form').style.display='block';">
