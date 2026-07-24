@@ -51,8 +51,8 @@
             <div style="margin-bottom: 1.5rem;">
                 <p class="text-caption text-secondary" style="margin-bottom: 0.5rem;">Select saved address:</p>
                 {% for addr in addresses %}
-                <label style="display: block; padding: 1rem; border: 1px solid var(--border-color); margin-bottom: 0.5rem; cursor: pointer;" onclick="document.getElementById('new-address-form').style.display='none';">
-                    <input type="radio" name="address_id" value="{{ addr.id }}" {% if forloop.first %}checked{% endif %} style="margin-right: 0.5rem;">
+                <label style="display: block; padding: 1rem; border: 1px solid var(--border-color); margin-bottom: 0.5rem; cursor: pointer;" onclick="document.getElementById('new-address-form').style.display='none'; updateShipping('{{ addr.country }}');">
+                    <input type="radio" name="address_id" value="{{ addr.id }}" {% if forloop.first %}checked{% endif %} style="margin-right: 0.5rem;" data-country="{{ addr.country }}">
                     <strong>{{ addr.recipient_name }}</strong> - {{ addr.phone }}<br>
                     {{ addr.address_line1 }}, {{ addr.city }}
                 </label>
@@ -89,6 +89,19 @@
                 <div class="newsletter-input-wrapper">
                   <input class="editorial-input" name="pincode" placeholder="Postal Code" type="text" {% if not addresses %}required{% endif %}/>
                 </div>
+              </div>
+              <div class="newsletter-input-wrapper" style="margin-top: 1rem;">
+                <select class="editorial-input" name="country" id="new-address-country" {% if not addresses %}required{% endif %} onchange="updateShipping(this.value)">
+                  <option value="">Select Country</option>
+                  <option value="United Arab Emirates">United Arab Emirates</option>
+                  <option value="Saudi Arabia">Saudi Arabia</option>
+                  <option value="Qatar">Qatar</option>
+                  <option value="Oman">Oman</option>
+                  <option value="Kuwait">Kuwait</option>
+                  <option value="Bahrain">Bahrain</option>
+                  <option value="Other">Other</option>
+                </select>
+                <input class="editorial-input" name="custom_country" id="custom-country-input" placeholder="Type your country name" type="text" style="display: none; margin-top: 0.5rem;" />
               </div>
             </div>
           </section>
@@ -178,7 +191,9 @@
                   <div style="margin-top: 0.25rem; padding: 0.25rem; background: #fafafa; border: 1px solid #eee; border-radius: 4px; font-size: 0.65rem; color: #555;">
                       <p style="margin: 0 0 0.1rem 0; font-weight: 600;">Customizations:</p>
                       {% for key, val in item.customization_data.items %}
+                          {% if key != 'is_customized' and key != '_base_price' and key != '_custom_fee' and key != 'image_url' %}
                           <p style="margin: 0;">{{ key|title }}: {{ val }}</p>
+                          {% endif %}
                       {% endfor %}
                   </div>
                   {% endif %}
@@ -196,12 +211,12 @@
             </div>
             <div class="summary-item-row">
               <span>Shipping</span>
-              <strong>{% format_price delivery_charge %}</strong>
+              <strong id="summary-shipping">{% format_price delivery_charge %}</strong>
             </div>
             
             <div class="summary-item-row total" style="margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
               <span>Total</span>
-              <strong>{% format_price grand_total %}</strong>
+              <strong id="summary-total">{% format_price grand_total %}</strong>
             </div>
           </div>
           
@@ -225,6 +240,55 @@
   </main>{% endblock %}
 {% block scripts %}
 <script>
+    const gccCountries = ['United Arab Emirates', 'Saudi Arabia', 'Qatar', 'Oman', 'Kuwait', 'Bahrain'];
+    const gccShippingCharge = parseFloat("{{ request.tenant.gcc_shipping_charge|default:'100' }}");
+    const nonGccShippingCharge = parseFloat("{{ request.tenant.non_gcc_shipping_charge|default:'150' }}");
+    const baseSubtotal = parseFloat("{{ subtotal }}");
+    const couponDiscount = parseFloat("{{ coupon_discount|default:'0' }}");
+    const loyaltyDiscount = parseFloat("{{ loyalty_discount_value|default:'0' }}");
+    const currencySymbol = "{{ request.tenant.currency_symbol|default:'₹' }}";
+
+    function formatPrice(amount) {
+        return currencySymbol + parseFloat(amount).toFixed(2);
+    }
+
+    function updateShipping(country) {
+        if (!country) return;
+        
+        const customInput = document.getElementById('custom-country-input');
+        if (country === 'Other') {
+            if(customInput) {
+                customInput.style.display = 'block';
+                customInput.required = true;
+            }
+        } else {
+            if(customInput) {
+                customInput.style.display = 'none';
+                customInput.required = false;
+            }
+        }
+
+        let shippingCharge = 0;
+        if (gccCountries.includes(country)) {
+            shippingCharge = gccShippingCharge;
+        } else {
+            shippingCharge = nonGccShippingCharge;
+        }
+        
+        const newTotal = (baseSubtotal - couponDiscount - loyaltyDiscount) + shippingCharge;
+        
+        document.getElementById('summary-shipping').innerText = formatPrice(shippingCharge);
+        document.getElementById('summary-total').innerText = formatPrice(newTotal);
+    }
+
+    // Call on load if there's an already checked address
+    document.addEventListener("DOMContentLoaded", function() {
+        const checkedAddr = document.querySelector('input[name="address_id"]:checked');
+        if (checkedAddr && checkedAddr.dataset.country) {
+            updateShipping(checkedAddr.dataset.country);
+        }
+    });
+
     function selectShipping(method) {
       document.getElementById('ship-express').classList.remove('active');
       document.getElementById('ship-standard').classList.remove('active');

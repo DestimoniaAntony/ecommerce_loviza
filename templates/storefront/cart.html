@@ -97,7 +97,7 @@
                                         <p style="margin: 0;">Size: Customize (+{% format_price item.custom_fee|default:0 %})</p>
                                         {% endif %}
                                         {% for key, val in item.customization_data.items %}
-                                            {% if key != 'is_customized' and key != '_base_price' and key != '_custom_fee' %}
+                                            {% if key != 'is_customized' and key != '_base_price' and key != '_custom_fee' and key != 'image_url' %}
                                                 <p style="margin: 0;">{{ key|title }}: {{ val }}</p>
                                             {% endif %}
                                         {% endfor %}

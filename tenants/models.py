@@ -166,6 +166,18 @@ class Vendor(TimestampModel):
         default=False,
         help_text="If enabled, product stock is tracked, preventing overselling."
     )
+    gcc_shipping_charge = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        default=100.00,
+        help_text="Shipping charge for GCC countries (UAE, Saudi Arabia, Qatar, Oman, Kuwait, Bahrain)"
+    )
+    non_gcc_shipping_charge = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        default=150.00,
+        help_text="Shipping charge for non-GCC countries"
+    )
 
     # ── White Label ──
     primary_color = models.CharField(max_length=7, default='#6366f1')

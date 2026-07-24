@@ -894,10 +894,18 @@ class CheckoutView(View):
         else:
             addresses = []
         
-        # Calculate standard shipping flat rate (e.g. ₹50 if total < ₹1000, else free shipping)
+        # Determine initial shipping based on default address
+        default_country = 'United Arab Emirates'
+        if addresses:
+            default_country = addresses[0].country
+
+        gcc_countries = ['United Arab Emirates', 'Saudi Arabia', 'Qatar', 'Oman', 'Kuwait', 'Bahrain']
+        if default_country in gcc_countries:
+            delivery = request.tenant.gcc_shipping_charge
+        else:
+            delivery = request.tenant.non_gcc_shipping_charge
+            
         subtotal = cart.total_price
-        delivery = Decimal('50.00') if subtotal < Decimal('1000.00') else Decimal('0.00')
-        
         # Get loyalty points details
         from crm.models import LoyaltyLedger, LoyaltyProgram
         loyalty_program = getattr(request.tenant, 'loyalty_program', None)
@@ -1060,6 +1068,10 @@ class PlaceOrderView(View):
                     # Just link the order and address to them.
                     pass
 
+            country_val = request.POST.get('country', 'United Arab Emirates')
+            if country_val == 'Other':
+                country_val = request.POST.get('custom_country', '').strip()
+                
             addr = CustomerAddress.objects.create(
                 customer=checkout_user,
                 recipient_name=recipient_name,
@@ -1069,6 +1081,7 @@ class PlaceOrderView(View):
                 city=city,
                 state=state,
                 pincode=pincode,
+                country=country_val,
                 is_default=not CustomerAddress.objects.filter(customer=checkout_user).exists()
             )
 
@@ -1094,7 +1107,13 @@ class PlaceOrderView(View):
             )
 
         subtotal = cart.total_price
-        delivery = Decimal('50.00') if subtotal < Decimal('1000.00') else Decimal('0.00')
+        
+        country = addr.country if addr else 'United Arab Emirates'
+        gcc_countries = ['United Arab Emirates', 'Saudi Arabia', 'Qatar', 'Oman', 'Kuwait', 'Bahrain']
+        if country in gcc_countries:
+            delivery = vendor.gcc_shipping_charge
+        else:
+            delivery = vendor.non_gcc_shipping_charge
 
         # Get discounts from CRM module
         redeem_loyalty = (request.POST.get('redeem_loyalty') == '1')

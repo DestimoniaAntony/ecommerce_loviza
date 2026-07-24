@@ -317,6 +317,20 @@ class VendorSettingsView(VendorLoginRequiredMixin, View):
         vendor.secondary_color = request.POST.get('secondary_color', vendor.secondary_color).strip()
         vendor.top_announcement_text = request.POST.get('top_announcement_text', '')
 
+        gcc_val = request.POST.get('gcc_shipping_charge')
+        if gcc_val:
+            try:
+                vendor.gcc_shipping_charge = float(gcc_val)
+            except ValueError:
+                pass
+                
+        non_gcc_val = request.POST.get('non_gcc_shipping_charge')
+        if non_gcc_val:
+            try:
+                vendor.non_gcc_shipping_charge = float(non_gcc_val)
+            except ValueError:
+                pass
+
         vendor.save()
         messages.success(request, 'Store settings updated successfully!')
         return redirect('commercehub_app:settings')

@@ -12,10 +12,20 @@
     <span>#{{ order.order_number }}</span>
 </div>
 
-<div class="page-header-row" style="margin-bottom: 24px;">
+<div class="page-header-row" style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start;">
     <div class="page-header-info">
         <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px 0;">Order #{{ order.order_number }}</h2>
         <p class="page-subtitle" style="margin: 0;">Placed on {{ order.created_at|date:"d M Y, h:i A" }} at branch: <strong>{{ order.branch.name }}</strong></p>
+    </div>
+    <div class="page-header-actions">
+        <button onclick="window.print()" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                <rect x="6" y="14" width="12" height="8"></rect>
+            </svg>
+            Print Order
+        </button>
     </div>
 </div>
 
@@ -293,6 +303,132 @@
     </div>
 </div>
 
+<!-- PRINT ONLY VIEW -->
+<div class="print-only">
+    <!-- SECTION 1: EMPLOYEE COPY (No Prices) -->
+    <div class="print-section">
+        <h2 style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px;">Order #{{ order.order_number }} - Employee Copy</h2>
+        <p><strong>Date:</strong> {{ order.created_at|date:"d M Y, h:i A" }}</p>
+        <p><strong>Customer Name:</strong> {{ order.shipping_name }}</p>
+        
+        {% if order.notes %}
+        <p><strong>Notes:</strong> {{ order.notes }}</p>
+        {% endif %}
+
+        <table class="print-table">
+            <thead>
+                <tr>
+                    <th style="width: 80px;">Image</th>
+                    <th>Product Details</th>
+                    <th style="text-align: center; width: 100px;">Quantity</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items.all %}
+                <tr>
+                    <td>
+                        <img src="{% if item.product_variant.image %}{{ item.product_variant.image.url }}{% elif item.customization_data.image_url %}{{ item.customization_data.image_url }}{% elif item.product_variant.product.images.first %}{{ item.product_variant.product.images.first.image.url }}{% else %}{% static 'storefront/images/product_main.png' %}{% endif %}" style="width: 60px; height: 60px; object-fit: cover;">
+                    </td>
+                    <td>
+                        <strong>{{ item.product_variant.product.name }}</strong>
+                        {% if item.product_variant.name and item.product_variant.name != "Default" %}
+                            <br><small>Variant: {{ item.product_variant.name }}</small>
+                        {% endif %}
+                        <br><small>SKU: {{ item.product_variant.sku }}</small>
+                        {% if item.customization_data %}
+                            <br><small><strong>Customizations:</strong></small>
+                            {% for key, val in item.customization_data.items %}
+                                {% if key != 'image_url' and key != '_base_price' and key != '_custom_fee' and key != 'is_customized' %}
+                                <br><small>{{ key|title }}: {{ val }}</small>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </td>
+                    <td style="text-align: center; font-weight: bold; font-size: 1.2rem;">
+                        {{ item.quantity }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <hr style="border: 0; border-top: 2px dashed #999; margin: 40px 0;">
+
+    <!-- SECTION 2: MERCHANT COPY (With Prices & Payment) -->
+    <div class="print-section">
+        <h2 style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px;">Order #{{ order.order_number }} - Merchant Copy</h2>
+        <p><strong>Date:</strong> {{ order.created_at|date:"d M Y, h:i A" }}</p>
+        <p><strong>Customer Name:</strong> {{ order.shipping_name }} ({{ order.shipping_phone }})</p>
+        <p><strong>Shipping Address:</strong><br>{{ order.shipping_address|linebreaksbr }}</p>
+        
+        {% if order.notes %}
+        <p><strong>Notes:</strong> {{ order.notes }}</p>
+        {% endif %}
+
+        <table class="print-table">
+            <thead>
+                <tr>
+                    <th style="width: 80px;">Image</th>
+                    <th>Product Details</th>
+                    <th style="text-align: right;">Price</th>
+                    <th style="text-align: center;">Qty</th>
+                    <th style="text-align: right;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items.all %}
+                <tr>
+                    <td>
+                        <img src="{% if item.product_variant.image %}{{ item.product_variant.image.url }}{% elif item.customization_data.image_url %}{{ item.customization_data.image_url }}{% elif item.product_variant.product.images.first %}{{ item.product_variant.product.images.first.image.url }}{% else %}{% static 'storefront/images/product_main.png' %}{% endif %}" style="width: 60px; height: 60px; object-fit: cover;">
+                    </td>
+                    <td>
+                        <strong>{{ item.product_variant.product.name }}</strong>
+                        {% if item.product_variant.name and item.product_variant.name != "Default" %}
+                            <br><small>Variant: {{ item.product_variant.name }}</small>
+                        {% endif %}
+                        <br><small>SKU: {{ item.product_variant.sku }}</small>
+                    </td>
+                    <td style="text-align: right;">{{ order.vendor.currency_symbol|default:"₹" }}{{ item.price }}</td>
+                    <td style="text-align: center; font-weight: bold;">{{ item.quantity }}</td>
+                    <td style="text-align: right; font-weight: bold;">{{ order.vendor.currency_symbol|default:"₹" }}{{ item.total_cost }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 15px;">
+            <!-- Left Side: Payment & Fulfillment -->
+            <div style="flex: 1; margin-right: 20px; border: 1px solid #ccc; padding: 10px; font-size: 0.85rem;">
+                <h3 style="margin-top: 0; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 4px; font-size: 0.95rem;">Payment & Fulfillment Details</h3>
+                <div style="display: flex; justify-content: space-between;">
+                    <div>
+                        <p style="margin: 3px 0;"><strong>Payment Method:</strong> {{ order.get_payment_method_display }}</p>
+                        <p style="margin: 3px 0;"><strong>Payment Status:</strong> <span style="text-transform: uppercase;">{{ order.payment_status }}</span></p>
+                    </div>
+                    <div>
+                        <p style="margin: 3px 0;"><strong>Fulfillment Status:</strong> <span style="text-transform: uppercase;">{{ order.status }}</span></p>
+                        {% if order.gateway_order_id %}
+                        <p style="margin: 3px 0;"><strong>Gateway Order ID:</strong> {{ order.gateway_order_id }}</p>
+                        {% endif %}
+                        {% if order.gateway_payment_id %}
+                        <p style="margin: 3px 0;"><strong>Gateway Payment ID:</strong> {{ order.gateway_payment_id }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Totals -->
+            <div style="width: 250px; text-align: right; font-size: 0.9rem;">
+                <p style="margin: 3px 0;">Subtotal: <strong>{{ order.vendor.currency_symbol|default:"₹" }}{{ order.subtotal_amount }}</strong></p>
+                <p style="margin: 3px 0;">Tax: <strong>{{ order.vendor.currency_symbol|default:"₹" }}{{ order.tax_amount }}</strong></p>
+                <p style="margin: 3px 0;">Delivery: <strong>{{ order.vendor.currency_symbol|default:"₹" }}{{ order.delivery_charge }}</strong></p>
+                <h3 style="border-top: 1px solid #000; padding-top: 8px; margin-top: 8px; font-size: 1.1rem;">Grand Total: {{ order.vendor.currency_symbol|default:"₹" }}{{ order.total_amount }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         document.querySelectorAll('.customizations-list').forEach(function(el) {
@@ -425,6 +561,86 @@
 .status-box-item .label {
     font-size: 0.85rem;
     color: var(--text-muted);
+}
+
+/* --- Print Styles --- */
+.print-only {
+    display: none;
+}
+
+@media print {
+    /* Hide non-printable elements */
+    .sidebar, 
+    .topbar,
+    .messages-container,
+    .breadcrumb, 
+    .page-header-row, 
+    .detail-grid,
+    .footer {
+        display: none !important;
+    }
+    
+    /* Ensure body is white and flows normally */
+    body, .admin-wrapper, .main-content, .page-content {
+        background: #fff !important;
+        color: #000 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        display: block !important;
+    }
+
+    @page {
+        margin: 20mm; /* Standard print margin */
+    }
+
+    /* Print Only Container */
+    .print-only {
+        display: block !important;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .print-section {
+        padding: 10px 15px; /* Add some extra padding if needed */
+        font-family: Arial, sans-serif;
+        font-size: 0.85rem; /* Reduced font size */
+    }
+
+    .print-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+        margin-bottom: 15px;
+        font-size: 0.85rem; /* Reduced font size */
+    }
+
+    .print-table th, .print-table td {
+        border: 1px solid #333;
+        padding: 6px; /* Reduced padding */
+        color: #000;
+        vertical-align: top;
+    }
+
+    .print-table th {
+        background-color: #f5f5f5 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        font-weight: bold;
+    }
+
+    .page-break {
+        page-break-before: always;
+    }
+
+    /* Override any dark mode text colors in print */
+    .print-only h2, .print-only h3, .print-only p, .print-only span, .print-only td, .print-only th, .print-only strong, .print-only small {
+        color: #000 !important;
+    }
+    
+    .print-only img {
+        border: 1px solid #ccc;
+    }
 }
 </style>
 {% endblock %}
